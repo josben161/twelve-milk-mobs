@@ -1,4 +1,7 @@
 // apps/admin-web/app/page.tsx
+import { AdminShell } from '@/components/ui';
+import { StatCard } from '@/components/ui';
+import { Panel } from '@/components/ui';
 
 const mockStats = {
   totalVideos: 428,
@@ -34,126 +37,112 @@ const statCards = [
 
 export default function AdminHomePage() {
   return (
-    <div className="min-h-full bg-[var(--bg)] text-[var(--text)]">
-      <div className="mx-auto flex max-w-6xl flex-col gap-6">
-        {/* Campaign banner */}
-        <section className="mt-2 overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-gradient-to-r from-indigo-600/80 via-indigo-500 to-violet-500 px-5 py-4 shadow-[0_18px_45px_rgba(15,23,42,0.8)]">
-          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-indigo-100/80">
-                Got Milk · Gen Z campaign
-              </p>
-              <h1 className="mt-1 text-lg font-semibold text-white">
-                Campaign Overview
-              </h1>
-              <p className="mt-1 text-xs text-indigo-100/90 max-w-xl">
-                Monitor performance, validation quality, and engagement across all
-                Milk Mob communities. Powered by TwelveLabs video understanding.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-4 text-xs text-indigo-100/90 mt-3 md:mt-0">
-              <div>
-                <p className="opacity-80">Avg validation score</p>
-                <p className="text-sm font-semibold">
-                  {Math.round(mockStats.avgValidationScore * 100)}%
-                </p>
-              </div>
-              <div>
-                <p className="opacity-80">Avg processing time</p>
-                <p className="text-sm font-semibold">
-                  {mockStats.avgTimeToValidate}
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Stat cards */}
-        <section className="grid gap-4 md:grid-cols-4">
-          {statCards.map((card) => (
-            <div
-              key={card.label}
-              className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-soft)] px-4 py-3 shadow-sm"
-            >
-              <p className="text-[11px] uppercase tracking-wide text-[var(--text-muted)]">
-                {card.label}
-              </p>
-              <p className="mt-2 text-xl font-semibold">{card.value}</p>
-              <p className="mt-1 text-[11px] text-[var(--text-muted)]">
-                {card.caption}
-              </p>
-            </div>
-          ))}
-        </section>
-
-        {/* Funnel + quality metrics */}
-        <section className="grid gap-4 md:grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)]">
-          {/* Validation funnel card */}
-          <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-soft)] p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-1">
-              <h2 className="text-sm font-semibold">Validation funnel</h2>
-              <span className="text-[11px] text-[var(--text-muted)]">
-                Daily ingest & decision trend
-              </span>
-            </div>
-            <p className="mb-4 text-xs text-[var(--text-muted)]">
-              This will show volume of videos ingested and how they flow through
-              processing, validation and rejection over time.
-            </p>
-            <div className="flex h-52 flex-col items-center justify-center rounded-xl border border-dashed border-[var(--border-subtle)] bg-[radial-gradient(circle_at_top,_#1f2937,_#020617)] text-xs text-[var(--text-muted)]">
-              <span className="mb-1 text-[var(--text)]/80">
-                Chart visualization
-              </span>
-              <span>Coming soon</span>
-            </div>
-          </div>
-
-          {/* Quality metrics card */}
-          <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-soft)] p-4 shadow-sm">
-            <h2 className="text-sm font-semibold mb-3">Quality metrics</h2>
-            <dl className="space-y-3 text-xs text-[var(--text-muted)]">
-              <div>
-                <dt className="mb-1 flex items-center justify-between">
-                  <span>Average validation score</span>
-                  <span className="font-semibold text-emerald-300">
-                    {Math.round(mockStats.avgValidationScore * 100)}%
-                  </span>
-                </dt>
-                <dd className="h-1.5 overflow-hidden rounded-full bg-slate-800">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-500"
-                    style={{ width: `${mockStats.avgValidationScore * 100}%` }}
-                  />
-                </dd>
-              </div>
-              <div>
-                <dt className="mb-1 flex items-center justify-between">
-                  <span>Average processing time</span>
-                  <span className="font-semibold text-sky-300">
-                    {mockStats.avgTimeToValidate}
-                  </span>
-                </dt>
-                <dd className="text-[11px]">
-                  Time from user upload to automated validation decision.
-                </dd>
-              </div>
-              <div>
-                <dt className="mb-1">Processing capabilities</dt>
-                <dd className="flex flex-wrap gap-1.5">
-                  {['Video', 'Audio', 'Text'].map((m) => (
-                    <span
-                      key={m}
-                      className="inline-flex items-center rounded-full border border-slate-700 bg-slate-900/60 px-2.5 py-0.5 text-[11px] text-slate-200"
-                    >
-                      {m}
-                    </span>
-                  ))}
-                </dd>
-              </div>
-            </dl>
-          </div>
-        </section>
+    <AdminShell>
+      {/* Page Header */}
+      <div>
+        <h1 className="text-2xl font-semibold text-[var(--text)]">Campaign overview</h1>
+        <p className="mt-1.5 text-sm text-[var(--text-muted)]">
+          Monitor ingestion, validation quality, and engagement across all Milk Mob communities.
+        </p>
       </div>
-    </div>
+
+      {/* Stat Cards Grid */}
+      <section className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        {statCards.map((card) => (
+          <StatCard
+            key={card.label}
+            label={card.label}
+            value={card.value}
+            caption={card.caption}
+          />
+        ))}
+      </section>
+
+      {/* Charts and Metrics Section */}
+      <section className="grid gap-4 grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)]">
+        {/* Validation Funnel Panel */}
+        <Panel className="p-6">
+          <div className="mb-4">
+            <h2 className="text-sm font-semibold text-[var(--text)] mb-1">Validation funnel</h2>
+            <p className="text-sm text-[var(--text-muted)]">
+              Daily content ingestion and validation outcomes over time.
+            </p>
+          </div>
+          <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-[var(--border-subtle)] bg-[var(--bg-subtle)]">
+            <div className="text-center space-y-2">
+              <svg
+                className="w-12 h-12 mx-auto text-[var(--text-soft)]"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                />
+              </svg>
+              <p className="text-xs text-[var(--text-muted)]">Chart coming soon</p>
+            </div>
+          </div>
+        </Panel>
+
+        {/* Quality Metrics Panel */}
+        <Panel className="p-6">
+          <div className="mb-4">
+            <h2 className="text-sm font-semibold text-[var(--text)] mb-1">Quality metrics</h2>
+            <p className="text-sm text-[var(--text-muted)]">
+              System performance and processing efficiency.
+            </p>
+          </div>
+          <div className="space-y-5">
+            {/* Average Validation Score */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-[var(--text-muted)]">Average validation score</span>
+                <span className="text-sm font-semibold text-[var(--text)]">
+                  {Math.round(mockStats.avgValidationScore * 100)}%
+                </span>
+              </div>
+              <div className="h-2 bg-[var(--bg-subtle)] rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-[var(--accent)] rounded-full transition-all"
+                  style={{ width: `${mockStats.avgValidationScore * 100}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Processing Time */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm text-[var(--text-muted)]">Average processing time</span>
+                <span className="text-sm font-semibold text-[var(--text)]">
+                  {mockStats.avgTimeToValidate}
+                </span>
+              </div>
+              <p className="text-xs text-[var(--text-muted)]">
+                Time from user upload to automated validation decision.
+              </p>
+            </div>
+
+            {/* Modalities Covered */}
+            <div>
+              <p className="text-xs text-[var(--text-muted)] mb-2">Modalities covered</p>
+              <div className="flex flex-wrap gap-2">
+                {['Video', 'Audio', 'Text'].map((modality) => (
+                  <span
+                    key={modality}
+                    className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--border-subtle)]"
+                  >
+                    {modality}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </Panel>
+      </section>
+    </AdminShell>
   );
 }
