@@ -5,58 +5,44 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const navItems = [
-  { href: '/', label: 'Overview', icon: '🏠' },
-  { href: '/videos', label: 'Videos', icon: '🎬' },
-  { href: '/mobs', label: 'Mobs', icon: '👥' },
-  { href: '/settings', label: 'Settings', icon: '⚙️' },
+  { href: '/', icon: '📊', label: 'Overview' },
+  { href: '/videos', icon: '🎬', label: 'Videos' },
+  { href: '/mobs', icon: '👥', label: 'Mobs' },
+  { href: '/settings', icon: '⚙️', label: 'Settings' },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden sm:flex w-60 flex-col border-r border-[var(--border-subtle)] bg-[var(--bg)]">
-      {/* Brand Row */}
-      <div className="flex items-center gap-2 px-4 h-12 border-b border-[var(--border-subtle)]">
-        <div className="h-6 w-6 rounded-full bg-gradient-to-br from-[var(--accent)] to-indigo-600 flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0">
+    <aside className="hidden sm:flex w-16 flex-col min-h-screen border-r border-[var(--border-subtle)] bg-[var(--bg-elevated)]">
+      {/* Logo Row */}
+      <div className="flex items-center justify-center h-14 border-b border-[var(--border-subtle)]">
+        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[var(--accent)] to-indigo-600 flex items-center justify-center text-[10px] font-bold text-white border border-[var(--border-subtle)]">
           MM
-        </div>
-        <div className="flex flex-col min-w-0">
-          <span className="text-sm font-bold text-[var(--text)] leading-tight truncate">Milk Mobs</span>
-          <span className="text-[11px] text-[var(--text-muted)] leading-tight truncate">
-            Campaign Manager
-          </span>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-2 py-3 space-y-1">
+      <nav className="flex-1 flex flex-col items-center py-3 gap-1">
         {navItems.map((item) => {
           const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
+              title={item.label}
+              className={`flex h-10 w-10 items-center justify-center rounded-xl text-slate-400 transition ${
                 isActive
-                  ? 'bg-[var(--bg-subtle)] text-[var(--text)] font-medium border border-[var(--border-subtle)]'
-                  : 'text-[var(--text-muted)] hover:bg-[var(--bg-subtle)] hover:text-[var(--text)]'
+                  ? 'bg-[var(--accent-soft)] text-[var(--accent)] shadow-sm'
+                  : 'hover:bg-slate-100 hover:text-slate-700'
               }`}
             >
-              <span className="text-base leading-none">{item.icon}</span>
-              <span>{item.label}</span>
+              <span className="text-lg leading-none">{item.icon}</span>
             </Link>
           );
         })}
       </nav>
-
-      {/* Footer */}
-      <div className="px-4 py-3 border-t border-[var(--border-subtle)]">
-        <p className="text-[10px] text-[var(--text-muted)]">
-          Powered by <span className="font-medium">TwelveLabs</span>
-        </p>
-      </div>
     </aside>
   );
 }
-

@@ -1,6 +1,4 @@
 // apps/admin-web/app/page.tsx
-import { StatCard } from '@/components/ui';
-import { Panel } from '@/components/ui';
 
 const mockStats = {
   totalVideos: 428,
@@ -15,22 +13,34 @@ const statCards = [
   {
     label: 'Total videos',
     value: mockStats.totalVideos.toLocaleString(),
-    caption: '+52 in last 24 hours',
+    change: '+52',
+    changeLabel: 'Last 24 hours',
+    trend: 'up' as const,
+    icon: '📹',
   },
   {
     label: 'Validated',
     value: mockStats.validated.toLocaleString(),
-    caption: '73% approval rate',
+    change: '73%',
+    changeLabel: 'Approval rate',
+    trend: 'neutral' as const,
+    icon: '✓',
   },
   {
     label: 'Rejected',
     value: mockStats.rejected.toLocaleString(),
-    caption: 'Content did not match brief',
+    change: '11%',
+    changeLabel: 'Rejection rate',
+    trend: 'down' as const,
+    icon: '✗',
   },
   {
     label: 'Active mobs',
     value: mockStats.mobs.toString(),
-    caption: 'e.g. Skatepark, Café Study',
+    change: '12',
+    changeLabel: 'Communities',
+    trend: 'neutral' as const,
+    icon: '👥',
   },
 ];
 
@@ -38,75 +48,76 @@ export default function AdminHomePage() {
   return (
     <>
       {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-semibold text-[var(--text)]">Campaign overview</h1>
-        <p className="mt-1.5 text-sm text-[var(--text-muted)]">
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold mb-2 text-[var(--text)]">Campaign overview</h1>
+        <p className="text-sm text-[var(--text-muted)]">
           Monitor ingestion, validation quality, and engagement across all Milk Mob communities.
         </p>
       </div>
 
       {/* Stat Cards Grid */}
-      <section className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {statCards.map((card) => (
-          <StatCard
+          <div
             key={card.label}
-            label={card.label}
-            value={card.value}
-            caption={card.caption}
-          />
+            className="bg-[var(--bg-elevated)] rounded-2xl border border-[var(--border-subtle)] shadow-sm px-4 py-3 flex flex-col gap-1"
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <div className="h-6 w-6 rounded-lg bg-[var(--accent-soft)] flex items-center justify-center text-xs">
+                {card.icon}
+              </div>
+              <span className="text-xs font-medium text-[var(--text-muted)]">{card.label}</span>
+            </div>
+            <p className="text-xl font-bold text-[var(--text)]">{card.value}</p>
+            <div className="flex items-center gap-1 mt-1">
+              <span
+                className={`text-xs font-medium ${
+                  card.trend === 'up'
+                    ? 'text-green-600'
+                    : card.trend === 'down'
+                    ? 'text-red-600'
+                    : 'text-[var(--text-muted)]'
+                }`}
+              >
+                {card.change}
+              </span>
+              <span className="text-xs text-[var(--text-muted)]">{card.changeLabel}</span>
+            </div>
+          </div>
         ))}
       </section>
 
-      {/* Charts and Metrics Section */}
-      <section className="grid gap-4 grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)]">
+      {/* Charts & Panels */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
         {/* Validation Funnel Panel */}
-        <Panel className="p-6">
-          <div className="mb-4">
-            <h2 className="text-sm font-semibold text-[var(--text)] mb-1">Validation funnel</h2>
-            <p className="text-xs text-[var(--text-muted)]">
-              Daily content ingestion and validation outcomes over time.
-            </p>
+        <div className="bg-[var(--bg-elevated)] rounded-2xl border border-[var(--border-subtle)] shadow-sm p-4">
+          <h2 className="text-sm font-semibold text-[var(--text)] mb-1">Validation funnel</h2>
+          <p className="text-xs text-[var(--text-muted)] mb-3">
+            Daily content ingestion and validation outcomes over time.
+          </p>
+          <div className="mt-3 h-56 rounded-xl bg-[var(--bg-subtle)] flex items-center justify-center text-xs text-[var(--text-muted)]">
+            Chart placeholder
           </div>
-          <div className="flex h-64 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-subtle)]">
-            <div className="text-center space-y-2">
-              <svg
-                className="w-10 h-10 mx-auto text-[var(--text-soft)]"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                />
-              </svg>
-              <p className="text-xs text-[var(--text-muted)]">Chart coming soon</p>
-            </div>
-          </div>
-        </Panel>
+        </div>
 
         {/* Quality Metrics Panel */}
-        <Panel className="p-6">
-          <div className="mb-4">
-            <h2 className="text-sm font-semibold text-[var(--text)] mb-1">Quality metrics</h2>
-            <p className="text-xs text-[var(--text-muted)]">
-              System performance and processing efficiency.
-            </p>
-          </div>
-          <div className="space-y-5">
+        <div className="bg-[var(--bg-elevated)] rounded-2xl border border-[var(--border-subtle)] shadow-sm p-4">
+          <h2 className="text-sm font-semibold text-[var(--text)] mb-1">Quality metrics</h2>
+          <p className="text-xs text-[var(--text-muted)] mb-3">
+            System performance and processing efficiency.
+          </p>
+          <div className="space-y-4">
             {/* Average Validation Score */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-[var(--text-muted)]">Average validation score</span>
+                <span className="text-xs text-[var(--text-muted)]">Average validation score</span>
                 <span className="text-sm font-semibold text-[var(--text)]">
                   {Math.round(mockStats.avgValidationScore * 100)}%
                 </span>
               </div>
-              <div className="h-2 bg-[var(--bg-subtle)] rounded-full overflow-hidden">
+              <div className="h-1.5 bg-[var(--bg-subtle)] rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-[var(--accent)] rounded-full transition-all"
+                  className="h-full bg-gradient-to-r from-[var(--accent)] to-indigo-500 rounded-full"
                   style={{ width: `${mockStats.avgValidationScore * 100}%` }}
                 />
               </div>
@@ -115,7 +126,7 @@ export default function AdminHomePage() {
             {/* Processing Time */}
             <div>
               <div className="flex items-center justify-between mb-1">
-                <span className="text-sm text-[var(--text-muted)]">Average processing time</span>
+                <span className="text-xs text-[var(--text-muted)]">Average processing time</span>
                 <span className="text-sm font-semibold text-[var(--text)]">
                   {mockStats.avgTimeToValidate}
                 </span>
@@ -140,7 +151,7 @@ export default function AdminHomePage() {
               </div>
             </div>
           </div>
-        </Panel>
+        </div>
       </section>
     </>
   );

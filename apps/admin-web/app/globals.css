@@ -1,28 +1,14 @@
 @import "tailwindcss";
 
-:root,
-.dark {
-  /* Dark theme (default) */
-  --bg: #0f1419;
-  --bg-elevated: #1a1f26;
-  --bg-subtle: #141920;
-  --border-subtle: #1e2832;
-  --text: #e4e7eb;
-  --text-muted: #9ca3af;
-  --accent: #6366f1;
-  --accent-soft: rgba(99, 102, 241, 0.1);
-}
-
-.light {
-  /* Light theme */
-  --bg: #ffffff;
-  --bg-elevated: #f8f9fa;
-  --bg-subtle: #f1f3f5;
-  --border-subtle: #e9ecef;
-  --text: #1a1f26;
+:root {
+  --bg: #f4f5f7;
+  --bg-elevated: #ffffff;
+  --bg-subtle: #eef0f4;
+  --border-subtle: #e2e4ea;
+  --text: #111827;
   --text-muted: #6b7280;
-  --accent: #6366f1;
-  --accent-soft: rgba(99, 102, 241, 0.1);
+  --accent: #4f46e5;
+  --accent-soft: #eef2ff;
 }
 
 * {
@@ -69,7 +55,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #2a3441;
+  background: #d1d5db;
 }
 
 /* Focus States */
