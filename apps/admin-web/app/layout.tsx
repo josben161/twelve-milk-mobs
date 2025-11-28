@@ -25,60 +25,68 @@ export default function RootLayout({
       <body className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
         <div className="flex min-h-screen">
           {/* Sidebar */}
-          <aside className="hidden sm:flex w-60 flex-col border-r border-[var(--border-subtle)] bg-[var(--bg-soft)]">
-            <div className="flex items-center gap-2 px-4 py-4 border-b border-[var(--border-subtle)]">
-              <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-xs font-semibold text-white">
+          <aside className="hidden sm:flex w-64 flex-col border-r border-[var(--border-subtle)] bg-[var(--bg-soft)]">
+            <div className="flex items-center gap-3 px-5 py-5 border-b border-[var(--border-subtle)]">
+              <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-[var(--accent)] to-[#42a5f5] flex items-center justify-center text-sm font-bold text-white shadow-sm">
                 MM
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-semibold">Milk Mobs</span>
-                <span className="text-[11px] text-[var(--text-muted)]">
-                  Admin dashboard
+                <span className="text-[15px] font-semibold text-[var(--text-primary)]">Milk Mobs</span>
+                <span className="text-xs text-[var(--text-secondary)]">
+                  Campaign Manager
                 </span>
               </div>
             </div>
 
-            <nav className="flex-1 px-2 py-3 space-y-1 text-sm text-[var(--text-muted)]">
+            <nav className="flex-1 px-2 py-4 space-y-0.5">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-[var(--accent-soft)] hover:text-white transition-colors"
+                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[15px] font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] transition-all duration-150"
                 >
                   <span>{item.label}</span>
                 </Link>
               ))}
             </nav>
 
-            <div className="px-4 py-3 border-t border-[var(--border-subtle)] text-[11px] text-[var(--text-muted)]">
-              Powered by TwelveLabs · v0.1
+            <div className="px-5 py-4 border-t border-[var(--border-subtle)]">
+              <p className="text-[11px] text-[var(--text-tertiary)] leading-relaxed">
+                Powered by <span className="font-medium text-[var(--text-secondary)]">TwelveLabs</span>
+                <br />
+                <span className="text-[10px]">v0.1.0</span>
+              </p>
             </div>
           </aside>
 
           {/* Main area */}
           <div className="flex flex-1 flex-col">
             {/* Top bar */}
-            <header className="flex items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--bg-soft)] px-4 py-3">
-              <div className="sm:hidden flex items-center gap-2">
-                <div className="h-7 w-7 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-[10px] font-semibold text-white">
+            <header className="flex items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--bg-soft)] px-6 py-4">
+              <div className="sm:hidden flex items-center gap-2.5">
+                <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[var(--accent)] to-[#42a5f5] flex items-center justify-center text-xs font-bold text-white">
                   MM
                 </div>
-                <span className="text-sm font-semibold">Milk Mobs Admin</span>
+                <span className="text-[15px] font-semibold text-[var(--text-primary)]">Milk Mobs</span>
               </div>
-              <div className="ml-auto flex items-center gap-4 text-xs text-[var(--text-muted)]">
-                <span>Campaign: Got Milk · Gen Z</span>
+              <div className="ml-auto flex items-center gap-5 text-sm">
+                <div className="flex items-center gap-2 text-[var(--text-secondary)]">
+                  <span className="font-medium text-[var(--text-primary)]">Got Milk</span>
+                  <span className="text-[var(--text-tertiary)]">·</span>
+                  <span>Gen Z Campaign</span>
+                </div>
                 <div className="h-6 w-px bg-[var(--border-subtle)]" />
-                <div className="flex items-center gap-2">
-                  <span className="h-7 w-7 rounded-full bg-slate-700 flex items-center justify-center text-[11px] text-white">
+                <div className="flex items-center gap-2.5">
+                  <div className="h-8 w-8 rounded-full bg-[var(--accent)] flex items-center justify-center text-xs font-semibold text-white">
                     JB
-                  </span>
-                  <span className="hidden sm:inline">joseph@milkco.com</span>
+                  </div>
+                  <span className="hidden sm:inline text-[var(--text-secondary)]">joseph@milkco.com</span>
                 </div>
               </div>
             </header>
 
             {/* Page content */}
-            <main className="flex-1 bg-[var(--bg)] px-4 py-6 sm:px-8">
+            <main className="flex-1 bg-[var(--bg)] px-6 py-8">
               {children}
             </main>
           </div>

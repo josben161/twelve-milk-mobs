@@ -4,75 +4,85 @@ import { adminVideos } from './data';
 
 function statusChip(status: string) {
   const base =
-    'inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-medium';
+    'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold';
   switch (status) {
     case 'validated':
-      return `${base} bg-emerald-500/15 text-emerald-300 border border-emerald-500/40`;
+      return `${base} bg-[var(--success)]/15 text-[var(--success)] border border-[var(--success)]/30`;
     case 'processing':
-      return `${base} bg-amber-500/15 text-amber-300 border border-amber-500/40`;
+      return `${base} bg-[var(--warning)]/15 text-[var(--warning)] border border-[var(--warning)]/30`;
     case 'rejected':
-      return `${base} bg-rose-500/15 text-rose-300 border border-rose-500/40`;
+      return `${base} bg-[var(--error)]/15 text-[var(--error)] border border-[var(--error)]/30`;
     default:
-      return `${base} bg-slate-700/40 text-slate-300 border border-slate-600`;
+      return `${base} bg-[var(--bg-hover)] text-[var(--text-secondary)] border border-[var(--border-subtle)]`;
   }
 }
 
 export default function VideosPage() {
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold">Videos</h1>
-        <p className="mt-1 text-sm text-[var(--text-muted)]">
-          All campaign submissions enriched with TwelveLabs analysis.
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">Videos</h1>
+        <p className="mt-1.5 text-[15px] text-[var(--text-secondary)]">
+          Browse and manage all campaign submissions with TwelveLabs AI analysis
         </p>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-soft)]">
-        <table className="min-w-full text-sm">
-          <thead className="bg-black/20 text-[11px] uppercase tracking-wide text-[var(--text-muted)]">
+      <div className="overflow-hidden rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] shadow-sm">
+        <table className="min-w-full">
+          <thead className="bg-[var(--bg)]/50 border-b border-[var(--border-subtle)]">
             <tr>
-              <th className="px-4 py-2 text-left">Video</th>
-              <th className="px-4 py-2 text-left">Mob</th>
-              <th className="px-4 py-2 text-left">Status</th>
-              <th className="px-4 py-2 text-left">Score</th>
-              <th className="px-4 py-2 text-left">Created</th>
-              <th className="px-4 py-2 text-right">Actions</th>
+              <th className="px-5 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Video</th>
+              <th className="px-5 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Community</th>
+              <th className="px-5 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Status</th>
+              <th className="px-5 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Score</th>
+              <th className="px-5 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Created</th>
+              <th className="px-5 py-3 text-right text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody>
             {adminVideos.map((v) => (
               <tr
                 key={v.id}
-                className="border-t border-[var(--border-subtle)] hover:bg-black/20"
+                className="border-b border-[var(--border-subtle)] hover:bg-[var(--bg-hover)] transition-colors"
               >
-                <td className="px-4 py-3">
+                <td className="px-5 py-4">
                   <div className="flex items-center gap-3">
-                    <div className="h-9 w-14 rounded-md bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center text-[10px] text-[var(--text-muted)]">
+                    <div className="h-12 w-16 rounded-md bg-gradient-to-br from-[var(--bg-hover)] to-[var(--bg)] border border-[var(--border-subtle)] flex items-center justify-center text-[10px] font-medium text-[var(--text-tertiary)]">
                       Preview
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium">{v.user}</span>
-                      <span className="text-[11px] text-[var(--text-muted)]">
-                        {v.caption.slice(0, 40)}
-                        {v.caption.length > 40 ? '…' : ''}
+                      <span className="text-sm font-semibold text-[var(--text-primary)]">{v.user}</span>
+                      <span className="text-xs text-[var(--text-secondary)] mt-0.5">
+                        {v.caption.slice(0, 45)}
+                        {v.caption.length > 45 ? '…' : ''}
                       </span>
                     </div>
                   </div>
                 </td>
-                <td className="px-4 py-3 text-xs">{v.mob}</td>
-                <td className="px-4 py-3 text-xs">
+                <td className="px-5 py-4">
+                  <span className="text-sm text-[var(--text-primary)] font-medium">{v.mob}</span>
+                </td>
+                <td className="px-5 py-4">
                   <span className={statusChip(v.status)}>{v.status}</span>
                 </td>
-                <td className="px-4 py-3 text-xs">
-                  {v.score != null ? `${Math.round(v.score * 100)}%` : '–'}
+                <td className="px-5 py-4">
+                  {v.score != null ? (
+                    <span className="text-sm font-semibold text-[var(--text-primary)]">
+                      {Math.round(v.score * 100)}%
+                    </span>
+                  ) : (
+                    <span className="text-sm text-[var(--text-tertiary)]">–</span>
+                  )}
                 </td>
-                <td className="px-4 py-3 text-xs">{v.createdAt}</td>
-                <td className="px-4 py-3 text-right text-xs">
+                <td className="px-5 py-4">
+                  <span className="text-sm text-[var(--text-secondary)]">{v.createdAt}</span>
+                </td>
+                <td className="px-5 py-4 text-right">
                   <Link
                     href={`/videos/${v.id}`}
-                    className="text-indigo-400 hover:text-indigo-300"
+                    className="inline-flex items-center text-sm font-medium text-[var(--accent)] hover:text-[var(--accent-hover)] transition-colors"
                   >
-                    View
+                    View →
                   </Link>
                 </td>
               </tr>
