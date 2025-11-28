@@ -1,20 +1,26 @@
 @import "tailwindcss";
 
-:root {
-  /* Base Backgrounds */
+:root,
+.dark {
+  /* Dark theme (default) */
   --bg: #0f1419;
   --bg-elevated: #1a1f26;
   --bg-subtle: #141920;
-  
-  /* Borders */
   --border-subtle: #1e2832;
-  
-  /* Text Colors */
   --text: #e4e7eb;
   --text-muted: #9ca3af;
-  --text-soft: #6b7280;
-  
-  /* Accent Colors */
+  --accent: #6366f1;
+  --accent-soft: rgba(99, 102, 241, 0.1);
+}
+
+.light {
+  /* Light theme */
+  --bg: #ffffff;
+  --bg-elevated: #f8f9fa;
+  --bg-subtle: #f1f3f5;
+  --border-subtle: #e9ecef;
+  --text: #1a1f26;
+  --text-muted: #6b7280;
   --accent: #6366f1;
   --accent-soft: rgba(99, 102, 241, 0.1);
 }
@@ -32,7 +38,7 @@ body {
   overflow-x: hidden;
   background-color: var(--bg);
   color: var(--text);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
   font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
