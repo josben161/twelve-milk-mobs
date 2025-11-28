@@ -83,10 +83,10 @@ export default function RootLayout({
             </div>
           </header>
 
-          <div className="min-h-screen flex justify-center transition-colors duration-300 pt-[57px] pb-[73px]">
+          <div className="min-h-screen flex justify-center transition-colors duration-300 pt-16 pb-20">
             <div className="flex w-full max-w-[480px] flex-col border-x border-[var(--border-subtle)] bg-[var(--bg)]/80 backdrop-blur-xl transition-colors duration-300 shadow-2xl">
               {/* main feed area */}
-              <main className="flex-1 transition-colors duration-300">
+              <main className="flex-1 transition-colors duration-300 pt-2">
                 {children}
               </main>
             </div>
