@@ -51,9 +51,9 @@ export default function RootLayout({
       <body className="text-[var(--text)] transition-colors duration-300">
         <ThemeProvider>
           <div className="min-h-screen flex justify-center transition-colors duration-300">
-            <div className="flex w-full max-w-[480px] flex-col border-x border-[var(--border-subtle)] bg-[var(--bg)]/80 backdrop-blur-xl transition-colors duration-300 shadow-2xl">
-              {/* Premium header with gradient */}
-              <header className="sticky top-0 z-30 flex items-center justify-between px-4 py-3 border-b border-[var(--border-subtle)] bg-gradient-to-b from-[var(--bg-soft)]/98 via-[var(--bg-soft)]/95 to-[var(--bg-soft)]/98 backdrop-blur-xl transition-colors duration-300">
+            <div className="flex w-full max-w-[480px] flex-col border-x border-[var(--border-subtle)] bg-[var(--bg)]/80 backdrop-blur-xl transition-colors duration-300 shadow-2xl relative">
+              {/* Premium header with gradient - always visible */}
+              <header className="sticky top-0 z-50 flex items-center justify-between px-4 py-3 border-b border-[var(--border-subtle)] bg-gradient-to-b from-[var(--bg-soft)]/98 via-[var(--bg-soft)]/95 to-[var(--bg-soft)]/98 backdrop-blur-xl transition-colors duration-300">
                 <div className="flex items-center gap-2.5">
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-[11px] font-bold text-white shadow-lg shadow-indigo-500/30">
                     MM
@@ -88,8 +88,8 @@ export default function RootLayout({
                 {children}
               </main>
 
-              {/* Premium bottom nav */}
-              <nav className="fixed bottom-0 left-1/2 z-30 flex w-full max-w-[480px] -translate-x-1/2 items-center justify-around border-t border-[var(--border-subtle)] bg-gradient-to-t from-[var(--bg-soft)]/98 via-[var(--bg-soft)]/95 to-[var(--bg-soft)]/98 py-2.5 text-[10px] backdrop-blur-xl transition-colors duration-300 shadow-[0_-1px_0_var(--border-subtle)]">
+              {/* Premium bottom nav - always visible */}
+              <nav className="fixed bottom-0 left-1/2 z-50 flex w-full max-w-[480px] -translate-x-1/2 items-center justify-around border-t border-[var(--border-subtle)] bg-gradient-to-t from-[var(--bg-soft)]/98 via-[var(--bg-soft)]/95 to-[var(--bg-soft)]/98 py-2.5 text-[10px] backdrop-blur-xl transition-colors duration-300 shadow-[0_-1px_0_var(--border-subtle)]">
                 <Link
                   href="/"
                   className="flex flex-col items-center gap-1 transition-all duration-200 hover:scale-105 active:scale-95"
