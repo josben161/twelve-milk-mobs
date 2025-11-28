@@ -46,7 +46,7 @@ const statCards = [
 
 export default function AdminHomePage() {
   return (
-    <>
+    <div className="w-full">
       {/* Page Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-semibold mb-2 text-[var(--text)]">Campaign overview</h1>
@@ -153,6 +153,6 @@ export default function AdminHomePage() {
           </div>
         </div>
       </section>
-    </>
+    </div>
   );
 }
