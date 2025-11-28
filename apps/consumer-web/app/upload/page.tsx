@@ -84,18 +84,20 @@ export default function UploadPage() {
   // ✅ IG-style layout starts here
   return (
     <div className="px-4 pb-24 pt-4 transition-colors duration-300">
-      <h1
-        className="mb-1 text-xl font-normal tracking-normal transition-colors duration-300"
-        style={{ color: 'var(--text)' }}
-      >
-        New Milk Mob post
-      </h1>
-      <p
-        className="mb-8 text-xs leading-normal transition-colors duration-300"
-        style={{ color: 'var(--text-muted)' }}
-      >
-        Choose a short video, add your Milk Mob tags, and share it to the feed.
-      </p>
+      <div className="mb-8">
+        <h1
+          className="mb-2 text-2xl font-semibold tracking-tight transition-colors duration-300"
+          style={{ color: 'var(--text)' }}
+        >
+          New Milk Mob post
+        </h1>
+        <p
+          className="text-sm leading-relaxed transition-colors duration-300"
+          style={{ color: 'var(--text-muted)' }}
+        >
+          Choose a short video, add your Milk Mob tags, and share it to the feed.
+        </p>
+      </div>
 
       {!result ? (
         <form onSubmit={handleSubmit} className="space-y-8">
@@ -107,7 +109,7 @@ export default function UploadPage() {
             onClick={() => fileInputRef.current?.click()}
             className="relative w-full overflow-hidden rounded-lg border transition-all duration-200 cursor-pointer"
             style={{
-              borderColor: isDragging ? '#0095f6' : 'var(--border-subtle)',
+              borderColor: isDragging ? 'var(--accent)' : 'var(--border-subtle)',
               backgroundColor: 'var(--bg-card)',
               aspectRatio: '4/5',
             }}
@@ -163,9 +165,9 @@ export default function UploadPage() {
           </p>
 
           {/* Hashtags - Instagram style single line input */}
-          <div className="space-y-2">
+          <div className="space-y-3">
             <label
-              className="block text-xs font-normal transition-colors duration-300"
+              className="block text-sm font-medium transition-colors duration-300"
               style={{ color: 'var(--text)' }}
             >
               Hashtags
@@ -175,7 +177,7 @@ export default function UploadPage() {
               value={hashtags}
               onChange={(e) => setHashtags(e.target.value)}
               placeholder="#gotmilk #milkmob #skatepark"
-              className="w-full border-b border-t-0 border-l-0 border-r-0 px-0 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:border-b-2 placeholder:opacity-60"
+              className="w-full border-b border-t-0 border-l-0 border-r-0 px-0 py-3 text-sm transition-all duration-200 focus:outline-none focus:border-b-2 placeholder:opacity-60"
               style={{
                 borderColor: 'var(--border-subtle)',
                 backgroundColor: 'transparent',
@@ -210,18 +212,18 @@ export default function UploadPage() {
               className="w-full rounded-lg py-2.5 text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
                 backgroundColor: loading || !file || hashtagList.length === 0 
-                  ? 'rgba(0, 149, 246, 0.4)' 
-                  : '#0095f6',
+                  ? 'var(--accent-soft)' 
+                  : 'var(--accent)',
                 color: 'white',
               }}
               onMouseEnter={(e) => {
                 if (!loading && file && hashtagList.length > 0) {
-                  e.currentTarget.style.backgroundColor = '#1877f2';
+                  e.currentTarget.style.backgroundColor = 'var(--accent-hover)';
                 }
               }}
               onMouseLeave={(e) => {
                 if (!loading && file && hashtagList.length > 0) {
-                  e.currentTarget.style.backgroundColor = '#0095f6';
+                  e.currentTarget.style.backgroundColor = 'var(--accent)';
                 }
               }}
             >
