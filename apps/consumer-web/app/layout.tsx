@@ -14,8 +14,8 @@ import {
 } from '@/components/ui/Icons';
 
 export const metadata: Metadata = {
-  title: 'Milk Mobs',
-  description: 'Instagram-style Milk Mob feed powered by TwelveLabs',
+  title: 'Social Platform',
+  description: 'Social Platform feed powered by TwelveLabs',
 };
 
 export default function RootLayout({
@@ -83,10 +83,7 @@ export default function RootLayout({
             </div>
           </header>
 
-          {/* Spacer to push content below fixed header */}
-          <div className="h-[65px]" />
-
-          <div className="min-h-screen flex justify-center transition-colors duration-300 pb-20">
+          <div className="min-h-screen flex justify-center transition-colors duration-300 pt-[65px] pb-20">
             <div className="flex w-full max-w-[480px] flex-col border-x border-[var(--border-subtle)] bg-[var(--bg)]/80 backdrop-blur-xl transition-colors duration-300 shadow-2xl">
               {/* main feed area */}
               <main className="flex-1 transition-colors duration-300">
