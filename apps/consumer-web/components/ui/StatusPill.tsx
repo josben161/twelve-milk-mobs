@@ -1,10 +1,15 @@
 import type { VideoStatus } from '@twelve/core-types';
 
 export function StatusPill({ status }: { status: VideoStatus }) {
-  const map: Record<VideoStatus, { label: string; classes: string }> = {
+  const map: Record<VideoStatus, { label: string; classes: string; style?: React.CSSProperties }> = {
     uploaded: {
       label: 'Uploaded',
-      classes: 'bg-slate-800 text-slate-200 border-slate-700',
+      classes: 'border',
+      style: {
+        backgroundColor: 'var(--bg-soft)',
+        color: 'var(--text-muted)',
+        borderColor: 'var(--border-subtle)',
+      },
     },
     processing: {
       label: 'Processing',
@@ -20,11 +25,12 @@ export function StatusPill({ status }: { status: VideoStatus }) {
     },
   };
 
-  const { label, classes } = map[status];
+  const { label, classes, style } = map[status];
 
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${classes}`}
+      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors duration-300 ${classes}`}
+      style={style}
     >
       {label}
     </span>

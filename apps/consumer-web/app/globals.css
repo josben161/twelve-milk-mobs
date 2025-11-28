@@ -1,13 +1,41 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #020617;          /* slate-950 */
-  --bg-soft: #0f172a;     /* slate-900 */
-  --border-subtle: #1e293b; /* slate-800 */
-  --accent: #4f46e5;      /* indigo-600 */
+  /* Light theme (default) */
+  --bg: #ffffff;
+  --bg-soft: #f8fafc;
+  --bg-card: #ffffff;
+  --border-subtle: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --text-subtle: #94a3b8;
+  --accent: #4f46e5;
+  --accent-soft: rgba(79, 70, 229, 0.1);
+  --accent-strong: #6366f1;
+  --accent-hover: #4338ca;
+  --success: #22c55e;
+  --shadow: rgba(15, 23, 42, 0.08);
+  --shadow-lg: rgba(15, 23, 42, 0.12);
+}
+
+.dark {
+  /* Dark theme */
+  --bg: #020617;
+  --bg-soft: #0f172a;
+  --bg-card: #1e293b;
+  --border-subtle: #1e293b;
+  --border-strong: #334155;
+  --text: #f8fafc;
+  --text-muted: #cbd5e1;
+  --text-subtle: #94a3b8;
+  --accent: #4f46e5;
   --accent-soft: rgba(79, 70, 229, 0.15);
-  --accent-strong: #818cf8; /* indigo-400 */
-  --success: #22c55e;     /* emerald-500 */
+  --accent-strong: #818cf8;
+  --accent-hover: #6366f1;
+  --success: #22c55e;
+  --shadow: rgba(0, 0, 0, 0.3);
+  --shadow-lg: rgba(0, 0, 0, 0.5);
 }
 
 html,
@@ -17,10 +45,11 @@ body {
 }
 
 body {
-  background-color: rgb(2 6 23); /* slate-950 */
-  color: rgb(248 250 252); /* slate-50 */
+  background-color: var(--bg);
+  color: var(--text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 * {

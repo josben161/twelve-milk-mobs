@@ -26,26 +26,53 @@ const mockFeed = [
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col gap-6 pb-6">
+    <div className="flex flex-col gap-6 pb-6 transition-colors duration-300">
       {mockFeed.map((post) => (
-        <article key={post.id} className="border-b border-slate-900 pb-4">
+        <article
+          key={post.id}
+          className="border-b pb-4 transition-colors duration-300"
+          style={{ borderColor: 'var(--border-subtle)' }}
+        >
           {/* Header */}
           <header className="flex items-center justify-between px-3 pt-3 pb-2">
             <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-xs font-semibold">
+              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-xs font-semibold text-white">
                 {post.user.slice(0, 2).toUpperCase()}
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-semibold">{post.user}</span>
-                <span className="text-xs text-slate-400">{post.location}</span>
+                <span
+                  className="text-sm font-semibold"
+                  style={{ color: 'var(--text)' }}
+                >
+                  {post.user}
+                </span>
+                <span
+                  className="text-xs"
+                  style={{ color: 'var(--text-muted)' }}
+                >
+                  {post.location}
+                </span>
               </div>
             </div>
-            <span className="text-slate-500 text-xl">⋯</span>
+            <span
+              className="text-xl"
+              style={{ color: 'var(--text-subtle)' }}
+            >
+              ⋯
+            </span>
           </header>
 
           {/* Media */}
-          <div className="relative mx-3 mb-2 overflow-hidden rounded-xl bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 aspect-[4/5]">
-            <div className="absolute inset-0 flex items-center justify-center text-xs text-slate-400">
+          <div
+            className="relative mx-3 mb-2 overflow-hidden rounded-xl aspect-[4/5]"
+            style={{
+              background: 'linear-gradient(to bottom right, var(--bg-soft), var(--bg))',
+            }}
+          >
+            <div
+              className="absolute inset-0 flex items-center justify-center text-xs"
+              style={{ color: 'var(--text-subtle)' }}
+            >
               Video preview
             </div>
           </div>
@@ -62,19 +89,26 @@ export default function HomePage() {
 
           {/* Caption */}
           <div className="px-3 pt-1 space-y-1">
-            <p className="text-sm">
+            <p className="text-sm" style={{ color: 'var(--text)' }}>
               <span className="font-semibold mr-1">{post.user}</span>
               {post.caption}
             </p>
-            <p className="text-xs text-indigo-300">
+            <p
+              className="text-xs"
+              style={{ color: 'var(--accent-strong)' }}
+            >
               {post.tags.join(' ')}
             </p>
-            <p className="text-[11px] text-slate-500 uppercase tracking-wide">
+            <p
+              className="text-[11px] uppercase tracking-wide"
+              style={{ color: 'var(--text-subtle)' }}
+            >
               {post.mobName} · {post.createdAt} ago
             </p>
             <Link
               href={`/video/${post.id}`}
-              className="text-[11px] text-slate-400 underline"
+              className="text-[11px] underline transition-colors hover:opacity-80"
+              style={{ color: 'var(--text-muted)' }}
             >
               View analysis
             </Link>

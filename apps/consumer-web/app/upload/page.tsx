@@ -84,24 +84,41 @@ export default function UploadPage() {
   // ✅ IG-style layout starts here
   return (
     <PageShell maxWidth="md">
-      <div className="px-4 pb-24 pt-4">
-        <h1 className="mb-3 text-lg font-semibold">New Milk Mob post</h1>
-        <p className="mb-4 text-xs text-slate-400">
+      <div className="px-4 pb-24 pt-4 transition-colors duration-300">
+        <h1
+          className="mb-3 text-lg font-semibold transition-colors duration-300"
+          style={{ color: 'var(--text)' }}
+        >
+          New Milk Mob post
+        </h1>
+        <p
+          className="mb-4 text-xs transition-colors duration-300"
+          style={{ color: 'var(--text-muted)' }}
+        >
           Choose a short video, add your Milk Mob tags, and share it to the feed.
         </p>
 
         {!result ? (
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Video preview (4:5 like IG) */}
-            <Card className="overflow-hidden border-slate-800 bg-slate-900/70">
+            <Card className="overflow-hidden transition-colors duration-300">
               <div className="relative aspect-[4/5] w-full">
-                <div className="absolute inset-0 flex items-center justify-center text-xs text-slate-500">
+                <div
+                  className="absolute inset-0 flex items-center justify-center text-xs transition-colors duration-300"
+                  style={{ color: 'var(--text-subtle)' }}
+                >
                   {file ? (
                     <div className="px-4 text-center">
-                      <p className="text-sm text-slate-50 mb-1 truncate">
+                      <p
+                        className="text-sm mb-1 truncate transition-colors duration-300"
+                        style={{ color: 'var(--text)' }}
+                      >
                         {file.name}
                       </p>
-                      <p className="text-xs text-slate-400">
+                      <p
+                        className="text-xs transition-colors duration-300"
+                        style={{ color: 'var(--text-muted)' }}
+                      >
                         {(file.size / 1024 / 1024).toFixed(2)} MB
                       </p>
                     </div>
@@ -118,11 +135,24 @@ export default function UploadPage() {
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
-              className={`flex cursor-pointer items-center justify-center rounded-xl border border-dashed px-4 py-3 text-xs transition-all ${
-                isDragging
-                  ? 'border-indigo-500 bg-indigo-500/10 scale-[1.01]'
-                  : 'border-slate-700 hover:border-indigo-500/50 hover:bg-slate-800/40'
-              }`}
+              className="flex cursor-pointer items-center justify-center rounded-xl border border-dashed px-4 py-3 text-xs transition-all duration-300"
+              style={{
+                borderColor: isDragging ? 'var(--accent)' : 'var(--border-subtle)',
+                backgroundColor: isDragging ? 'var(--accent-soft)' : 'transparent',
+                transform: isDragging ? 'scale(1.01)' : 'scale(1)',
+              }}
+              onMouseEnter={(e) => {
+                if (!isDragging) {
+                  e.currentTarget.style.borderColor = 'var(--accent)';
+                  e.currentTarget.style.backgroundColor = 'var(--accent-soft)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isDragging) {
+                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }
+              }}
             >
               <input
                 ref={fileInputRef}
@@ -131,14 +161,17 @@ export default function UploadPage() {
                 onChange={handleFileSelect}
                 className="hidden"
               />
-              <span className="text-slate-300">
+              <span style={{ color: 'var(--text-muted)' }}>
                 {file ? 'Tap to change video or drag a new file here' : 'Tap to select a video or drag & drop'}
               </span>
             </div>
 
             {/* Caption / hashtags */}
             <div className="space-y-2">
-              <label className="block text-xs font-medium text-slate-400">
+              <label
+                className="block text-xs font-medium transition-colors duration-300"
+                style={{ color: 'var(--text-muted)' }}
+              >
                 Hashtags
               </label>
               <textarea
@@ -146,14 +179,32 @@ export default function UploadPage() {
                 onChange={(e) => setHashtags(e.target.value)}
                 rows={3}
                 placeholder="#gotmilk #milkmob #skatepark"
-                className="w-full resize-none rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full resize-none rounded-xl border px-3 py-2 text-sm transition-colors duration-300 focus:outline-none focus:ring-2"
+                style={{
+                  borderColor: 'var(--border-subtle)',
+                  backgroundColor: 'var(--bg-soft)',
+                  color: 'var(--text)',
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--accent)';
+                  e.currentTarget.style.boxShadow = '0 0 0 2px var(--accent-soft)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
               />
               {hashtagList.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {hashtagList.map((tag, idx) => (
                     <span
                       key={idx}
-                      className="inline-flex items-center rounded-full border border-indigo-600/40 bg-indigo-600/15 px-3 py-1 text-[11px] font-medium text-indigo-200"
+                      className="inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-medium transition-colors duration-300"
+                      style={{
+                        borderColor: 'var(--accent)',
+                        backgroundColor: 'var(--accent-soft)',
+                        color: 'var(--accent-strong)',
+                      }}
                     >
                       {tag}
                     </span>
@@ -163,8 +214,16 @@ export default function UploadPage() {
             </div>
 
             {error && (
-              <div className="rounded-xl border border-rose-800 bg-rose-950/40 px-3 py-2">
-                <p className="text-xs text-rose-300">{error}</p>
+              <div
+                className="rounded-xl border px-3 py-2 transition-colors duration-300"
+                style={{
+                  borderColor: 'rgba(239, 68, 68, 0.5)',
+                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                }}
+              >
+                <p className="text-xs" style={{ color: 'rgb(252, 165, 165)' }}>
+                  {error}
+                </p>
               </div>
             )}
 
@@ -178,16 +237,22 @@ export default function UploadPage() {
           </form>
         ) : (
           // Success view
-          <Card className="mt-4 space-y-4 border-emerald-700 bg-emerald-950/40 p-4">
+          <Card
+            className="mt-4 space-y-4 p-4 transition-colors duration-300"
+            style={{
+              borderColor: 'rgba(34, 197, 94, 0.5)',
+              backgroundColor: 'rgba(34, 197, 94, 0.1)',
+            }}
+          >
             <div className="flex items-center gap-3">
               <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500">
                 <span className="text-xs text-white">✓</span>
               </div>
               <div>
-                <h2 className="text-sm font-semibold text-emerald-50">
+                <h2 className="text-sm font-semibold" style={{ color: 'rgb(209, 250, 229)' }}>
                   Upload created successfully
                 </h2>
-                <p className="text-xs text-emerald-200">
+                <p className="text-xs" style={{ color: 'rgb(167, 243, 208)' }}>
                   Your Milk Mob post is ready to be processed.
                 </p>
               </div>
@@ -195,14 +260,14 @@ export default function UploadPage() {
 
             <div className="space-y-1 text-[11px]">
               <div>
-                <span className="text-slate-400">Video ID:</span>{' '}
-                <span className="font-mono text-emerald-300">
+                <span style={{ color: 'var(--text-muted)' }}>Video ID:</span>{' '}
+                <span className="font-mono" style={{ color: 'rgb(167, 243, 208)' }}>
                   {result.videoId}
                 </span>
               </div>
               <div className="break-all">
-                <span className="text-slate-400">Upload URL:</span>{' '}
-                <span className="font-mono text-[10px] text-emerald-300">
+                <span style={{ color: 'var(--text-muted)' }}>Upload URL:</span>{' '}
+                <span className="font-mono text-[10px]" style={{ color: 'rgb(167, 243, 208)' }}>
                   {result.uploadUrl}
                 </span>
               </div>
@@ -214,7 +279,12 @@ export default function UploadPage() {
                 setFile(null);
                 setHashtags('');
               }}
-              className="w-full rounded-full bg-slate-800 px-3 py-2 text-xs font-medium text-slate-200 hover:bg-slate-700 transition-colors"
+              className="w-full rounded-full px-3 py-2 text-xs font-medium transition-colors duration-300 hover:opacity-80"
+              style={{
+                backgroundColor: 'var(--bg-soft)',
+                color: 'var(--text)',
+                border: '1px solid var(--border-subtle)',
+              }}
             >
               Upload another video
             </button>
