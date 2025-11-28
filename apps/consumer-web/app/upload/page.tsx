@@ -89,7 +89,7 @@ export default function UploadPage() {
           className="mb-2 text-2xl font-semibold tracking-tight transition-colors duration-300"
           style={{ color: 'var(--text)' }}
         >
-          New Milk Mob post
+          Post something new for your friends...
         </h1>
         <p
           className="text-sm leading-relaxed transition-colors duration-300"

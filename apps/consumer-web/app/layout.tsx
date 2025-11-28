@@ -11,6 +11,7 @@ import {
   UserIcon,
   BellIcon,
   MessageIcon,
+  AppLogo,
 } from '@/components/ui/Icons';
 
 export const metadata: Metadata = {
@@ -54,9 +55,7 @@ export default function RootLayout({
           <header className="fixed top-0 left-0 right-0 z-50 flex justify-center border-b border-[var(--border-subtle)] bg-gradient-to-b from-[var(--bg-soft)]/98 via-[var(--bg-soft)]/95 to-[var(--bg-soft)]/98 backdrop-blur-xl transition-colors duration-300">
             <div className="flex w-full max-w-[480px] items-center justify-between px-4 py-3">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-[11px] font-bold text-white shadow-lg shadow-indigo-500/30">
-                  MM
-                </div>
+                <AppLogo className="h-8 w-8 flex-shrink-0" />
                 <span className="text-base font-bold tracking-tight bg-gradient-to-r from-[var(--text)] to-[var(--text-muted)] bg-clip-text text-transparent">
                   Social Platform
                 </span>

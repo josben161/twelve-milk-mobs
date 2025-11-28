@@ -19,7 +19,7 @@ export default function MyVideosPage() {
             className="text-base font-bold transition-colors duration-300"
             style={{ color: 'var(--text)' }}
           >
-            @milk_mob_user
+            @user_3
           </span>
           <div
             className="flex gap-6 text-xs transition-colors duration-300"
