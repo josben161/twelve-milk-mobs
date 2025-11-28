@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import type { SubmitVideoResponse } from '@twelve/core-types';
+import { Card, PrimaryButton, PageShell } from '@/components/ui';
 
 export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -82,11 +83,11 @@ export default function UploadPage() {
   }
 
   return (
-    <main className="py-12">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Upload a Milk Mob Video</h1>
+    <PageShell maxWidth="2xl">
+      <h1 className="text-3xl font-bold mb-8">Upload a Milk Mob Video</h1>
 
-        {!result ? (
+      {!result ? (
+        <Card className="p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Drag & Drop Area */}
             <div
@@ -94,10 +95,10 @@ export default function UploadPage() {
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
-              className={`rounded-xl border-2 border-dashed p-8 text-center cursor-pointer transition-colors ${
+              className={`rounded-xl border-2 border-dashed p-12 text-center cursor-pointer transition-all ${
                 isDragging
-                  ? 'border-indigo-500 bg-indigo-500/10'
-                  : 'border-slate-700 hover:border-slate-600'
+                  ? 'border-indigo-500 bg-indigo-500/10 scale-[1.02]'
+                  : 'border-slate-700 hover:border-indigo-500/50 hover:bg-slate-800/30'
               }`}
             >
               <input
@@ -107,17 +108,39 @@ export default function UploadPage() {
                 onChange={handleFileSelect}
                 className="hidden"
               />
-              <div className="space-y-2">
+              <div className="space-y-3">
+                <svg
+                  className="h-12 w-12 mx-auto text-slate-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                  />
+                </svg>
                 <p className="text-slate-300">
                   {file ? (
                     <>
-                      <span className="font-medium">{file.name}</span>
+                      <span className="font-medium text-slate-50">
+                        {file.name}
+                      </span>
                       <span className="text-slate-500 ml-2">
                         ({(file.size / 1024 / 1024).toFixed(2)} MB)
                       </span>
                     </>
                   ) : (
-                    'Drag & drop a video file here, or click to select'
+                    <>
+                      <span className="block font-medium text-slate-50 mb-1">
+                        Drag & drop a video file here
+                      </span>
+                      <span className="text-sm text-slate-400">
+                        or click to select
+                      </span>
+                    </>
                   )}
                 </p>
               </div>
@@ -125,7 +148,7 @@ export default function UploadPage() {
 
             {/* Hashtags Input */}
             <div>
-              <label className="block text-sm font-medium mb-2">
+              <label className="block text-sm font-medium mb-2 text-slate-300">
                 Hashtags (comma separated)
               </label>
               <input
@@ -133,7 +156,7 @@ export default function UploadPage() {
                 value={hashtags}
                 onChange={(e) => setHashtags(e.target.value)}
                 placeholder="#gotmilk, #milkmob, #skatepark"
-                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-slate-50 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
               />
               {hashtagList.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-3">
@@ -155,21 +178,23 @@ export default function UploadPage() {
               </div>
             )}
 
-            <button
+            <PrimaryButton
               type="submit"
               disabled={loading || !file || hashtagList.length === 0}
-              className="w-full rounded-lg bg-indigo-600 px-6 py-3 text-base font-medium text-white hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full"
             >
               {loading ? 'Starting upload…' : 'Start upload'}
-            </button>
+            </PrimaryButton>
           </form>
-        ) : (
-          /* Success Banner */
-          <div className="rounded-xl border border-emerald-800 bg-emerald-950/30 p-6 space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="h-5 w-5 rounded-full bg-emerald-500 flex items-center justify-center">
+        </Card>
+      ) : (
+        /* Success Banner */
+        <Card className="p-8 border-emerald-800 bg-emerald-950/30">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="h-6 w-6 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0">
                 <svg
-                  className="h-3 w-3 text-white"
+                  className="h-4 w-4 text-white"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -182,7 +207,7 @@ export default function UploadPage() {
                   />
                 </svg>
               </div>
-              <h2 className="text-lg font-semibold text-emerald-50">
+              <h2 className="text-xl font-semibold text-emerald-50">
                 Upload created successfully!
               </h2>
             </div>
@@ -211,8 +236,8 @@ export default function UploadPage() {
               Upload another video
             </button>
           </div>
-        )}
-      </div>
-    </main>
+        </Card>
+      )}
+    </PageShell>
   );
 }

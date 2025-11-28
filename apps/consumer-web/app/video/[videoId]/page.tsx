@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { use } from 'react';
+import { Card, StatusPill, PageShell } from '@/components/ui';
 
 // Mock data
 const mockVideos: Record<
@@ -66,18 +67,14 @@ const mockVideos: Record<
   },
 };
 
-function getStatusColor(status: string) {
-  switch (status) {
-    case 'validated':
-      return 'bg-emerald-600/20 text-emerald-300 border-emerald-600/30';
-    case 'processing':
-      return 'bg-yellow-600/20 text-yellow-300 border-yellow-600/30';
-    case 'rejected':
-      return 'bg-red-600/20 text-red-300 border-red-600/30';
-    default:
-      return 'bg-slate-600/20 text-slate-300 border-slate-600/30';
-  }
-}
+import type { VideoStatus } from '@twelve/core-types';
+
+// Status mapping for mock data
+const statusMap: Record<string, VideoStatus> = {
+  validated: 'validated',
+  processing: 'processing',
+  rejected: 'rejected',
+};
 
 export default function VideoDetailPage({
   params,
@@ -89,135 +86,123 @@ export default function VideoDetailPage({
 
   if (!video) {
     return (
-      <main className="py-12">
-        <div className="max-w-4xl mx-auto">
-          <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-8 text-center">
-            <h1 className="text-2xl font-bold mb-2">Video not found</h1>
-            <p className="text-slate-400 mb-4">
-              The video with ID {videoId} could not be found.
-            </p>
-            <Link
-              href="/my-videos"
-              className="inline-flex items-center text-indigo-400 hover:text-indigo-300"
-            >
-              ← Back to My Videos
-            </Link>
-          </div>
-        </div>
-      </main>
+      <PageShell>
+        <Card className="p-8 text-center">
+          <h1 className="text-2xl font-bold mb-2">Video not found</h1>
+          <p className="text-slate-400 mb-4">
+            The video with ID {videoId} could not be found.
+          </p>
+          <Link
+            href="/my-videos"
+            className="inline-flex items-center text-indigo-400 hover:text-indigo-300"
+          >
+            ← Back to My Videos
+          </Link>
+        </Card>
+      </PageShell>
     );
   }
 
+  const videoStatus = statusMap[video.status] || 'processing';
+
   return (
-    <main className="py-12">
-      <div className="max-w-4xl mx-auto">
-        <Link
-          href="/my-videos"
-          className="inline-flex items-center text-sm text-slate-400 hover:text-indigo-400 mb-6 transition-colors"
-        >
-          ← Back to My Videos
-        </Link>
+    <PageShell>
+      <Link
+        href="/my-videos"
+        className="inline-flex items-center text-sm text-slate-400 hover:text-indigo-400 mb-6 transition-colors"
+      >
+        ← Back to My Videos
+      </Link>
 
-        <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-8 space-y-6">
-          {/* Video Player Placeholder */}
-          <div className="aspect-video rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
-            <div className="text-center">
-              <svg
-                className="h-16 w-16 text-white/50 mx-auto mb-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <p className="text-white/50 text-sm">Video Player</p>
-            </div>
-          </div>
-
-          {/* Title & Status */}
-          <div className="flex items-start justify-between gap-4">
-            <h1 className="text-2xl font-bold text-slate-50">{video.title}</h1>
-            <span
-              className={`inline-flex items-center rounded-full border px-4 py-1.5 text-sm font-medium capitalize flex-shrink-0 ${getStatusColor(
-                video.status
-              )}`}
+      <Card className="p-8 space-y-6">
+        {/* Video Player Placeholder */}
+        <div className="aspect-video rounded-lg bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 flex items-center justify-center shadow-[0_20px_60px_rgba(79,70,229,0.4)]">
+          <div className="text-center">
+            <svg
+              className="h-16 w-16 text-white/50 mx-auto mb-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
             >
-              {video.status}
-            </span>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <p className="text-white/50 text-sm">Video Player</p>
           </div>
+        </div>
 
-          {/* Hashtags */}
-          <div>
-            <h2 className="text-sm font-medium text-slate-400 mb-2">
-              Hashtags
-            </h2>
-            <div className="flex flex-wrap gap-2">
-              {video.hashtags.map((tag, idx) => (
-                <span
-                  key={idx}
-                  className="inline-flex items-center rounded-full bg-indigo-600/20 px-3 py-1 text-xs font-medium text-indigo-300 border border-indigo-600/30"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
+        {/* Title & Status */}
+        <div className="flex items-start justify-between gap-4">
+          <h1 className="text-2xl font-bold text-slate-50">{video.title}</h1>
+          <StatusPill status={videoStatus} />
+        </div>
+
+        {/* Hashtags */}
+        <div>
+          <h2 className="text-sm font-medium text-slate-400 mb-3">Hashtags</h2>
+          <div className="flex flex-wrap gap-2">
+            {video.hashtags.map((tag, idx) => (
+              <span
+                key={idx}
+                className="inline-flex items-center rounded-full bg-indigo-600/20 px-3 py-1 text-xs font-medium text-indigo-300 border border-indigo-600/30"
+              >
+                {tag}
+              </span>
+            ))}
           </div>
+        </div>
 
-          {/* Detected Actions & Tags */}
-          <div className="border-t border-slate-800 pt-6">
-            <h2 className="text-lg font-semibold text-slate-50 mb-4">
-              Detected actions & tags
-            </h2>
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-sm font-medium text-slate-400 mb-2">
-                  Actions
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {video.detectedActions.map((action, idx) => (
-                    <span
-                      key={idx}
-                      className="inline-flex items-center rounded-md bg-slate-800 px-3 py-1.5 text-sm text-slate-300"
-                    >
-                      {action}
-                    </span>
-                  ))}
-                </div>
+        {/* Detected Actions & Tags */}
+        <div className="border-t border-slate-800 pt-6">
+          <h2 className="text-lg font-semibold text-slate-50 mb-4">
+            Detected actions & tags
+          </h2>
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-sm font-medium text-slate-400 mb-2">
+                Actions
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {video.detectedActions.map((action, idx) => (
+                  <span
+                    key={idx}
+                    className="inline-flex items-center rounded-md bg-slate-800 px-3 py-1.5 text-sm text-slate-300 border border-slate-700"
+                  >
+                    {action}
+                  </span>
+                ))}
               </div>
-              <div>
-                <h3 className="text-sm font-medium text-slate-400 mb-2">
-                  Tags
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {video.tags.map((tag, idx) => (
-                    <span
-                      key={idx}
-                      className="inline-flex items-center rounded-md bg-slate-800 px-3 py-1.5 text-sm text-slate-300"
-                    >
-                      <span className="text-slate-500 mr-1">
-                        {tag.type}:
-                      </span>
-                      {tag.value}
-                    </span>
-                  ))}
-                </div>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-slate-400 mb-2">
+                Tags
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {video.tags.map((tag, idx) => (
+                  <span
+                    key={idx}
+                    className="inline-flex items-center rounded-md bg-slate-800 px-3 py-1.5 text-sm text-slate-300 border border-slate-700"
+                  >
+                    <span className="text-slate-500 mr-1">{tag.type}:</span>
+                    {tag.value}
+                  </span>
+                ))}
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </main>
+      </Card>
+    </PageShell>
   );
 }
 

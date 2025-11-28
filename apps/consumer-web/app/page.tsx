@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Card, PrimaryButton, MobPreviewCard, PageShell } from '@/components/ui';
 
 const mockMobs = [
   {
@@ -28,53 +29,31 @@ const mockMobs = [
 
 export default function HomePage() {
   return (
-    <main className="py-12">
+    <PageShell>
       <div className="grid md:grid-cols-2 gap-12 items-center">
         {/* Left: Headline + CTA */}
-        <div className="space-y-6">
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
-            Join the Milk Mob
-          </h1>
-          <p className="text-lg text-slate-300 leading-relaxed">
-            Upload your videos, join themed mobs, and see your content come
-            together with others. Powered by TwelveLabs AI.
-          </p>
-          <Link
-            href="/upload"
-            className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3 text-base font-medium text-white hover:bg-indigo-500 transition-colors"
-          >
-            Upload a video
-          </Link>
-        </div>
+        <Card className="p-8 bg-gradient-to-br from-slate-900/90 via-slate-900/70 to-slate-950/50">
+          <div className="space-y-6">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-slate-50 to-slate-300 bg-clip-text text-transparent">
+              Join the Milk Mob
+            </h1>
+            <p className="text-lg text-slate-300 leading-relaxed">
+              Upload your videos, join themed mobs, and see your content come
+              together with others. Powered by TwelveLabs AI.
+            </p>
+            <Link href="/upload">
+              <PrimaryButton>Upload a video</PrimaryButton>
+            </Link>
+          </div>
+        </Card>
 
         {/* Right: Mob preview cards */}
         <div className="space-y-4">
           {mockMobs.map((mob) => (
-            <Link
-              key={mob.id}
-              href={`/mob/${mob.id}`}
-              className="block rounded-xl border border-slate-800 bg-gradient-to-br bg-slate-900/70 p-4 hover:border-indigo-600/50 transition-colors"
-            >
-              <div className="flex items-center gap-4">
-                <div
-                  className={`h-16 w-16 rounded-lg bg-gradient-to-br ${mob.gradient} flex-shrink-0`}
-                />
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-slate-50 mb-1">
-                    {mob.name}
-                  </h3>
-                  <p className="text-sm text-slate-400 mb-1">
-                    {mob.description}
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    {mob.videoCount} videos
-                  </p>
-                </div>
-              </div>
-            </Link>
+            <MobPreviewCard key={mob.id} {...mob} />
           ))}
         </div>
       </div>
-    </main>
+    </PageShell>
   );
 }
