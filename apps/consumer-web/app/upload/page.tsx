@@ -73,8 +73,7 @@ export default function UploadPage() {
 
       const data = (await res.json()) as SubmitVideoResponse;
       setResult(data);
-
-      // In the next iteration, we will actually PUT the file to data.uploadUrl.
+      // next iteration: PUT file to data.uploadUrl
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unexpected error.');
     } finally {
@@ -82,23 +81,47 @@ export default function UploadPage() {
     }
   }
 
+  // ✅ IG-style layout starts here
   return (
-    <PageShell maxWidth="2xl">
-      <h1 className="text-3xl font-bold mb-8">Upload a Milk Mob Video</h1>
+    <PageShell maxWidth="md">
+      <div className="px-4 pb-24 pt-4">
+        <h1 className="mb-3 text-lg font-semibold">New Milk Mob post</h1>
+        <p className="mb-4 text-xs text-slate-400">
+          Choose a short video, add your Milk Mob tags, and share it to the feed.
+        </p>
 
-      {!result ? (
-        <Card className="p-8">
+        {!result ? (
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Drag & Drop Area */}
+            {/* Video preview (4:5 like IG) */}
+            <Card className="overflow-hidden border-slate-800 bg-slate-900/70">
+              <div className="relative aspect-[4/5] w-full">
+                <div className="absolute inset-0 flex items-center justify-center text-xs text-slate-500">
+                  {file ? (
+                    <div className="px-4 text-center">
+                      <p className="text-sm text-slate-50 mb-1 truncate">
+                        {file.name}
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        {(file.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                    </div>
+                  ) : (
+                    'Video preview'
+                  )}
+                </div>
+              </div>
+            </Card>
+
+            {/* Tap / drag to select */}
             <div
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
-              className={`rounded-xl border-2 border-dashed p-12 text-center cursor-pointer transition-all ${
+              className={`flex cursor-pointer items-center justify-center rounded-xl border border-dashed px-4 py-3 text-xs transition-all ${
                 isDragging
-                  ? 'border-indigo-500 bg-indigo-500/10 scale-[1.02]'
-                  : 'border-slate-700 hover:border-indigo-500/50 hover:bg-slate-800/30'
+                  ? 'border-indigo-500 bg-indigo-500/10 scale-[1.01]'
+                  : 'border-slate-700 hover:border-indigo-500/50 hover:bg-slate-800/40'
               }`}
             >
               <input
@@ -108,62 +131,29 @@ export default function UploadPage() {
                 onChange={handleFileSelect}
                 className="hidden"
               />
-              <div className="space-y-3">
-                <svg
-                  className="h-12 w-12 mx-auto text-slate-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                  />
-                </svg>
-                <p className="text-slate-300">
-                  {file ? (
-                    <>
-                      <span className="font-medium text-slate-50">
-                        {file.name}
-                      </span>
-                      <span className="text-slate-500 ml-2">
-                        ({(file.size / 1024 / 1024).toFixed(2)} MB)
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="block font-medium text-slate-50 mb-1">
-                        Drag & drop a video file here
-                      </span>
-                      <span className="text-sm text-slate-400">
-                        or click to select
-                      </span>
-                    </>
-                  )}
-                </p>
-              </div>
+              <span className="text-slate-300">
+                {file ? 'Tap to change video or drag a new file here' : 'Tap to select a video or drag & drop'}
+              </span>
             </div>
 
-            {/* Hashtags Input */}
-            <div>
-              <label className="block text-sm font-medium mb-2 text-slate-300">
-                Hashtags (comma separated)
+            {/* Caption / hashtags */}
+            <div className="space-y-2">
+              <label className="block text-xs font-medium text-slate-400">
+                Hashtags
               </label>
-              <input
-                type="text"
+              <textarea
                 value={hashtags}
                 onChange={(e) => setHashtags(e.target.value)}
-                placeholder="#gotmilk, #milkmob, #skatepark"
-                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-slate-50 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                rows={3}
+                placeholder="#gotmilk #milkmob #skatepark"
+                className="w-full resize-none rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
               />
               {hashtagList.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-3">
+                <div className="flex flex-wrap gap-2">
                   {hashtagList.map((tag, idx) => (
                     <span
                       key={idx}
-                      className="inline-flex items-center rounded-full bg-indigo-600/20 px-3 py-1 text-xs font-medium text-indigo-300 border border-indigo-600/30"
+                      className="inline-flex items-center rounded-full border border-indigo-600/40 bg-indigo-600/15 px-3 py-1 text-[11px] font-medium text-indigo-200"
                     >
                       {tag}
                     </span>
@@ -173,71 +163,64 @@ export default function UploadPage() {
             </div>
 
             {error && (
-              <div className="rounded-lg border border-red-800 bg-red-950/30 p-4">
-                <p className="text-sm text-red-400">{error}</p>
+              <div className="rounded-xl border border-rose-800 bg-rose-950/40 px-3 py-2">
+                <p className="text-xs text-rose-300">{error}</p>
               </div>
             )}
 
             <PrimaryButton
               type="submit"
               disabled={loading || !file || hashtagList.length === 0}
-              className="w-full"
+              className="w-full rounded-full"
             >
-              {loading ? 'Starting upload…' : 'Start upload'}
+              {loading ? 'Sharing…' : 'Share to Milk Mob'}
             </PrimaryButton>
           </form>
-        </Card>
-      ) : (
-        /* Success Banner */
-        <Card className="p-8 border-emerald-800 bg-emerald-950/30">
-          <div className="space-y-4">
+        ) : (
+          // Success view
+          <Card className="mt-4 space-y-4 border-emerald-700 bg-emerald-950/40 p-4">
             <div className="flex items-center gap-3">
-              <div className="h-6 w-6 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0">
-                <svg
-                  className="h-4 w-4 text-white"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
+              <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500">
+                <span className="text-xs text-white">✓</span>
               </div>
-              <h2 className="text-xl font-semibold text-emerald-50">
-                Upload created successfully!
-              </h2>
+              <div>
+                <h2 className="text-sm font-semibold text-emerald-50">
+                  Upload created successfully
+                </h2>
+                <p className="text-xs text-emerald-200">
+                  Your Milk Mob post is ready to be processed.
+                </p>
+              </div>
             </div>
-            <div className="space-y-2 text-sm">
+
+            <div className="space-y-1 text-[11px]">
               <div>
                 <span className="text-slate-400">Video ID:</span>{' '}
                 <span className="font-mono text-emerald-300">
                   {result.videoId}
                 </span>
               </div>
-              <div>
+              <div className="break-all">
                 <span className="text-slate-400">Upload URL:</span>{' '}
-                <span className="font-mono text-xs text-emerald-300 break-all">
+                <span className="font-mono text-[10px] text-emerald-300">
                   {result.uploadUrl}
                 </span>
               </div>
             </div>
+
             <button
               onClick={() => {
                 setResult(null);
                 setFile(null);
                 setHashtags('');
               }}
-              className="mt-4 rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-slate-200 hover:bg-slate-700 transition-colors"
+              className="w-full rounded-full bg-slate-800 px-3 py-2 text-xs font-medium text-slate-200 hover:bg-slate-700 transition-colors"
             >
               Upload another video
             </button>
-          </div>
-        </Card>
-      )}
+          </Card>
+        )}
+      </div>
     </PageShell>
   );
 }

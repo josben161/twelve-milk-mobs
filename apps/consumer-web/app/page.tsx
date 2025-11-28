@@ -1,59 +1,86 @@
-'use client';
-
+// apps/consumer-web/app/page.tsx
 import Link from 'next/link';
-import { Card, PrimaryButton, MobPreviewCard, PageShell } from '@/components/ui';
 
-const mockMobs = [
+const mockFeed = [
   {
-    id: 'skatepark',
-    name: 'Skatepark',
-    description: 'Milk tricks & action',
-    videoCount: 24,
-    gradient: 'from-orange-500 to-red-600',
+    id: 'vid_1',
+    user: 'sk8milk',
+    mobName: 'Skatepark',
+    location: 'Venice Skatepark',
+    tags: ['#gotmilk', '#skatepark'],
+    caption: 'Tried a new trick with a milk chug 🍶🛹',
+    status: 'validated',
+    createdAt: '2h',
   },
   {
-    id: 'bedroom-dance',
-    name: 'Bedroom Dance',
-    description: 'Late night vibes',
-    videoCount: 18,
-    gradient: 'from-purple-500 to-pink-600',
-  },
-  {
-    id: 'cafe-study',
-    name: 'Café Study',
-    description: 'Chill study sessions',
-    videoCount: 12,
-    gradient: 'from-blue-500 to-cyan-600',
+    id: 'vid_2',
+    user: 'late_night_milk',
+    mobName: 'Bedroom Dance',
+    location: 'Bedtime Beats',
+    tags: ['#milkshake', '#dance'],
+    caption: 'Milkshake choreo round 2 💃',
+    status: 'processing',
+    createdAt: '5h',
   },
 ];
 
 export default function HomePage() {
   return (
-    <PageShell>
-      <div className="grid md:grid-cols-2 gap-12 items-center">
-        {/* Left: Headline + CTA */}
-        <Card className="p-8 bg-gradient-to-br from-slate-900/90 via-slate-900/70 to-slate-950/50">
-          <div className="space-y-6">
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-slate-50 to-slate-300 bg-clip-text text-transparent">
-              Join the Milk Mob
-            </h1>
-            <p className="text-lg text-slate-300 leading-relaxed">
-              Upload your videos, join themed mobs, and see your content come
-              together with others. Powered by TwelveLabs AI.
+    <div className="flex flex-col gap-6 pb-6">
+      {mockFeed.map((post) => (
+        <article key={post.id} className="border-b border-slate-900 pb-4">
+          {/* Header */}
+          <header className="flex items-center justify-between px-3 pt-3 pb-2">
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-xs font-semibold">
+                {post.user.slice(0, 2).toUpperCase()}
+              </div>
+              <div className="flex flex-col">
+                <span className="text-sm font-semibold">{post.user}</span>
+                <span className="text-xs text-slate-400">{post.location}</span>
+              </div>
+            </div>
+            <span className="text-slate-500 text-xl">⋯</span>
+          </header>
+
+          {/* Media */}
+          <div className="relative mx-3 mb-2 overflow-hidden rounded-xl bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 aspect-[4/5]">
+            <div className="absolute inset-0 flex items-center justify-center text-xs text-slate-400">
+              Video preview
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center justify-between px-3 py-1 text-xl">
+            <div className="flex items-center gap-4">
+              <button>❤️</button>
+              <button>💬</button>
+              <button>📤</button>
+            </div>
+            <button>🔖</button>
+          </div>
+
+          {/* Caption */}
+          <div className="px-3 pt-1 space-y-1">
+            <p className="text-sm">
+              <span className="font-semibold mr-1">{post.user}</span>
+              {post.caption}
             </p>
-            <Link href="/upload">
-              <PrimaryButton>Upload a video</PrimaryButton>
+            <p className="text-xs text-indigo-300">
+              {post.tags.join(' ')}
+            </p>
+            <p className="text-[11px] text-slate-500 uppercase tracking-wide">
+              {post.mobName} · {post.createdAt} ago
+            </p>
+            <Link
+              href={`/video/${post.id}`}
+              className="text-[11px] text-slate-400 underline"
+            >
+              View analysis
             </Link>
           </div>
-        </Card>
-
-        {/* Right: Mob preview cards */}
-        <div className="space-y-4">
-          {mockMobs.map((mob) => (
-            <MobPreviewCard key={mob.id} {...mob} />
-          ))}
-        </div>
-      </div>
-    </PageShell>
+        </article>
+      ))}
+    </div>
   );
 }

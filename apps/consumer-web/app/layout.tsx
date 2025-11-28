@@ -1,10 +1,11 @@
+// apps/consumer-web/app/layout.tsx
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Milk Mobs Demo',
-  description: 'TwelveLabs-powered video campaign prototype',
+  title: 'Milk Mobs',
+  description: 'Instagram-style Milk Mob feed powered by TwelveLabs',
 };
 
 export default function RootLayout({
@@ -14,35 +15,42 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-slate-950 text-slate-50">
-        <div className="mx-auto flex min-h-screen max-w-5xl flex-col px-4 pb-8 pt-4">
-          <header className="mb-6 flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600 text-xs font-bold">
-                MM
+      <body className="bg-[#020617] text-slate-50">
+        <div className="min-h-screen flex justify-center">
+          <div className="flex w-full max-w-[480px] flex-col border-x border-slate-900 bg-[#020617]">
+            {/* Top bar */}
+            <header className="flex items-center justify-between px-4 py-3 border-b border-slate-900">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-xs font-semibold">
+                  MM
+                </div>
+                <span className="font-semibold text-sm">Milk Mobs</span>
               </div>
-              <span className="text-sm font-semibold tracking-wide">
-                Milk Mobs
-              </span>
-            </Link>
-            <nav className="flex items-center gap-3 text-sm text-slate-300">
-              <Link href="/" className="hover:text-indigo-400">
-                Home
+              <div className="flex items-center gap-4 text-slate-300 text-xl">
+                {/* dummy icons with text for now */}
+                <span>🔔</span>
+                <span>✉️</span>
+              </div>
+            </header>
+
+            <main className="flex-1 pb-16">{children}</main>
+
+            {/* Bottom nav */}
+            <nav className="fixed bottom-0 left-1/2 z-20 flex w-full max-w-[480px] -translate-x-1/2 items-center justify-around border-t border-slate-900 bg-[#020617]/95 py-2 text-xs text-slate-400">
+              <Link href="/" className="flex flex-col items-center gap-0.5">
+                <span>🏠</span>
+                <span>Home</span>
               </Link>
-              <Link href="/upload" className="hover:text-indigo-400">
-                Upload
+              <Link href="/upload" className="flex flex-col items-center gap-0.5">
+                <span>➕</span>
+                <span>Upload</span>
               </Link>
-              <Link href="/my-videos" className="hover:text-indigo-400">
-                My videos
+              <Link href="/my-videos" className="flex flex-col items-center gap-0.5">
+                <span>👤</span>
+                <span>Profile</span>
               </Link>
             </nav>
-          </header>
-
-          <main className="flex-1">{children}</main>
-
-          <footer className="mt-8 border-t border-slate-800 pt-4 text-xs text-slate-500">
-            Milk Mobs · TwelveLabs demo · {new Date().getFullYear()}
-          </footer>
+          </div>
         </div>
       </body>
     </html>
