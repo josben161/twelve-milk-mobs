@@ -84,7 +84,7 @@ export default function RootLayout({
           </header>
 
           {/* Spacer to push content below fixed header */}
-          <div className="h-[50px]" />
+          <div className="h-[40px]" />
 
           <div className="min-h-screen flex justify-center transition-colors duration-300 pb-20">
             <div className="flex w-full max-w-[480px] flex-col border-x border-[var(--border-subtle)] bg-[var(--bg)]/80 backdrop-blur-xl transition-colors duration-300 shadow-2xl">

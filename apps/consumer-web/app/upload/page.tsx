@@ -85,13 +85,13 @@ export default function UploadPage() {
   return (
     <div className="px-4 pb-24 pt-4 transition-colors duration-300">
       <h1
-        className="mb-2 text-2xl font-bold tracking-tight transition-colors duration-300"
+        className="mb-1 text-xl font-normal tracking-normal transition-colors duration-300"
         style={{ color: 'var(--text)' }}
       >
         New Milk Mob post
       </h1>
       <p
-        className="mb-6 text-sm leading-relaxed transition-colors duration-300"
+        className="mb-8 text-xs leading-normal transition-colors duration-300"
         style={{ color: 'var(--text-muted)' }}
       >
         Choose a short video, add your Milk Mob tags, and share it to the feed.
@@ -105,7 +105,7 @@ export default function UploadPage() {
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
-            className="relative w-full overflow-hidden rounded-2xl border transition-all duration-300 cursor-pointer"
+            className="relative w-full overflow-hidden rounded-lg border transition-all duration-200 cursor-pointer mb-3"
             style={{
               borderColor: isDragging ? 'var(--accent)' : 'var(--border-subtle)',
               backgroundColor: 'var(--bg-card)',
@@ -113,7 +113,7 @@ export default function UploadPage() {
             }}
             onMouseEnter={(e) => {
               if (!isDragging) {
-                e.currentTarget.style.borderColor = 'var(--accent)';
+                e.currentTarget.style.borderColor = 'var(--border-strong)';
               }
             }}
             onMouseLeave={(e) => {
@@ -130,13 +130,13 @@ export default function UploadPage() {
               className="hidden"
             />
             <div
-              className="absolute inset-0 flex items-center justify-center text-sm font-medium transition-colors duration-300"
+              className="absolute inset-0 flex items-center justify-center text-xs font-normal transition-colors duration-300"
               style={{ color: 'var(--text-subtle)' }}
             >
               {file ? (
                 <div className="px-6 text-center">
                   <p
-                    className="text-base mb-1.5 font-semibold transition-colors duration-300"
+                    className="text-sm mb-1 font-normal transition-colors duration-300"
                     style={{ color: 'var(--text)' }}
                   >
                     {file.name}
@@ -156,16 +156,16 @@ export default function UploadPage() {
 
           {/* Tap / drag to select - subtle hint below preview */}
           <p
-            className="text-xs text-center transition-colors duration-300"
+            className="text-xs text-center mb-6 transition-colors duration-300"
             style={{ color: 'var(--text-subtle)' }}
           >
             Tap to select a video or drag & drop
           </p>
 
             {/* Hashtags */}
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               <label
-                className="block text-sm font-bold transition-colors duration-300"
+                className="block text-xs font-normal transition-colors duration-300"
                 style={{ color: 'var(--text)' }}
               >
                 Hashtags
@@ -175,7 +175,7 @@ export default function UploadPage() {
                 onChange={(e) => setHashtags(e.target.value)}
                 rows={3}
                 placeholder="#gotmilk #milkmob #skatepark"
-                className="w-full resize-none rounded-xl border px-4 py-3 text-sm transition-all duration-300 focus:outline-none focus:ring-2 placeholder:opacity-50"
+                className="w-full resize-none rounded-lg border px-3 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:border-[var(--accent)] placeholder:opacity-60"
                 style={{
                   borderColor: 'var(--border-subtle)',
                   backgroundColor: 'var(--bg-card)',
@@ -183,23 +183,20 @@ export default function UploadPage() {
                 }}
                 onFocus={(e) => {
                   e.currentTarget.style.borderColor = 'var(--accent)';
-                  e.currentTarget.style.boxShadow = '0 0 0 3px var(--accent-soft)';
                 }}
                 onBlur={(e) => {
                   e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  e.currentTarget.style.boxShadow = 'none';
                 }}
               />
               {hashtagList.length > 0 && (
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5 pt-1">
                   {hashtagList.map((tag, idx) => (
                     <span
                       key={idx}
-                      className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-colors duration-300"
+                      className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-normal transition-colors duration-300"
                       style={{
-                        borderColor: 'var(--accent)',
                         backgroundColor: 'var(--accent-soft)',
-                        color: 'var(--accent-strong)',
+                        color: 'var(--accent)',
                       }}
                     >
                       {tag}
@@ -211,25 +208,41 @@ export default function UploadPage() {
 
             {error && (
               <div
-                className="rounded-xl border px-3 py-2 transition-colors duration-300"
+                className="rounded-lg border px-3 py-2 transition-colors duration-300"
                 style={{
-                  borderColor: 'rgba(239, 68, 68, 0.5)',
-                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                  borderColor: 'rgba(239, 68, 68, 0.3)',
+                  backgroundColor: 'rgba(239, 68, 68, 0.05)',
                 }}
               >
-                <p className="text-xs" style={{ color: 'rgb(252, 165, 165)' }}>
+                <p className="text-xs font-normal" style={{ color: 'rgb(239, 68, 68)' }}>
                   {error}
                 </p>
               </div>
             )}
 
-            <PrimaryButton
+            <button
               type="submit"
               disabled={loading || !file || hashtagList.length === 0}
-              className="w-full rounded-xl py-3.5 text-base font-semibold shadow-lg"
+              className="w-full rounded-lg py-2 text-sm font-semibold transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed"
+              style={{
+                backgroundColor: loading || !file || hashtagList.length === 0 
+                  ? 'rgba(0, 149, 246, 0.3)' 
+                  : 'var(--accent)',
+                color: 'white',
+              }}
+              onMouseEnter={(e) => {
+                if (!loading && file && hashtagList.length > 0) {
+                  e.currentTarget.style.backgroundColor = 'var(--accent-hover)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!loading && file && hashtagList.length > 0) {
+                  e.currentTarget.style.backgroundColor = 'var(--accent)';
+                }
+              }}
             >
               {loading ? 'Sharing…' : 'Share to Milk Mob'}
-            </PrimaryButton>
+            </button>
           </form>
         ) : (
           // Success view
