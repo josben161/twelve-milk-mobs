@@ -1,65 +1,94 @@
-import Image from "next/image";
+// apps/admin-web/src/app/page.tsx
+const mockStats = {
+  totalVideos: 428,
+  validated: 312,
+  rejected: 46,
+  processing: 70,
+  mobs: 12,
+  avgValidationScore: 0.87,
+  avgTimeToValidate: '3m 42s',
+};
 
-export default function Home() {
+const statCards = [
+  {
+    label: 'Total videos',
+    value: mockStats.totalVideos.toLocaleString(),
+    caption: '+52 in last 24h',
+  },
+  {
+    label: 'Validated',
+    value: mockStats.validated.toLocaleString(),
+    caption: '73%',
+  },
+  {
+    label: 'Rejected',
+    value: mockStats.rejected.toLocaleString(),
+    caption: "Content didn't match brief",
+  },
+  {
+    label: 'Mobs active',
+    value: mockStats.mobs.toString(),
+    caption: 'e.g. Skatepark / Café Study',
+  },
+];
+
+export default function AdminHomePage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-xl font-semibold">Overview</h1>
+        <p className="mt-1 text-sm text-[var(--text-muted)]">
+          High-level view of the Milk Mob campaign performance.
+        </p>
+      </div>
+
+      {/* Stat cards */}
+      <section className="grid gap-4 md:grid-cols-4">
+        {statCards.map((card) => (
+          <div
+            key={card.label}
+            className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-soft)] px-4 py-3 shadow-sm"
+          >
+            <p className="text-xs text-[var(--text-muted)]">{card.label}</p>
+            <p className="mt-2 text-lg font-semibold">{card.value}</p>
+            <p className="mt-1 text-[11px] text-[var(--text-muted)]">
+              {card.caption}
+            </p>
+          </div>
+        ))}
+      </section>
+
+      {/* Video breakdown */}
+      <section className="grid gap-4 md:grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)]">
+        <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-soft)] p-4">
+          <h2 className="text-sm font-semibold mb-3">Validation funnel</h2>
+          <p className="text-xs text-[var(--text-muted)] mb-4">
+            Mock chart for now - later this shows daily ingests and validation outcomes.
           </p>
+          <div className="flex h-40 items-center justify-center text-xs text-[var(--text-muted)] border border-dashed border-[var(--border-subtle)] rounded-lg">
+            Chart placeholder
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-soft)] p-4">
+          <h2 className="text-sm font-semibold mb-3">Quality & latency</h2>
+          <ul className="space-y-2 text-xs text-[var(--text-muted)]">
+            <li>
+              <span className="font-semibold text-[var(--text)]">
+                {Math.round(mockStats.avgValidationScore * 100)}%
+              </span>{' '}
+              average validation score across all Mobs.
+            </li>
+            <li>
+              <span className="font-semibold text-[var(--text)]">
+                {mockStats.avgTimeToValidate}
+              </span>{' '}
+              average time from ingest to final decision.
+            </li>
+            <li>Processing multiple modalities: video, text, and audio.</li>
+          </ul>
         </div>
-      </main>
+      </section>
     </div>
   );
 }
