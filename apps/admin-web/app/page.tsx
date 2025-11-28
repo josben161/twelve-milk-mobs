@@ -60,9 +60,9 @@ export default function AdminHomePage() {
         {statCards.map((card) => (
           <div
             key={card.label}
-            className="bg-[var(--bg-elevated)] rounded-2xl border border-[var(--border-subtle)] shadow-sm px-5 py-4 flex flex-col"
+            className="bg-[var(--bg-elevated)] rounded-2xl border border-[var(--border-subtle)] shadow-sm px-5 py-4 flex flex-col items-center text-center"
           >
-            <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center justify-center gap-2 mb-3">
               <div className="h-7 w-7 rounded-lg bg-[var(--accent-soft)] flex items-center justify-center text-sm flex-shrink-0">
                 {card.icon}
               </div>
@@ -73,7 +73,7 @@ export default function AdminHomePage() {
             <p className="text-2xl font-bold text-[var(--text)] mb-2 leading-tight">
               {card.value}
             </p>
-            <div className="flex items-center gap-1.5 mt-auto">
+            <div className="flex items-center justify-center gap-1.5 mt-auto">
               <span
                 className={`text-xs font-semibold ${
                   card.trend === 'up'
