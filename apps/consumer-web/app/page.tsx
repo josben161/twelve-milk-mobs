@@ -11,7 +11,7 @@ import {
 const mockFeed = [
   {
     id: 'vid_1',
-    user: 'sk8milk',
+    user: 'user_1',
     mobName: 'Skatepark',
     location: 'Venice Skatepark',
     tags: ['#gotmilk', '#skatepark'],
@@ -21,7 +21,7 @@ const mockFeed = [
   },
   {
     id: 'vid_2',
-    user: 'late_night_milk',
+    user: 'user_2',
     mobName: 'Bedroom Dance',
     location: 'Bedtime Beats',
     tags: ['#milkshake', '#dance'],
