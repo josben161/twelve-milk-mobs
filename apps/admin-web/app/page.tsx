@@ -1,9 +1,9 @@
 // apps/admin-web/app/page.tsx
+
 const mockStats = {
   totalVideos: 428,
   validated: 312,
   rejected: 46,
-  processing: 70,
   mobs: 12,
   avgValidationScore: 0.87,
   avgTimeToValidate: '3m 42s',
@@ -11,184 +11,149 @@ const mockStats = {
 
 const statCards = [
   {
-    label: 'Total Videos',
+    label: 'Total videos',
     value: mockStats.totalVideos.toLocaleString(),
-    change: '+52',
-    changeLabel: 'Last 24 hours',
-    trend: 'up' as const,
-    icon: '📹',
+    caption: '+52 in last 24 hours',
   },
   {
     label: 'Validated',
     value: mockStats.validated.toLocaleString(),
-    change: '73%',
-    changeLabel: 'Approval rate',
-    trend: 'neutral' as const,
-    icon: '✓',
+    caption: '73% approval rate',
   },
   {
     label: 'Rejected',
     value: mockStats.rejected.toLocaleString(),
-    change: '11%',
-    changeLabel: 'Rejection rate',
-    trend: 'down' as const,
-    icon: '✗',
+    caption: 'Content did not match brief',
   },
   {
-    label: 'Active Mobs',
+    label: 'Active mobs',
     value: mockStats.mobs.toString(),
-    change: '12',
-    changeLabel: 'Communities',
-    trend: 'neutral' as const,
-    icon: '👥',
+    caption: 'e.g. Skatepark, Café Study',
   },
 ];
 
 export default function AdminHomePage() {
   return (
-    <div className="space-y-8">
-      {/* Page Header */}
-      <div className="space-y-1">
-        <h1 className="text-[32px] font-bold text-[var(--text-primary)] leading-tight tracking-tight">
-          Campaign Overview
-        </h1>
-        <p className="text-[15px] text-[var(--text-secondary)] leading-relaxed max-w-2xl">
-          Monitor performance metrics and content validation across all Milk Mob communities
-        </p>
-      </div>
-
-      {/* Stat Cards Grid */}
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {statCards.map((card) => (
-          <div
-            key={card.label}
-            className="group relative rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-5 shadow-[var(--shadow-sm)] hover:border-[var(--border-hover)] hover:shadow-[var(--shadow-md)] transition-all duration-[var(--transition-base)]"
-          >
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="h-9 w-9 rounded-[8px] bg-[var(--bg-elevated)] flex items-center justify-center text-base border border-[var(--border)]">
-                  {card.icon}
-                </div>
-                <div>
-                  <p className="text-[12px] font-medium text-[var(--text-tertiary)] uppercase tracking-wide">
-                    {card.label}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <p className="text-[28px] font-bold text-[var(--text-primary)] leading-none">
-                {card.value}
-              </p>
-              <div className="flex items-center gap-2">
-                <span
-                  className={`text-[13px] font-semibold ${
-                    card.trend === 'up'
-                      ? 'text-[var(--success)]'
-                      : card.trend === 'down'
-                      ? 'text-[var(--error)]'
-                      : 'text-[var(--text-secondary)]'
-                  }`}
-                >
-                  {card.change}
-                </span>
-                <span className="text-[12px] text-[var(--text-tertiary)]">
-                  {card.changeLabel}
-                </span>
-              </div>
-            </div>
-          </div>
-        ))}
-      </section>
-
-      {/* Charts and Metrics Section */}
-      <section className="grid gap-5 lg:grid-cols-[1fr_420px]">
-        {/* Validation Funnel Chart */}
-        <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-6 shadow-[var(--shadow-sm)]">
-          <div className="mb-5 space-y-1">
-            <h2 className="text-[18px] font-semibold text-[var(--text-primary)] leading-tight">
-              Validation Funnel
-            </h2>
-            <p className="text-[13px] text-[var(--text-secondary)] leading-relaxed">
-              Daily content ingestion and validation outcomes over time
-            </p>
-          </div>
-          <div className="relative h-[280px] rounded-[var(--radius-md)] border-2 border-dashed border-[var(--border)] bg-[var(--bg)]/50 flex items-center justify-center">
-            <div className="text-center space-y-2">
-              <div className="inline-flex items-center justify-center h-12 w-12 rounded-full bg-[var(--bg-surface)] border border-[var(--border)] mb-2">
-                <svg className="w-6 h-6 text-[var(--text-tertiary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
-              <p className="text-[13px] font-medium text-[var(--text-secondary)]">Chart visualization</p>
-              <p className="text-[11px] text-[var(--text-tertiary)]">Coming soon</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Quality Metrics Panel */}
-        <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-surface)] p-6 shadow-[var(--shadow-sm)]">
-          <div className="mb-5 space-y-1">
-            <h2 className="text-[18px] font-semibold text-[var(--text-primary)] leading-tight">
-              Quality Metrics
-            </h2>
-            <p className="text-[13px] text-[var(--text-secondary)] leading-relaxed">
-              System performance and processing efficiency
-            </p>
-          </div>
-          <div className="space-y-5">
-            {/* Validation Score */}
-            <div className="pb-5 border-b border-[var(--border)]">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-[13px] font-medium text-[var(--text-secondary)]">
-                  Average Validation Score
-                </span>
-                <span className="text-[16px] font-bold text-[var(--text-primary)]">
-                  {Math.round(mockStats.avgValidationScore * 100)}%
-                </span>
-              </div>
-              <div className="relative h-2.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
-                <div
-                  className="absolute inset-y-0 left-0 bg-gradient-to-r from-[var(--success)] to-[#00b894] rounded-full transition-all duration-[var(--transition-slow)]"
-                  style={{ width: `${mockStats.avgValidationScore * 100}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Processing Time */}
-            <div className="pb-5 border-b border-[var(--border)]">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[13px] font-medium text-[var(--text-secondary)]">
-                  Processing Time
-                </span>
-                <span className="text-[16px] font-bold text-[var(--text-primary)]">
-                  {mockStats.avgTimeToValidate}
-                </span>
-              </div>
-              <p className="text-[12px] text-[var(--text-tertiary)] leading-relaxed">
-                Average time from upload to validation decision
-              </p>
-            </div>
-
-            {/* Processing Capabilities */}
+    <div className="min-h-full bg-[var(--bg)] text-[var(--text)]">
+      <div className="mx-auto flex max-w-6xl flex-col gap-6">
+        {/* Campaign banner */}
+        <section className="mt-2 overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-gradient-to-r from-indigo-600/80 via-indigo-500 to-violet-500 px-5 py-4 shadow-[0_18px_45px_rgba(15,23,42,0.8)]">
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-[13px] font-medium text-[var(--text-secondary)] mb-3">
-                Processing Capabilities
+              <p className="text-xs font-medium uppercase tracking-wide text-indigo-100/80">
+                Got Milk · Gen Z campaign
               </p>
-              <div className="flex flex-wrap gap-2">
-                {['Video', 'Audio', 'Text'].map((modality) => (
-                  <span
-                    key={modality}
-                    className="inline-flex items-center px-3 py-1.5 rounded-[var(--radius-sm)] text-[12px] font-semibold bg-[var(--accent-surface)] text-[var(--accent)] border border-[var(--accent)]/20"
-                  >
-                    {modality}
-                  </span>
-                ))}
+              <h1 className="mt-1 text-lg font-semibold text-white">
+                Campaign Overview
+              </h1>
+              <p className="mt-1 text-xs text-indigo-100/90 max-w-xl">
+                Monitor performance, validation quality, and engagement across all
+                Milk Mob communities. Powered by TwelveLabs video understanding.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-4 text-xs text-indigo-100/90 mt-3 md:mt-0">
+              <div>
+                <p className="opacity-80">Avg validation score</p>
+                <p className="text-sm font-semibold">
+                  {Math.round(mockStats.avgValidationScore * 100)}%
+                </p>
+              </div>
+              <div>
+                <p className="opacity-80">Avg processing time</p>
+                <p className="text-sm font-semibold">
+                  {mockStats.avgTimeToValidate}
+                </p>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+
+        {/* Stat cards */}
+        <section className="grid gap-4 md:grid-cols-4">
+          {statCards.map((card) => (
+            <div
+              key={card.label}
+              className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-soft)] px-4 py-3 shadow-sm"
+            >
+              <p className="text-[11px] uppercase tracking-wide text-[var(--text-muted)]">
+                {card.label}
+              </p>
+              <p className="mt-2 text-xl font-semibold">{card.value}</p>
+              <p className="mt-1 text-[11px] text-[var(--text-muted)]">
+                {card.caption}
+              </p>
+            </div>
+          ))}
+        </section>
+
+        {/* Funnel + quality metrics */}
+        <section className="grid gap-4 md:grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)]">
+          {/* Validation funnel card */}
+          <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-soft)] p-4 shadow-sm">
+            <div className="flex items-center justify-between mb-1">
+              <h2 className="text-sm font-semibold">Validation funnel</h2>
+              <span className="text-[11px] text-[var(--text-muted)]">
+                Daily ingest & decision trend
+              </span>
+            </div>
+            <p className="mb-4 text-xs text-[var(--text-muted)]">
+              This will show volume of videos ingested and how they flow through
+              processing, validation and rejection over time.
+            </p>
+            <div className="flex h-52 flex-col items-center justify-center rounded-xl border border-dashed border-[var(--border-subtle)] bg-[radial-gradient(circle_at_top,_#1f2937,_#020617)] text-xs text-[var(--text-muted)]">
+              <span className="mb-1 text-[var(--text)]/80">
+                Chart visualization
+              </span>
+              <span>Coming soon</span>
+            </div>
+          </div>
+
+          {/* Quality metrics card */}
+          <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-soft)] p-4 shadow-sm">
+            <h2 className="text-sm font-semibold mb-3">Quality metrics</h2>
+            <dl className="space-y-3 text-xs text-[var(--text-muted)]">
+              <div>
+                <dt className="mb-1 flex items-center justify-between">
+                  <span>Average validation score</span>
+                  <span className="font-semibold text-emerald-300">
+                    {Math.round(mockStats.avgValidationScore * 100)}%
+                  </span>
+                </dt>
+                <dd className="h-1.5 overflow-hidden rounded-full bg-slate-800">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-500"
+                    style={{ width: `${mockStats.avgValidationScore * 100}%` }}
+                  />
+                </dd>
+              </div>
+              <div>
+                <dt className="mb-1 flex items-center justify-between">
+                  <span>Average processing time</span>
+                  <span className="font-semibold text-sky-300">
+                    {mockStats.avgTimeToValidate}
+                  </span>
+                </dt>
+                <dd className="text-[11px]">
+                  Time from user upload to automated validation decision.
+                </dd>
+              </div>
+              <div>
+                <dt className="mb-1">Processing capabilities</dt>
+                <dd className="flex flex-wrap gap-1.5">
+                  {['Video', 'Audio', 'Text'].map((m) => (
+                    <span
+                      key={m}
+                      className="inline-flex items-center rounded-full border border-slate-700 bg-slate-900/60 px-2.5 py-0.5 text-[11px] text-slate-200"
+                    >
+                      {m}
+                    </span>
+                  ))}
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }
