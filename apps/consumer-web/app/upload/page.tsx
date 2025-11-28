@@ -83,93 +83,89 @@ export default function UploadPage() {
 
   // ✅ IG-style layout starts here
   return (
-    <PageShell maxWidth="md">
-      <div className="px-4 pb-24 pt-6 transition-colors duration-300">
-        <h1
-          className="mb-2 text-xl font-bold tracking-tight transition-colors duration-300"
-          style={{ color: 'var(--text)' }}
-        >
-          New Milk Mob post
-        </h1>
-        <p
-          className="mb-6 text-sm leading-relaxed transition-colors duration-300"
-          style={{ color: 'var(--text-muted)' }}
-        >
-          Choose a short video, add your Milk Mob tags, and share it to the feed.
-        </p>
+    <div className="px-4 pb-24 pt-4 transition-colors duration-300">
+      <h1
+        className="mb-2 text-2xl font-bold tracking-tight transition-colors duration-300"
+        style={{ color: 'var(--text)' }}
+      >
+        New Milk Mob post
+      </h1>
+      <p
+        className="mb-6 text-sm leading-relaxed transition-colors duration-300"
+        style={{ color: 'var(--text-muted)' }}
+      >
+        Choose a short video, add your Milk Mob tags, and share it to the feed.
+      </p>
 
-        {!result ? (
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Video preview (4:5 like IG) */}
-            <Card className="overflow-hidden transition-colors duration-300 shadow-lg">
-              <div className="relative aspect-[4/5] w-full bg-gradient-to-br from-[var(--bg-soft)] via-[var(--bg)] to-[var(--bg-soft)]">
-                <div
-                  className="absolute inset-0 flex items-center justify-center text-sm font-medium transition-colors duration-300"
-                  style={{ color: 'var(--text-subtle)' }}
-                >
-                  {file ? (
-                    <div className="px-6 text-center">
-                      <p
-                        className="text-base mb-1.5 font-semibold transition-colors duration-300"
-                        style={{ color: 'var(--text)' }}
-                      >
-                        {file.name}
-                      </p>
-                      <p
-                        className="text-xs transition-colors duration-300"
-                        style={{ color: 'var(--text-muted)' }}
-                      >
-                        {(file.size / 1024 / 1024).toFixed(2)} MB
-                      </p>
-                    </div>
-                  ) : (
-                    'Video preview'
-                  )}
-                </div>
-              </div>
-            </Card>
-
-            {/* Tap / drag to select */}
+      {!result ? (
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Video preview (4:5 like IG) */}
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+            className="relative w-full overflow-hidden rounded-2xl border transition-all duration-300 cursor-pointer"
+            style={{
+              borderColor: isDragging ? 'var(--accent)' : 'var(--border-subtle)',
+              backgroundColor: 'var(--bg-card)',
+              aspectRatio: '4/5',
+            }}
+            onMouseEnter={(e) => {
+              if (!isDragging) {
+                e.currentTarget.style.borderColor = 'var(--accent)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isDragging) {
+                e.currentTarget.style.borderColor = 'var(--border-subtle)';
+              }
+            }}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="video/*"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
             <div
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-              className="flex cursor-pointer items-center justify-center rounded-xl border border-dashed px-4 py-3 text-xs transition-all duration-300"
-              style={{
-                borderColor: isDragging ? 'var(--accent)' : 'var(--border-subtle)',
-                backgroundColor: isDragging ? 'var(--accent-soft)' : 'transparent',
-                transform: isDragging ? 'scale(1.01)' : 'scale(1)',
-              }}
-              onMouseEnter={(e) => {
-                if (!isDragging) {
-                  e.currentTarget.style.borderColor = 'var(--accent)';
-                  e.currentTarget.style.backgroundColor = 'var(--accent-soft)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isDragging) {
-                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                }
-              }}
+              className="absolute inset-0 flex items-center justify-center text-sm font-medium transition-colors duration-300"
+              style={{ color: 'var(--text-subtle)' }}
             >
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="video/*"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-              <span style={{ color: 'var(--text-muted)' }}>
-                {file ? 'Tap to change video or drag a new file here' : 'Tap to select a video or drag & drop'}
-              </span>
+              {file ? (
+                <div className="px-6 text-center">
+                  <p
+                    className="text-base mb-1.5 font-semibold transition-colors duration-300"
+                    style={{ color: 'var(--text)' }}
+                  >
+                    {file.name}
+                  </p>
+                  <p
+                    className="text-xs transition-colors duration-300"
+                    style={{ color: 'var(--text-muted)' }}
+                  >
+                    {(file.size / 1024 / 1024).toFixed(2)} MB
+                  </p>
+                </div>
+              ) : (
+                'Video preview'
+              )}
             </div>
+          </div>
 
-            {/* Caption / hashtags */}
+          {/* Tap / drag to select - subtle hint below preview */}
+          <p
+            className="text-xs text-center transition-colors duration-300"
+            style={{ color: 'var(--text-subtle)' }}
+          >
+            Tap to select a video or drag & drop
+          </p>
+
+            {/* Hashtags */}
             <div className="space-y-3">
               <label
-                className="block text-sm font-semibold transition-colors duration-300"
+                className="block text-sm font-bold transition-colors duration-300"
                 style={{ color: 'var(--text)' }}
               >
                 Hashtags
@@ -182,7 +178,7 @@ export default function UploadPage() {
                 className="w-full resize-none rounded-xl border px-4 py-3 text-sm transition-all duration-300 focus:outline-none focus:ring-2 placeholder:opacity-50"
                 style={{
                   borderColor: 'var(--border-subtle)',
-                  backgroundColor: 'var(--bg-soft)',
+                  backgroundColor: 'var(--bg-card)',
                   color: 'var(--text)',
                 }}
                 onFocus={(e) => {
@@ -199,7 +195,7 @@ export default function UploadPage() {
                   {hashtagList.map((tag, idx) => (
                     <span
                       key={idx}
-                      className="inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-medium transition-colors duration-300"
+                      className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-colors duration-300"
                       style={{
                         borderColor: 'var(--accent)',
                         backgroundColor: 'var(--accent-soft)',
@@ -230,7 +226,7 @@ export default function UploadPage() {
             <PrimaryButton
               type="submit"
               disabled={loading || !file || hashtagList.length === 0}
-              className="w-full rounded-full"
+              className="w-full rounded-xl py-3.5 text-base font-semibold shadow-lg"
             >
               {loading ? 'Sharing…' : 'Share to Milk Mob'}
             </PrimaryButton>
@@ -238,7 +234,7 @@ export default function UploadPage() {
         ) : (
           // Success view
           <Card
-            className="mt-4 space-y-4 p-4 transition-colors duration-300"
+            className="mt-4 space-y-4 p-6 transition-colors duration-300"
             style={{
               borderColor: 'rgba(34, 197, 94, 0.5)',
               backgroundColor: 'rgba(34, 197, 94, 0.1)',
@@ -290,7 +286,6 @@ export default function UploadPage() {
             </button>
           </Card>
         )}
-      </div>
-    </PageShell>
+    </div>
   );
 }
