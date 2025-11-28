@@ -1,5 +1,4 @@
 // apps/admin-web/app/page.tsx
-import { AdminShell } from '@/components/ui';
 import { StatCard } from '@/components/ui';
 import { Panel } from '@/components/ui';
 
@@ -37,7 +36,7 @@ const statCards = [
 
 export default function AdminHomePage() {
   return (
-    <AdminShell>
+    <>
       {/* Page Header */}
       <div>
         <h1 className="text-2xl font-semibold text-[var(--text)]">Campaign overview</h1>
@@ -64,14 +63,14 @@ export default function AdminHomePage() {
         <Panel className="p-6">
           <div className="mb-4">
             <h2 className="text-sm font-semibold text-[var(--text)] mb-1">Validation funnel</h2>
-            <p className="text-sm text-[var(--text-muted)]">
+            <p className="text-xs text-[var(--text-muted)]">
               Daily content ingestion and validation outcomes over time.
             </p>
           </div>
-          <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-[var(--border-subtle)] bg-[var(--bg-subtle)]">
+          <div className="flex h-64 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-subtle)]">
             <div className="text-center space-y-2">
               <svg
-                className="w-12 h-12 mx-auto text-[var(--text-soft)]"
+                className="w-10 h-10 mx-auto text-[var(--text-soft)]"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -92,7 +91,7 @@ export default function AdminHomePage() {
         <Panel className="p-6">
           <div className="mb-4">
             <h2 className="text-sm font-semibold text-[var(--text)] mb-1">Quality metrics</h2>
-            <p className="text-sm text-[var(--text-muted)]">
+            <p className="text-xs text-[var(--text-muted)]">
               System performance and processing efficiency.
             </p>
           </div>
@@ -143,6 +142,6 @@ export default function AdminHomePage() {
           </div>
         </Panel>
       </section>
-    </AdminShell>
+    </>
   );
 }

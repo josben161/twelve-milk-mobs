@@ -1,6 +1,6 @@
 // apps/admin-web/app/layout.tsx
 import type { Metadata } from 'next';
-import { Navigation } from './Navigation';
+import { SidebarNav } from '@/components/layout/SidebarNav';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -17,53 +17,51 @@ export default function RootLayout({
     <html lang="en">
       <body className="min-h-screen bg-[var(--bg)] text-[var(--text)] antialiased">
         <div className="flex min-h-screen">
-          {/* Sidebar */}
-          <aside className="hidden sm:flex w-[240px] flex-col border-r border-[var(--border-subtle)] bg-[var(--bg-elevated)]">
-            {/* Logo Section */}
-            <div className="flex items-center gap-3 px-5 py-4 border-b border-[var(--border-subtle)]">
-              <div className="h-9 w-9 rounded-lg bg-[var(--accent)] flex items-center justify-center text-sm font-bold text-white">
+          {/* Left Sidebar */}
+          <aside className="hidden sm:flex w-[248px] flex-col border-r border-[var(--border-subtle)] bg-[var(--bg)]">
+            {/* Logo Section - 48px tall */}
+            <div className="h-12 flex items-center gap-2.5 px-4 border-b border-[var(--border-subtle)]">
+              <div className="h-7 w-7 rounded-full bg-[var(--accent)] flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
                 MM
               </div>
               <div className="flex flex-col min-w-0">
-                <span className="text-[15px] font-semibold text-[var(--text)] leading-tight">Milk Mobs</span>
-                <span className="text-[12px] text-[var(--text-muted)] leading-tight mt-0.5">
+                <span className="text-sm font-semibold text-[var(--text)] leading-tight truncate">Milk Mobs</span>
+                <span className="text-[10px] text-[var(--text-muted)] leading-tight truncate">
                   Campaign Manager
                 </span>
               </div>
             </div>
 
             {/* Navigation */}
-            <Navigation />
+            <SidebarNav />
 
             {/* Footer */}
-            <div className="px-5 py-4 border-t border-[var(--border-subtle)]">
-              <p className="text-[11px] text-[var(--text-soft)] leading-relaxed">
+            <div className="px-4 py-3 border-t border-[var(--border-subtle)] mt-auto">
+              <p className="text-[10px] text-[var(--text-soft)] leading-relaxed">
                 Powered by <span className="font-medium text-[var(--text-muted)]">TwelveLabs</span>
-                <br />
-                <span className="text-[10px]">v0.1.0</span>
               </p>
             </div>
           </aside>
 
           {/* Main Content Area */}
           <div className="flex flex-1 flex-col min-w-0">
-            {/* Top Bar */}
-            <header className="sticky top-0 z-10 flex items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-6 py-3.5">
+            {/* Top App Bar - 48px tall */}
+            <header className="h-12 flex items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--bg)] px-6">
               <div className="sm:hidden flex items-center gap-2.5">
-                <div className="h-8 w-8 rounded-lg bg-[var(--accent)] flex items-center justify-center text-xs font-bold text-white">
+                <div className="h-7 w-7 rounded-full bg-[var(--accent)] flex items-center justify-center text-xs font-bold text-white">
                   MM
                 </div>
-                <span className="text-[15px] font-semibold text-[var(--text)]">Milk Mobs</span>
+                <span className="text-sm font-semibold text-[var(--text)]">Milk Mobs</span>
               </div>
-              <div className="ml-auto flex items-center gap-4 text-[13px]">
-                <div className="flex items-center gap-2 text-[var(--text-muted)]">
+              <div className="ml-auto flex items-center gap-3 text-xs">
+                <div className="flex items-center gap-1.5 text-[var(--text-muted)]">
                   <span className="font-medium text-[var(--text)]">Got Milk</span>
                   <span className="text-[var(--text-soft)]">·</span>
                   <span>Gen Z Campaign</span>
                 </div>
-                <div className="h-5 w-px bg-[var(--border-subtle)]" />
-                <div className="flex items-center gap-2.5">
-                  <div className="h-8 w-8 rounded-full bg-[var(--accent)] flex items-center justify-center text-xs font-semibold text-white">
+                <div className="h-4 w-px bg-[var(--border-subtle)]" />
+                <div className="flex items-center gap-2">
+                  <div className="h-7 w-7 rounded-full bg-[var(--accent)] flex items-center justify-center text-[10px] font-semibold text-white">
                     JB
                   </div>
                   <span className="hidden sm:inline text-[var(--text-muted)]">joseph@milkco.com</span>
@@ -73,7 +71,9 @@ export default function RootLayout({
 
             {/* Page Content */}
             <main className="flex-1 bg-[var(--bg)] overflow-y-auto">
-              {children}
+              <div className="max-w-6xl mx-auto px-6 py-6 space-y-6">
+                {children}
+              </div>
             </main>
           </div>
         </div>

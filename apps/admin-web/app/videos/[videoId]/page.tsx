@@ -1,5 +1,4 @@
 // apps/admin-web/app/videos/[videoId]/page.tsx
-import { AdminShell } from '@/components/ui';
 import { Panel } from '@/components/ui';
 import { StatusPill } from '@/components/ui';
 import { adminVideos } from '../data';
@@ -13,19 +12,19 @@ export default function VideoDetailPage({ params }: Props) {
 
   if (!video) {
     return (
-      <AdminShell>
+      <>
         <div>
           <h1 className="text-2xl font-semibold text-[var(--text)]">Video not found</h1>
           <p className="mt-1.5 text-sm text-[var(--text-muted)]">
             The video you're looking for doesn't exist.
           </p>
         </div>
-      </AdminShell>
+      </>
     );
   }
 
   return (
-    <AdminShell>
+    <>
       {/* Page Header */}
       <div>
         <h1 className="text-2xl font-semibold text-[var(--text)]">Video analysis</h1>
@@ -72,7 +71,7 @@ export default function VideoDetailPage({ params }: Props) {
           <Panel className="p-6">
             <div className="mb-4">
               <h2 className="text-sm font-semibold text-[var(--text)] mb-1">Semantic timeline</h2>
-              <p className="text-sm text-[var(--text-muted)]">
+              <p className="text-xs text-[var(--text-muted)]">
                 Key moments detected by TwelveLabs analysis.
               </p>
             </div>
@@ -97,7 +96,7 @@ export default function VideoDetailPage({ params }: Props) {
           <Panel className="p-6">
             <div className="mb-4">
               <h2 className="text-sm font-semibold text-[var(--text)] mb-1">TwelveLabs summary</h2>
-              <p className="text-sm text-[var(--text-muted)]">
+              <p className="text-xs text-[var(--text-muted)]">
                 AI-detected actions, objects, and scenes.
               </p>
             </div>
@@ -135,7 +134,7 @@ export default function VideoDetailPage({ params }: Props) {
           <Panel className="p-6">
             <div className="mb-4">
               <h2 className="text-sm font-semibold text-[var(--text)] mb-1">Decision inputs</h2>
-              <p className="text-sm text-[var(--text-muted)]">
+              <p className="text-xs text-[var(--text-muted)]">
                 Validation score and status determination.
               </p>
             </div>
@@ -166,6 +165,6 @@ export default function VideoDetailPage({ params }: Props) {
           </Panel>
         </div>
       </section>
-    </AdminShell>
+    </>
   );
 }

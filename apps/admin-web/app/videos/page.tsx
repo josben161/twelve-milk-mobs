@@ -1,13 +1,12 @@
 // apps/admin-web/app/videos/page.tsx
 import Link from 'next/link';
-import { AdminShell } from '@/components/ui';
 import { Panel } from '@/components/ui';
 import { StatusPill } from '@/components/ui';
 import { adminVideos } from './data';
 
 export default function VideosPage() {
   return (
-    <AdminShell>
+    <>
       {/* Page Header */}
       <div>
         <h1 className="text-2xl font-semibold text-[var(--text)]">Videos</h1>
@@ -38,7 +37,7 @@ export default function VideosPage() {
                   Created
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide">
-                  Action
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -93,6 +92,6 @@ export default function VideosPage() {
           </table>
         </div>
       </Panel>
-    </AdminShell>
+    </>
   );
 }
