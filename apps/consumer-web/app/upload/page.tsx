@@ -84,15 +84,15 @@ export default function UploadPage() {
   // ✅ IG-style layout starts here
   return (
     <PageShell maxWidth="md">
-      <div className="px-4 pb-24 pt-4 transition-colors duration-300">
+      <div className="px-4 pb-24 pt-6 transition-colors duration-300">
         <h1
-          className="mb-3 text-lg font-semibold transition-colors duration-300"
+          className="mb-2 text-xl font-bold tracking-tight transition-colors duration-300"
           style={{ color: 'var(--text)' }}
         >
           New Milk Mob post
         </h1>
         <p
-          className="mb-4 text-xs transition-colors duration-300"
+          className="mb-6 text-sm leading-relaxed transition-colors duration-300"
           style={{ color: 'var(--text-muted)' }}
         >
           Choose a short video, add your Milk Mob tags, and share it to the feed.
@@ -101,16 +101,16 @@ export default function UploadPage() {
         {!result ? (
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Video preview (4:5 like IG) */}
-            <Card className="overflow-hidden transition-colors duration-300">
-              <div className="relative aspect-[4/5] w-full">
+            <Card className="overflow-hidden transition-colors duration-300 shadow-lg">
+              <div className="relative aspect-[4/5] w-full bg-gradient-to-br from-[var(--bg-soft)] via-[var(--bg)] to-[var(--bg-soft)]">
                 <div
-                  className="absolute inset-0 flex items-center justify-center text-xs transition-colors duration-300"
+                  className="absolute inset-0 flex items-center justify-center text-sm font-medium transition-colors duration-300"
                   style={{ color: 'var(--text-subtle)' }}
                 >
                   {file ? (
-                    <div className="px-4 text-center">
+                    <div className="px-6 text-center">
                       <p
-                        className="text-sm mb-1 truncate transition-colors duration-300"
+                        className="text-base mb-1.5 font-semibold transition-colors duration-300"
                         style={{ color: 'var(--text)' }}
                       >
                         {file.name}
@@ -167,10 +167,10 @@ export default function UploadPage() {
             </div>
 
             {/* Caption / hashtags */}
-            <div className="space-y-2">
+            <div className="space-y-3">
               <label
-                className="block text-xs font-medium transition-colors duration-300"
-                style={{ color: 'var(--text-muted)' }}
+                className="block text-sm font-semibold transition-colors duration-300"
+                style={{ color: 'var(--text)' }}
               >
                 Hashtags
               </label>
@@ -179,7 +179,7 @@ export default function UploadPage() {
                 onChange={(e) => setHashtags(e.target.value)}
                 rows={3}
                 placeholder="#gotmilk #milkmob #skatepark"
-                className="w-full resize-none rounded-xl border px-3 py-2 text-sm transition-colors duration-300 focus:outline-none focus:ring-2"
+                className="w-full resize-none rounded-xl border px-4 py-3 text-sm transition-all duration-300 focus:outline-none focus:ring-2 placeholder:opacity-50"
                 style={{
                   borderColor: 'var(--border-subtle)',
                   backgroundColor: 'var(--bg-soft)',
@@ -187,7 +187,7 @@ export default function UploadPage() {
                 }}
                 onFocus={(e) => {
                   e.currentTarget.style.borderColor = 'var(--accent)';
-                  e.currentTarget.style.boxShadow = '0 0 0 2px var(--accent-soft)';
+                  e.currentTarget.style.boxShadow = '0 0 0 3px var(--accent-soft)';
                 }}
                 onBlur={(e) => {
                   e.currentTarget.style.borderColor = 'var(--border-subtle)';

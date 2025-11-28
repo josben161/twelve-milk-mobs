@@ -5,6 +5,13 @@ import Script from 'next/script';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
+import {
+  HomeIcon,
+  PlusIcon,
+  UserIcon,
+  BellIcon,
+  MessageIcon,
+} from '@/components/ui/Icons';
 
 export const metadata: Metadata = {
   title: 'Milk Mobs',
@@ -41,70 +48,73 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="bg-[var(--bg)] text-[var(--text)] transition-colors duration-300">
+      <body className="text-[var(--text)] transition-colors duration-300">
         <ThemeProvider>
-          <div className="min-h-screen flex justify-center bg-[var(--bg)] transition-colors duration-300">
-            <div className="flex w-full max-w-[480px] flex-col border-x border-[var(--border-subtle)] bg-[var(--bg)] transition-colors duration-300">
-              {/* 🔹 App chrome header – distinct from posts */}
-              <header className="sticky top-0 z-20 flex items-center justify-between px-4 py-2 border-b border-[var(--border-subtle)] bg-[var(--bg-soft)]/95 backdrop-blur-md shadow-[0_1px_0_rgba(15,23,42,0.3)] transition-colors duration-300">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 text-[10px] font-semibold text-white">
+          <div className="min-h-screen flex justify-center transition-colors duration-300">
+            <div className="flex w-full max-w-[480px] flex-col border-x border-[var(--border-subtle)] bg-[var(--bg)]/80 backdrop-blur-xl transition-colors duration-300 shadow-2xl">
+              {/* Premium header with gradient */}
+              <header className="sticky top-0 z-30 flex items-center justify-between px-4 py-3 border-b border-[var(--border-subtle)] bg-gradient-to-b from-[var(--bg-soft)]/98 via-[var(--bg-soft)]/95 to-[var(--bg-soft)]/98 backdrop-blur-xl transition-colors duration-300">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-[11px] font-bold text-white shadow-lg shadow-indigo-500/30">
                     MM
                   </div>
-                  <span className="text-sm font-semibold tracking-tight">
+                  <span className="text-base font-bold tracking-tight bg-gradient-to-r from-[var(--text)] to-[var(--text-muted)] bg-clip-text text-transparent">
                     Milk Mobs
                   </span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-3 text-lg text-[var(--text-muted)]">
-                    <button
-                      type="button"
-                      aria-label="Notifications"
-                      className="rounded-full p-1.5 hover:bg-[var(--bg)]/70 transition-colors"
-                    >
-                      🔔
-                    </button>
-                    <button
-                      type="button"
-                      aria-label="Messages"
-                      className="rounded-full p-1.5 hover:bg-[var(--bg)]/70 transition-colors"
-                    >
-                      ✉️
-                    </button>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    aria-label="Notifications"
+                    className="rounded-full p-2 hover:bg-[var(--bg)]/60 transition-all duration-200 hover:scale-110 active:scale-95"
+                    style={{ color: 'var(--text-muted)' }}
+                  >
+                    <BellIcon className="h-5 w-5" />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Messages"
+                    className="rounded-full p-2 hover:bg-[var(--bg)]/60 transition-all duration-200 hover:scale-110 active:scale-95"
+                    style={{ color: 'var(--text-muted)' }}
+                  >
+                    <MessageIcon className="h-5 w-5" />
+                  </button>
                   <ThemeToggle />
                 </div>
               </header>
 
               {/* main feed area */}
-              <main className="flex-1 pb-20 pt-1 transition-colors duration-300">
-                {/* tiny spacer so first post doesn’t visually attach to header */}
-                <div className="h-1" />
+              <main className="flex-1 pb-20 transition-colors duration-300">
                 {children}
               </main>
 
-              {/* IG-style bottom nav */}
-              <nav className="fixed bottom-0 left-1/2 z-20 flex w-full max-w-[480px] -translate-x-1/2 items-center justify-around border-t border-[var(--border-subtle)] bg-[var(--bg-soft)]/95 py-2 text-xs text-[var(--text-muted)] backdrop-blur-md transition-colors duration-300">
+              {/* Premium bottom nav */}
+              <nav className="fixed bottom-0 left-1/2 z-30 flex w-full max-w-[480px] -translate-x-1/2 items-center justify-around border-t border-[var(--border-subtle)] bg-gradient-to-t from-[var(--bg-soft)]/98 via-[var(--bg-soft)]/95 to-[var(--bg-soft)]/98 py-2.5 text-[10px] backdrop-blur-xl transition-colors duration-300 shadow-[0_-1px_0_var(--border-subtle)]">
                 <Link
                   href="/"
-                  className="flex flex-col items-center gap-0.5 hover:opacity-80 transition-opacity"
+                  className="flex flex-col items-center gap-1 transition-all duration-200 hover:scale-105 active:scale-95"
+                  style={{ color: 'var(--text-muted)' }}
                 >
-                  <span>🏠</span>
-                  <span>Home</span>
+                  <HomeIcon className="h-6 w-6" />
+                  <span className="font-medium">Home</span>
                 </Link>
                 <Link
                   href="/upload"
-                  className="flex flex-col items-center gap-0.5 hover:opacity-80 transition-opacity"
+                  className="flex flex-col items-center gap-1 transition-all duration-200 hover:scale-105 active:scale-95"
+                  style={{ color: 'var(--text-muted)' }}
                 >
-                  <span>➕</span>
-                  <span>Upload</span>
+                  <div className="h-6 w-6 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/40">
+                    <PlusIcon className="h-4 w-4 text-white" />
+                  </div>
+                  <span className="font-medium">Upload</span>
                 </Link>
                 <Link
                   href="/my-videos"
-                  className="flex flex-col items-center gap-0.5 hover:opacity-80 transition-opacity"
+                  className="flex flex-col items-center gap-1 transition-all duration-200 hover:scale-105 active:scale-95"
+                  style={{ color: 'var(--text-muted)' }}
                 >
-                  <span>👤</span>
-                  <span>Profile</span>
+                  <UserIcon className="h-6 w-6" />
+                  <span className="font-medium">Profile</span>
                 </Link>
               </nav>
             </div>

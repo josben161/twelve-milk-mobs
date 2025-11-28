@@ -4,4 +4,5 @@ export { StatusPill } from './StatusPill';
 export { VideoCard } from './VideoCard';
 export { MobPreviewCard } from './MobPreviewCard';
 export { PageShell } from './PageShell';
+export * from './Icons';
 

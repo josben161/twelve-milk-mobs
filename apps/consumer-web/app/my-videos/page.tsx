@@ -10,13 +10,13 @@ export default function MyVideosPage() {
   return (
     <div className="pb-6 transition-colors duration-300">
       {/* profile header */}
-      <section className="flex items-center gap-4 px-4 py-4">
-        <div className="h-16 w-16 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-lg font-semibold text-white">
+      <section className="flex items-center gap-4 px-4 py-6">
+        <div className="h-20 w-20 rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-xl font-bold text-white shadow-xl shadow-indigo-500/30">
           MM
         </div>
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-2 flex-1">
           <span
-            className="text-sm font-semibold transition-colors duration-300"
+            className="text-base font-bold transition-colors duration-300"
             style={{ color: 'var(--text)' }}
           >
             @milk_mob_user
@@ -26,16 +26,16 @@ export default function MyVideosPage() {
             style={{ color: 'var(--text-muted)' }}
           >
             <div className="flex flex-col items-center">
-              <span className="font-semibold">4</span>
-              <span>Posts</span>
+              <span className="font-bold text-sm" style={{ color: 'var(--text)' }}>4</span>
+              <span className="font-medium">Posts</span>
             </div>
             <div className="flex flex-col items-center">
-              <span className="font-semibold">128</span>
-              <span>Mobs joined</span>
+              <span className="font-bold text-sm" style={{ color: 'var(--text)' }}>128</span>
+              <span className="font-medium">Mobs joined</span>
             </div>
             <div className="flex flex-col items-center">
-              <span className="font-semibold">512</span>
-              <span>Views</span>
+              <span className="font-bold text-sm" style={{ color: 'var(--text)' }}>512</span>
+              <span className="font-medium">Views</span>
             </div>
           </div>
         </div>
@@ -43,23 +43,23 @@ export default function MyVideosPage() {
 
       {/* tabs */}
       <div
-        className="flex border-t border-b text-xs transition-colors duration-300"
+        className="flex border-t border-b text-sm transition-colors duration-300"
         style={{
           borderColor: 'var(--border-subtle)',
-          color: 'var(--text-muted)',
         }}
       >
         <button
-          className="flex-1 py-2 text-center border-b-2 font-semibold transition-colors duration-300"
+          className="flex-1 py-3 text-center border-b-2 font-bold transition-all duration-300"
           style={{
             borderBottomColor: 'var(--text)',
+            borderBottomWidth: '2px',
             color: 'var(--text)',
           }}
         >
           Posts
         </button>
         <button
-          className="flex-1 py-2 text-center transition-colors duration-300 hover:opacity-80"
+          className="flex-1 py-3 text-center font-semibold transition-all duration-300 hover:opacity-70"
           style={{ color: 'var(--text-muted)' }}
         >
           Saved
