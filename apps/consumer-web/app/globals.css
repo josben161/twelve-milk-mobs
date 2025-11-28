@@ -1,11 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
-  --bg: #020617; /* slate-950 */
-  --bg-soft: #0f172a; /* slate-900 */
+  --bg: #020617;          /* slate-950 */
+  --bg-soft: #0f172a;     /* slate-900 */
   --border-subtle: #1e293b; /* slate-800 */
-  --accent: #4f46e5; /* indigo-600 */
+  --accent: #4f46e5;      /* indigo-600 */
   --accent-soft: rgba(79, 70, 229, 0.15);
   --accent-strong: #818cf8; /* indigo-400 */
-  --success: #22c55e; /* emerald-500 */
+  --success: #22c55e;     /* emerald-500 */
 }
 
 html,
@@ -41,6 +45,7 @@ a {
   .imgLight {
     display: none;
   }
+
   .imgDark {
     display: unset;
   }
