@@ -58,7 +58,7 @@ export default function RootLayout({
                   MM
                 </div>
                 <span className="text-base font-bold tracking-tight bg-gradient-to-r from-[var(--text)] to-[var(--text-muted)] bg-clip-text text-transparent">
-                  Social 
+                  Social Platform
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -84,7 +84,7 @@ export default function RootLayout({
           </header>
 
           {/* Spacer to push content below fixed header */}
-          <div className="h-[40px]" />
+          <div className="h-[37px]" />
 
           <div className="min-h-screen flex justify-center transition-colors duration-300 pb-20">
             <div className="flex w-full max-w-[480px] flex-col border-x border-[var(--border-subtle)] bg-[var(--bg)]/80 backdrop-blur-xl transition-colors duration-300 shadow-2xl">

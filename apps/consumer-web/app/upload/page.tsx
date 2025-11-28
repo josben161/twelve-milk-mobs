@@ -6,7 +6,7 @@ import { Card, PrimaryButton, PageShell } from '@/components/ui';
 
 export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
-  const [hashtags, setHashtags] = useState('');
+  const [hashtags, setHashtags] = useState('#gotmilk #milkmob #skatepark');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<SubmitVideoResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -14,9 +14,9 @@ export default function UploadPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const hashtagList = hashtags
-    .split(',')
+    .split(/\s+/)
     .map((tag) => tag.trim())
-    .filter((tag) => tag.length > 0);
+    .filter((tag) => tag.length > 0 && tag.startsWith('#'));
 
   function handleDragOver(e: React.DragEvent) {
     e.preventDefault();
@@ -98,16 +98,16 @@ export default function UploadPage() {
       </p>
 
       {!result ? (
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-8">
           {/* Video preview (4:5 like IG) */}
           <div
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
-            className="relative w-full overflow-hidden rounded-lg border transition-all duration-200 cursor-pointer mb-3"
+            className="relative w-full overflow-hidden rounded-lg border transition-all duration-200 cursor-pointer"
             style={{
-              borderColor: isDragging ? 'var(--accent)' : 'var(--border-subtle)',
+              borderColor: isDragging ? '#0095f6' : 'var(--border-subtle)',
               backgroundColor: 'var(--bg-card)',
               aspectRatio: '4/5',
             }}
@@ -156,55 +156,39 @@ export default function UploadPage() {
 
           {/* Tap / drag to select - subtle hint below preview */}
           <p
-            className="text-xs text-center mb-6 transition-colors duration-300"
+            className="text-xs text-center mb-8 transition-colors duration-300"
             style={{ color: 'var(--text-subtle)' }}
           >
             Tap to select a video or drag & drop
           </p>
 
-            {/* Hashtags */}
-            <div className="space-y-2.5">
-              <label
-                className="block text-xs font-normal transition-colors duration-300"
-                style={{ color: 'var(--text)' }}
-              >
-                Hashtags
-              </label>
-              <textarea
-                value={hashtags}
-                onChange={(e) => setHashtags(e.target.value)}
-                rows={3}
-                placeholder="#gotmilk #milkmob #skatepark"
-                className="w-full resize-none rounded-lg border px-3 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:border-[var(--accent)] placeholder:opacity-60"
-                style={{
-                  borderColor: 'var(--border-subtle)',
-                  backgroundColor: 'var(--bg-card)',
-                  color: 'var(--text)',
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--accent)';
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                }}
-              />
-              {hashtagList.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  {hashtagList.map((tag, idx) => (
-                    <span
-                      key={idx}
-                      className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-normal transition-colors duration-300"
-                      style={{
-                        backgroundColor: 'var(--accent-soft)',
-                        color: 'var(--accent)',
-                      }}
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
+          {/* Hashtags - Instagram style single line input */}
+          <div className="space-y-2">
+            <label
+              className="block text-xs font-normal transition-colors duration-300"
+              style={{ color: 'var(--text)' }}
+            >
+              Hashtags
+            </label>
+            <input
+              type="text"
+              value={hashtags}
+              onChange={(e) => setHashtags(e.target.value)}
+              placeholder="#gotmilk #milkmob #skatepark"
+              className="w-full border-b border-t-0 border-l-0 border-r-0 px-0 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:border-b-2 placeholder:opacity-60"
+              style={{
+                borderColor: 'var(--border-subtle)',
+                backgroundColor: 'transparent',
+                color: 'var(--text)',
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = 'var(--accent)';
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = 'var(--border-subtle)';
+              }}
+            />
+          </div>
 
             {error && (
               <div
@@ -223,21 +207,21 @@ export default function UploadPage() {
             <button
               type="submit"
               disabled={loading || !file || hashtagList.length === 0}
-              className="w-full rounded-lg py-2 text-sm font-semibold transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed"
+              className="w-full rounded-lg py-2.5 text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
                 backgroundColor: loading || !file || hashtagList.length === 0 
-                  ? 'rgba(0, 149, 246, 0.3)' 
-                  : 'var(--accent)',
+                  ? 'rgba(0, 149, 246, 0.4)' 
+                  : '#0095f6',
                 color: 'white',
               }}
               onMouseEnter={(e) => {
                 if (!loading && file && hashtagList.length > 0) {
-                  e.currentTarget.style.backgroundColor = 'var(--accent-hover)';
+                  e.currentTarget.style.backgroundColor = '#1877f2';
                 }
               }}
               onMouseLeave={(e) => {
                 if (!loading && file && hashtagList.length > 0) {
-                  e.currentTarget.style.backgroundColor = 'var(--accent)';
+                  e.currentTarget.style.backgroundColor = '#0095f6';
                 }
               }}
             >
