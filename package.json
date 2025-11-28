@@ -1,5 +1,5 @@
 {
-  "name": "my-turborepo",
+  "name": "twelve-milk-mobs",
   "private": true,
   "scripts": {
     "build": "turbo run build",
