@@ -7,8 +7,11 @@
   --border-subtle: #e2e4ea;
   --text: #111827;
   --text-muted: #6b7280;
+  --text-soft: #9ca3af;
   --accent: #4f46e5;
   --accent-soft: #eef2ff;
+  --success: #10b981;
+  --error: #ef4444;
 }
 
 * {
