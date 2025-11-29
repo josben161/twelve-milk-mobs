@@ -61,20 +61,41 @@ export default function UploadPage() {
     setResult(null);
 
     try {
-      const res = await fetch('/api/videos/submit', {
+      const apiBase = process.env.NEXT_PUBLIC_API_BASE;
+      if (!apiBase) {
+        throw new Error('API base URL is not configured');
+      }
+
+      // 1) Ask backend for videoId + presigned upload URL
+      const res = await fetch(`${apiBase.replace(/\/$/, '')}/videos/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ hashtags: hashtagList }),
       });
 
       if (!res.ok) {
-        throw new Error('Failed to start upload.');
+        throw new Error(`Failed to start upload (${res.status})`);
       }
 
       const data = (await res.json()) as SubmitVideoResponse;
+
+      // 2) Upload the video bytes to S3 with the presigned URL
+      const putRes = await fetch(data.uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': file.type || 'video/mp4',
+        },
+        body: file,
+      });
+
+      if (!putRes.ok) {
+        throw new Error(`Failed to upload video to storage (${putRes.status})`);
+      }
+
+      // 3) Show success state
       setResult(data);
-      // next iteration: PUT file to data.uploadUrl
     } catch (err) {
+      console.error(err);
       setError(err instanceof Error ? err.message : 'Unexpected error.');
     } finally {
       setLoading(false);

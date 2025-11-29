@@ -27,6 +27,10 @@ out/
 build
 dist
 
+# CDK
+cdk.out/
+*.d.ts.map
+
 
 # Debug
 npm-debug.log*

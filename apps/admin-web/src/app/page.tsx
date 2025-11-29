@@ -23,7 +23,7 @@ const statCards = [
   {
     label: 'Rejected',
     value: mockStats.rejected.toLocaleString(),
-    caption: "Content didn't match brief",
+    caption: "Content did not match brief",
   },
   {
     label: 'Mobs active',
