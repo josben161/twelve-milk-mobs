@@ -12,6 +12,30 @@
       }
      ]
     },
+    "CorsConfiguration": {
+     "CorsRules": [
+      {
+       "AllowedHeaders": [
+        "*"
+       ],
+       "AllowedMethods": [
+        "PUT",
+        "POST",
+        "HEAD"
+       ],
+       "AllowedOrigins": [
+        "*"
+       ],
+       "ExposedHeaders": [
+        "ETag",
+        "x-amz-server-side-encryption",
+        "x-amz-request-id",
+        "x-amz-id-2"
+       ],
+       "MaxAge": 3000
+      }
+     ]
+    },
     "PublicAccessBlockConfiguration": {
      "BlockPublicAcls": true,
      "BlockPublicPolicy": true,
@@ -150,7 +174,7 @@
    "Properties": {
     "Code": {
      "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
-     "S3Key": "53debc7d1dfbaa37990a54550b4e3e8084a3d1adbb2863c40a28cd052c0c026a.zip"
+     "S3Key": "afeedc3ead683460baf11081b7c74069ca57a5a1a2fed3f7de680177956baa7c.zip"
     },
     "Environment": {
      "Variables": {
@@ -178,7 +202,7 @@
    ],
    "Metadata": {
     "aws:cdk:path": "MilkMobsStack/CreateUploadFn/Resource",
-    "aws:asset:path": "asset.53debc7d1dfbaa37990a54550b4e3e8084a3d1adbb2863c40a28cd052c0c026a",
+    "aws:asset:path": "asset.afeedc3ead683460baf11081b7c74069ca57a5a1a2fed3f7de680177956baa7c",
     "aws:asset:is-bundled": true,
     "aws:asset:property": "Code"
    }

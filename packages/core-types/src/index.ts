@@ -64,6 +64,8 @@ export interface MobSummary {
 /** Request from frontend to start a video upload */
 export interface SubmitVideoRequest {
   hashtags: string[];
+  userId: string;
+  userHandle: string;
 }
 
 /** Response with a videoId and a URL to upload the file to */

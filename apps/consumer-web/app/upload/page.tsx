@@ -3,8 +3,12 @@
 import { useState, useRef } from 'react';
 import type { SubmitVideoResponse } from '@twelve/core-types';
 import { Card, PrimaryButton, PageShell } from '@/components/ui';
+import { useAuth } from '@/components/auth/UserProvider';
+
+export const dynamic = 'force-dynamic';
 
 export default function UploadPage() {
+  const { currentUser } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [hashtags, setHashtags] = useState('#gotmilk #milkmob #skatepark');
   const [loading, setLoading] = useState(false);
@@ -66,11 +70,19 @@ export default function UploadPage() {
         throw new Error('API base URL is not configured');
       }
 
+      if (!currentUser) {
+        throw new Error('Please log in as a demo user to upload videos');
+      }
+
       // 1) Ask backend for videoId + presigned upload URL
       const res = await fetch(`${apiBase.replace(/\/$/, '')}/videos/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ hashtags: hashtagList }),
+        body: JSON.stringify({
+          hashtags: hashtagList,
+          userId: currentUser.id,
+          userHandle: currentUser.handle,
+        }),
       });
 
       if (!res.ok) {
@@ -120,7 +132,22 @@ export default function UploadPage() {
         </p>
       </div>
 
-      {!result ? (
+      {!currentUser ? (
+        <div className="text-center py-12">
+          <p
+            className="text-base mb-4 transition-colors duration-300"
+            style={{ color: 'var(--text)' }}
+          >
+            Please log in as a demo user (e.g. user_1) to upload videos.
+          </p>
+          <p
+            className="text-sm transition-colors duration-300"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            Use the user switch control in the header to log in.
+          </p>
+        </div>
+      ) : !result ? (
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Video preview (4:5 like IG) */}
           <div

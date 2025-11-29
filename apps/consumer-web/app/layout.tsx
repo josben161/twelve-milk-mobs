@@ -5,6 +5,8 @@ import Script from 'next/script';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
+import { UserProvider } from '@/components/auth/UserProvider';
+import { UserSwitch } from '@/components/auth/UserSwitch';
 import {
   HomeIcon,
   PlusIcon,
@@ -51,7 +53,8 @@ export default function RootLayout({
       </head>
       <body className="text-[var(--text)] transition-colors duration-300">
         <ThemeProvider>
-          {/* Premium header with gradient - always visible at top of viewport */}
+          <UserProvider>
+            {/* Premium header with gradient - always visible at top of viewport */}
           <header className="fixed top-0 left-0 right-0 z-50 flex justify-center border-b border-[var(--border-subtle)] bg-gradient-to-b from-[var(--bg-soft)]/98 via-[var(--bg-soft)]/95 to-[var(--bg-soft)]/98 backdrop-blur-xl transition-colors duration-300">
             <div className="flex w-full max-w-[480px] items-center justify-between px-4 py-3">
               <div className="flex items-center gap-2.5">
@@ -60,7 +63,8 @@ export default function RootLayout({
                   Social Platform
                 </span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <UserSwitch />
                 <button
                   type="button"
                   aria-label="Notifications"
@@ -125,6 +129,7 @@ export default function RootLayout({
               </Link>
             </div>
           </nav>
+          </UserProvider>
         </ThemeProvider>
       </body>
     </html>

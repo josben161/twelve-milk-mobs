@@ -18,10 +18,20 @@ const tableName = process.env.VIDEOS_TABLE_NAME!;
 const ddb = new DynamoDBClient({});
 const s3 = new S3Client({});
 
+// CORS headers for all responses
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Credentials': 'true',
+};
+
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   try {
     if (!event.body) {
-      return { statusCode: 400, body: 'Missing body' };
+      return {
+        statusCode: 400,
+        headers: corsHeaders,
+        body: JSON.stringify({ error: 'Missing body' }),
+      };
     }
 
     const parsed = JSON.parse(event.body) as SubmitVideoRequest;
@@ -66,6 +76,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     return {
       statusCode: 200,
       headers: {
+        ...corsHeaders,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(response),
@@ -74,7 +85,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     console.error('Error in create-upload', err);
     return {
       statusCode: 500,
-      body: 'Internal server error',
+      headers: corsHeaders,
+      body: JSON.stringify({ error: 'Internal server error' }),
     };
   }
 };

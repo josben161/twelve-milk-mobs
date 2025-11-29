@@ -18,6 +18,24 @@ export class MilkMobsStack extends cdk.Stack {
       versioned: true,
       removalPolicy: cdk.RemovalPolicy.RETAIN, // keep data by default
       autoDeleteObjects: false,
+      cors: [
+        {
+          allowedMethods: [
+            s3.HttpMethods.PUT,
+            s3.HttpMethods.POST,
+            s3.HttpMethods.HEAD,
+          ],
+          allowedOrigins: ['*'], // Allow all origins for presigned URL uploads
+          allowedHeaders: ['*'],
+          exposedHeaders: [
+            'ETag',
+            'x-amz-server-side-encryption',
+            'x-amz-request-id',
+            'x-amz-id-2',
+          ],
+          maxAge: 3000,
+        },
+      ],
     });
 
     // 2) DynamoDB table for videos
