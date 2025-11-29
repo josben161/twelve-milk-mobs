@@ -1,0 +1,36 @@
+{
+  "version": "48.0.0",
+  "files": {
+    "53debc7d1dfbaa37990a54550b4e3e8084a3d1adbb2863c40a28cd052c0c026a": {
+      "displayName": "CreateUploadFn/Code",
+      "source": {
+        "path": "asset.53debc7d1dfbaa37990a54550b4e3e8084a3d1adbb2863c40a28cd052c0c026a",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "679729599398-us-east-1-09531ebc": {
+          "bucketName": "cdk-hnb659fds-assets-679729599398-us-east-1",
+          "objectKey": "53debc7d1dfbaa37990a54550b4e3e8084a3d1adbb2863c40a28cd052c0c026a.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::679729599398:role/cdk-hnb659fds-file-publishing-role-679729599398-us-east-1"
+        }
+      }
+    },
+    "3a82ed64f088dd482bcb6b77c4f0a7827c072180cbe6bf1a18752eb6bfe23b29": {
+      "displayName": "MilkMobsStack Template",
+      "source": {
+        "path": "MilkMobsStack.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "679729599398-us-east-1-e65255f5": {
+          "bucketName": "cdk-hnb659fds-assets-679729599398-us-east-1",
+          "objectKey": "3a82ed64f088dd482bcb6b77c4f0a7827c072180cbe6bf1a18752eb6bfe23b29.json",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::679729599398:role/cdk-hnb659fds-file-publishing-role-679729599398-us-east-1"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}
