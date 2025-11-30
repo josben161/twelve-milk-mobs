@@ -222,27 +222,12 @@ export function MoreIcon(props: SVGProps<SVGSVGElement>) {
 
 export function AppLogo(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg
-      width="32"
-      height="32"
-      viewBox="0 0 128 128"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      {...props}
-    >
-      <defs>
-        <linearGradient id="barnGradient" x1="0" y1="0" x2="128" y2="128">
-          <stop offset="0%" stopColor="#ef4444" />
-          <stop offset="100%" stopColor="#dc2626" />
-        </linearGradient>
-      </defs>
-      <rect width="128" height="128" rx="28" fill="white" />
-      <path d="M28 74V56l36-28 36 28v18" fill="url(#barnGradient)" />
-      <rect x="48" y="74" width="32" height="36" rx="4" fill="#fff" />
-      <path d="M28 74h72" stroke="#991b1b" strokeWidth="8" strokeLinecap="round" />
-      <path d="M64 28l36 28v54H28V56z" stroke="#991b1b" strokeWidth="6" fill="none" />
-      <circle cx="64" cy="92" r="6" fill="#991b1b" />
-    </svg>
+  <svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+    <rect width="128" height="128" rx="28" fill="#fafafa"/>
+    <path d="M44 38h40l6 54H38l6-54z" fill="#6b7280"/>
+    <path d="M48 38c0-10 8-18 18-18s18 8 18 18" stroke="#6b7280" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="64" cy="86" r="6" fill="#111827"/>
+  </svg>
   );
 }
 

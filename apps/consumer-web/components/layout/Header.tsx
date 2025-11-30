@@ -47,7 +47,7 @@ export function Header() {
         <div className="flex items-center gap-2">
           <AppLogo className="h-6 w-6 flex-shrink-0" />
           <span className="text-base font-bold tracking-tight text-[var(--text)]">
-            Social Platform
+            The Barn Social Platform
           </span>
         </div>
         <div className="flex items-center gap-1">
