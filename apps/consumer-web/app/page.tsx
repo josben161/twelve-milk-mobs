@@ -38,7 +38,7 @@ const mockFeed = [
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col pb-6 transition-colors duration-300">
+    <div className="flex flex-col transition-colors duration-300">
       {mockFeed.map((post) => (
         <PostCard
           key={post.id}

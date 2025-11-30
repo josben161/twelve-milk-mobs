@@ -50,41 +50,39 @@ export function PostCard({ video, user, caption, hashtags, timestamp, mobName, l
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="border-b transition-colors duration-300 pb-8"
-      style={{ borderColor: 'var(--border-subtle)' }}
+      className="border-b border-[var(--border-subtle)] bg-[var(--bg)] transition-colors duration-300"
     >
       {/* Header */}
-      <header className="flex items-center justify-between px-4 pt-4 pb-3">
-        <div className="flex items-center gap-3">
+      <header className="flex items-center justify-between px-4 h-12">
+        <div className="flex items-center gap-2">
           <div
             className={`h-8 w-8 rounded-full bg-gradient-to-br ${getAvatarGradient(
               user.avatarColor
-            )} flex items-center justify-center text-xs font-bold text-white shadow-lg`}
+            )} flex items-center justify-center text-xs font-semibold text-white flex-shrink-0`}
           >
             {user.handle.slice(0, 2).toUpperCase()}
           </div>
-          <div className="flex flex-col">
-            <span className="text-sm font-bold leading-tight" style={{ color: 'var(--text)' }}>
+          <div className="flex flex-col min-w-0">
+            <span className="text-sm font-semibold leading-tight text-[var(--text)] truncate">
               {user.handle}
             </span>
             {location && (
-              <span className="text-xs leading-tight" style={{ color: 'var(--text-muted)' }}>
+              <span className="text-xs leading-tight text-[var(--text-muted)] truncate">
                 {location}
               </span>
             )}
           </div>
         </div>
         <button
-          className="p-1.5 rounded-full hover:bg-[var(--bg-hover)] transition-all duration-200 active:scale-95"
-          style={{ color: 'var(--text-subtle)' }}
+          className="p-2 rounded-full hover:bg-[var(--bg-hover)] transition-colors duration-200 flex-shrink-0"
           aria-label="More options"
         >
-          <MoreIcon className="h-5 w-5" />
+          <MoreIcon className="h-6 w-6 text-[var(--text)]" />
         </button>
       </header>
 
       {/* Video Player */}
-      <div className="relative w-full mb-3 overflow-hidden rounded-lg" style={{ aspectRatio: '4/5' }}>
+      <div className="relative w-full overflow-hidden bg-[var(--bg-soft)]" style={{ aspectRatio: '4/5' }}>
         {(video.playbackUrl || video.videoUrl) ? (
           <VideoPlayer
             videoUrl={video.playbackUrl || video.videoUrl || ''}
@@ -94,13 +92,8 @@ export function PostCard({ video, user, caption, hashtags, timestamp, mobName, l
             className="w-full h-full"
           />
         ) : (
-          <div
-            className="relative w-full h-full bg-gradient-to-br from-[var(--bg-soft)] via-[var(--bg)] to-[var(--bg-soft)] flex items-center justify-center"
-            style={{
-              background: 'linear-gradient(135deg, var(--bg-soft) 0%, var(--bg) 50%, var(--bg-soft) 100%)',
-            }}
-          >
-            <div className="absolute inset-0 flex items-center justify-center text-xs font-medium" style={{ color: 'var(--text-subtle)' }}>
+          <div className="relative w-full h-full bg-gradient-to-br from-[var(--bg-soft)] via-[var(--bg)] to-[var(--bg-soft)] flex items-center justify-center">
+            <div className="text-xs font-medium text-[var(--text-subtle)]">
               Video preview
             </div>
           </div>
@@ -108,64 +101,66 @@ export function PostCard({ video, user, caption, hashtags, timestamp, mobName, l
       </div>
 
       {/* Actions */}
-      <div className="flex items-center justify-between px-4 py-2">
-        <div className="flex items-center gap-5">
+      <div className="flex items-center justify-between px-4 py-1.5">
+        <div className="flex items-center gap-4">
           <motion.button
             onClick={handleLike}
-            className="transition-all duration-200 hover:scale-110 active:scale-95"
-            style={{ color: liked ? '#ef4444' : 'var(--text)' }}
+            className="transition-colors duration-200"
             aria-label="Like"
             whileTap={{ scale: 0.9 }}
             animate={{ scale: liked ? [1, 1.3, 1] : 1 }}
             transition={{ duration: 0.3 }}
           >
-            <HeartIcon className="h-6 w-6" filled={liked} />
+            <HeartIcon className={`h-6 w-6 ${liked ? 'text-red-500' : 'text-[var(--text)]'}`} filled={liked} />
           </motion.button>
           <button
-            className="transition-all duration-200 hover:scale-110 active:scale-95"
-            style={{ color: 'var(--text)' }}
+            className="transition-colors duration-200"
             aria-label="Comment"
           >
-            <CommentIcon className="h-6 w-6" />
+            <CommentIcon className="h-6 w-6 text-[var(--text)]" />
           </button>
           <button
-            className="transition-all duration-200 hover:scale-110 active:scale-95"
-            style={{ color: 'var(--text)' }}
+            className="transition-colors duration-200"
             aria-label="Share"
           >
-            <ShareIcon className="h-6 w-6" />
+            <ShareIcon className="h-6 w-6 text-[var(--text)]" />
           </button>
         </div>
         <button
           onClick={handleSave}
-          className="transition-all duration-200 hover:scale-110 active:scale-95"
-          style={{ color: saved ? 'var(--accent)' : 'var(--text)' }}
+          className="transition-colors duration-200"
           aria-label="Save"
         >
-          <BookmarkIcon className="h-6 w-6" filled={saved} />
+          <BookmarkIcon className={`h-6 w-6 ${saved ? 'text-[var(--accent)]' : 'text-[var(--text)]'}`} filled={saved} />
         </button>
       </div>
 
       {/* Caption */}
-      <div className="px-4 space-y-2">
-        <p className="text-sm leading-relaxed" style={{ color: 'var(--text)' }}>
-          <span className="font-bold mr-1.5">{user.handle}</span>
+      <div className="px-4 pb-4 space-y-1.5">
+        <p className="text-sm leading-[18px] text-[var(--text)]">
+          <span className="font-semibold mr-1.5">{user.handle}</span>
           {caption}
         </p>
-        <p className="text-xs font-medium" style={{ color: 'var(--accent-strong)' }}>
-          {hashtags.join(' ')}
-        </p>
-        <p className="text-[10px] uppercase tracking-wider font-medium" style={{ color: 'var(--text-subtle)' }}>
-          {mobName && `${mobName} · `}
-          {timestamp} ago
-        </p>
-        <Link
-          href={`/video/${video.id}`}
-          className="text-[11px] font-medium transition-colors hover:opacity-70 inline-block"
-          style={{ color: 'var(--text-muted)' }}
-        >
-          View analysis →
-        </Link>
+        {hashtags.length > 0 && (
+          <p className="text-xs font-normal text-[var(--accent-strong)]">
+            {hashtags.join(' ')}
+          </p>
+        )}
+        <div className="flex items-center justify-between">
+          <p className="text-[10px] uppercase tracking-wider font-medium text-[var(--text-subtle)]">
+            {mobName && `${mobName} · `}
+            {timestamp} ago
+          </p>
+          <Link
+            href={`/video/${video.id}`}
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-medium text-[var(--accent)] bg-[var(--accent-soft)] hover:bg-[var(--accent-soft)]/80 transition-colors duration-200"
+          >
+            View analysis
+            <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
+        </div>
       </div>
     </motion.article>
   );

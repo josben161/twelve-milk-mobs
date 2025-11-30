@@ -19,6 +19,20 @@ export function HomeIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+export function HomeIconFilled(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      {...props}
+    >
+      <path d="M12 2.5L3 9v12h6v-8h6v8h6V9l-9-6.5z" />
+    </svg>
+  );
+}
+
 export function PlusIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
@@ -53,6 +67,20 @@ export function UserIcon(props: SVGProps<SVGSVGElement>) {
     >
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
       <circle cx="12" cy="7" r="4" />
+    </svg>
+  );
+}
+
+export function UserIconFilled(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      {...props}
+    >
+      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
     </svg>
   );
 }

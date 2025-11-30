@@ -1,20 +1,11 @@
 // apps/consumer-web/app/layout.tsx
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import Script from 'next/script';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
-import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { UserProvider } from '@/components/auth/UserProvider';
-import { UserSwitch } from '@/components/auth/UserSwitch';
-import {
-  HomeIcon,
-  PlusIcon,
-  UserIcon,
-  BellIcon,
-  MessageIcon,
-  AppLogo,
-} from '@/components/ui/Icons';
+import { Header } from '@/components/layout/Header';
+import { BottomNav } from '@/components/layout/BottomNav';
 
 export const metadata: Metadata = {
   title: 'Social Platform',
@@ -54,81 +45,20 @@ export default function RootLayout({
       <body className="text-[var(--text)] transition-colors duration-300">
         <ThemeProvider>
           <UserProvider>
-            {/* Premium header with gradient - always visible at top of viewport */}
-          <header className="fixed top-0 left-0 right-0 z-50 flex justify-center border-b border-[var(--border-subtle)] bg-gradient-to-b from-[var(--bg-soft)]/98 via-[var(--bg-soft)]/95 to-[var(--bg-soft)]/98 backdrop-blur-xl transition-colors duration-300">
-            <div className="flex w-full max-w-[480px] items-center justify-between px-4 py-3">
-              <div className="flex items-center gap-2.5">
-                <AppLogo className="h-8 w-8 flex-shrink-0" />
-                <span className="text-base font-bold tracking-tight bg-gradient-to-r from-[var(--text)] to-[var(--text-muted)] bg-clip-text text-transparent">
-                  Social Platform
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <UserSwitch />
-                <button
-                  type="button"
-                  aria-label="Notifications"
-                  className="rounded-full p-1.5 hover:bg-[var(--bg)]/60 transition-all duration-200 hover:scale-110 active:scale-95 flex-shrink-0"
-                  style={{ color: 'var(--text-muted)' }}
-                >
-                  <BellIcon className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  aria-label="Messages"
-                  className="rounded-full p-1.5 hover:bg-[var(--bg)]/60 transition-all duration-200 hover:scale-110 active:scale-95 flex-shrink-0"
-                  style={{ color: 'var(--text-muted)' }}
-                >
-                  <MessageIcon className="h-4 w-4" />
-                </button>
-                <ThemeToggle />
+            <Header />
+
+            {/* Spacer to push content below fixed header */}
+            <div className="h-11" />
+
+            <div className="min-h-screen flex justify-center transition-colors duration-300 pb-14">
+              <div className="flex w-full max-w-[480px] flex-col bg-[var(--bg)] transition-colors duration-300">
+                <main className="flex-1 transition-colors duration-300">
+                  {children}
+                </main>
               </div>
             </div>
-          </header>
 
-          {/* Spacer to push content below fixed header */}
-          <div className="h-[37px]" />
-
-          <div className="min-h-screen flex justify-center transition-colors duration-300 pb-20">
-            <div className="flex w-full max-w-[480px] flex-col border-x border-[var(--border-subtle)] bg-[var(--bg)]/80 backdrop-blur-xl transition-colors duration-300 shadow-2xl">
-              {/* main feed area */}
-              <main className="flex-1 transition-colors duration-300">
-                {children}
-              </main>
-            </div>
-          </div>
-
-          {/* Premium bottom nav - always visible at bottom of viewport */}
-          <nav className="fixed bottom-0 left-0 right-0 z-50 flex justify-center border-t border-[var(--border-subtle)] bg-gradient-to-t from-[var(--bg-soft)]/98 via-[var(--bg-soft)]/95 to-[var(--bg-soft)]/98 backdrop-blur-xl transition-colors duration-300 shadow-[0_-1px_0_var(--border-subtle)]">
-            <div className="flex w-full max-w-[480px] items-center justify-around py-2.5 text-[10px]">
-                <Link
-                  href="/"
-                  className="flex flex-col items-center gap-1 transition-all duration-200 hover:scale-105 active:scale-95"
-                  style={{ color: 'var(--text-muted)' }}
-                >
-                  <HomeIcon className="h-6 w-6" />
-                  <span className="font-medium">Home</span>
-                </Link>
-                <Link
-                  href="/upload"
-                  className="flex flex-col items-center gap-1 transition-all duration-200 hover:scale-105 active:scale-95"
-                  style={{ color: 'var(--text-muted)' }}
-                >
-                  <div className="h-6 w-6 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/40">
-                    <PlusIcon className="h-4 w-4 text-white" />
-                  </div>
-                  <span className="font-medium">Upload</span>
-                </Link>
-              <Link
-                href="/my-videos"
-                className="flex flex-col items-center gap-1 transition-all duration-200 hover:scale-105 active:scale-95"
-                style={{ color: 'var(--text-muted)' }}
-              >
-                <UserIcon className="h-6 w-6" />
-                <span className="font-medium">Profile</span>
-              </Link>
-            </div>
-          </nav>
+            <BottomNav />
           </UserProvider>
         </ThemeProvider>
       </body>
