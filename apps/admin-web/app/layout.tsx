@@ -22,7 +22,7 @@ export default function RootLayout({
           <div className="flex-1 flex flex-col">
             <TopBar />
             <main className="flex-1 flex justify-center">
-              <div className="w-full max-w-6xl px-6 py-6">
+              <div className="w-full max-w-6xl px-6 py-8 space-y-8">
                 {children}
               </div>
             </main>

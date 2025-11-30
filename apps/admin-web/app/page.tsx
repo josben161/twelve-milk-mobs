@@ -1,4 +1,6 @@
 // apps/admin-web/app/page.tsx
+import { StatCard } from '@/components/ui';
+import { Panel } from '@/components/ui';
 
 const mockStats = {
   totalVideos: 428,
@@ -16,7 +18,12 @@ const statCards = [
     change: '+52',
     changeLabel: 'Last 24 hours',
     trend: 'up' as const,
-    icon: '📹',
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+        <path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+        <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
   },
   {
     label: 'Validated',
@@ -24,7 +31,11 @@ const statCards = [
     change: '73%',
     changeLabel: 'Approval rate',
     trend: 'neutral' as const,
-    icon: '✓',
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+        <path d="M20 6L9 17l-5-5" />
+      </svg>
+    ),
   },
   {
     label: 'Rejected',
@@ -32,7 +43,11 @@ const statCards = [
     change: '11%',
     changeLabel: 'Rejection rate',
     trend: 'down' as const,
-    icon: '✗',
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+        <path d="M18 6L6 18M6 6l12 12" />
+      </svg>
+    ),
   },
   {
     label: 'Active mobs',
@@ -40,15 +55,22 @@ const statCards = [
     change: '12',
     changeLabel: 'Communities',
     trend: 'neutral' as const,
-    icon: '👥',
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M23 21v-2a4 4 0 00-3-3.87" />
+        <path d="M16 3.13a4 4 0 010 7.75" />
+      </svg>
+    ),
   },
 ];
 
 export default function AdminHomePage() {
   return (
-    <div className="w-full">
+    <div className="w-full space-y-8">
       {/* Page Header */}
-      <div className="mb-6">
+      <div>
         <h1 className="text-2xl font-semibold mb-2 text-[var(--text)]">Campaign overview</h1>
         <p className="text-sm text-[var(--text-muted)] leading-relaxed">
           Monitor ingestion, validation quality, and engagement across all Milk Mob communities.
@@ -58,81 +80,40 @@ export default function AdminHomePage() {
       {/* Stat Cards Grid */}
       <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {statCards.map((card) => (
-          <div
+          <StatCard
             key={card.label}
-            className="bg-[var(--bg-elevated)] rounded-2xl border border-[var(--border-subtle)] shadow-sm px-5 py-4 flex flex-col items-center text-center"
-          >
-            <div className="flex items-center justify-center gap-2 mb-3">
-              <div className="h-7 w-7 rounded-lg bg-[var(--accent-soft)] flex items-center justify-center text-sm flex-shrink-0">
-                {card.icon}
-              </div>
-              <span className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wide">
-                {card.label}
-              </span>
-            </div>
-            <p className="text-2xl font-bold text-[var(--text)] mb-2 leading-tight">
-              {card.value}
-            </p>
-            <div className="flex items-center justify-center gap-1.5 mt-auto">
-              <span
-                className={`text-xs font-semibold ${
-                  card.trend === 'up'
-                    ? 'text-[var(--success)]'
-                    : card.trend === 'down'
-                    ? 'text-[var(--error)]'
-                    : 'text-[var(--text-muted)]'
-                }`}
-              >
-                {card.change}
-              </span>
-              <span className="text-xs text-[var(--text-muted)]">{card.changeLabel}</span>
-            </div>
-          </div>
+            label={card.label}
+            value={card.value}
+            change={card.change}
+            changeLabel={card.changeLabel}
+            trend={card.trend}
+            icon={card.icon}
+          />
         ))}
       </section>
 
       {/* Charts & Panels */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Validation Funnel Panel */}
-        <div className="bg-[var(--bg-elevated)] rounded-2xl border border-[var(--border-subtle)] shadow-sm p-5">
-          <h2 className="text-sm font-semibold text-[var(--text)] mb-1.5">Validation funnel</h2>
-          <p className="text-xs text-[var(--text-muted)] mb-4 leading-relaxed">
-            Daily content ingestion and validation outcomes over time.
-          </p>
+        <Panel title="Validation funnel" description="Daily content ingestion and validation outcomes over time.">
           <div className="h-56 rounded-xl bg-[var(--bg-subtle)] flex items-center justify-center">
             <div className="text-center">
-              <svg
-                className="w-12 h-12 mx-auto mb-2 text-[var(--text-muted)] opacity-50"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                />
-              </svg>
-              <p className="text-xs text-[var(--text-muted)]">Chart placeholder</p>
+              <p className="text-sm text-[var(--text-muted)] mb-1">Awaiting data...</p>
+              <p className="text-xs text-[var(--text-soft)]">Chart will appear here when data is available</p>
             </div>
           </div>
-        </div>
+        </Panel>
 
         {/* Quality Metrics Panel */}
-        <div className="bg-[var(--bg-elevated)] rounded-2xl border border-[var(--border-subtle)] shadow-sm p-5">
-          <h2 className="text-sm font-semibold text-[var(--text)] mb-1.5">Quality metrics</h2>
-          <p className="text-xs text-[var(--text-muted)] mb-4 leading-relaxed">
-            System performance and processing efficiency.
-          </p>
-          <div className="space-y-5">
+        <Panel title="Quality metrics" description="System performance and processing efficiency.">
+          <div className="space-y-6">
             {/* Average Validation Score */}
             <div>
-              <div className="flex items-center justify-between mb-2.5">
-                <span className="text-xs font-medium text-[var(--text-muted)]">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-[var(--text-muted)]">
                   Average validation score
                 </span>
-                <span className="text-base font-bold text-[var(--text)]">
+                <span className="text-base font-semibold text-[var(--text)]">
                   {Math.round(mockStats.avgValidationScore * 100)}%
                 </span>
               </div>
@@ -146,22 +127,22 @@ export default function AdminHomePage() {
 
             {/* Processing Time */}
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs font-medium text-[var(--text-muted)]">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-[var(--text-muted)]">
                   Average processing time
                 </span>
-                <span className="text-base font-bold text-[var(--text)]">
+                <span className="text-base font-semibold text-[var(--text)]">
                   {mockStats.avgTimeToValidate}
                 </span>
               </div>
-              <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+              <p className="text-sm text-[var(--text-muted)] leading-relaxed">
                 Time from user upload to automated validation decision.
               </p>
             </div>
 
             {/* Modalities Covered */}
             <div>
-              <p className="text-xs font-medium text-[var(--text-muted)] mb-2.5">
+              <p className="text-sm font-medium text-[var(--text-muted)] mb-3">
                 Modalities covered
               </p>
               <div className="flex flex-wrap gap-2">
@@ -176,7 +157,7 @@ export default function AdminHomePage() {
               </div>
             </div>
           </div>
-        </div>
+        </Panel>
       </section>
     </div>
   );

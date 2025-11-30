@@ -1,17 +1,42 @@
 @import "tailwindcss";
 
 :root {
+  /* Background Colors - Softer, Meta-grade */
   --bg: #f4f5f7;
-  --bg-elevated: #ffffff;
+  --bg-elevated: #F8F9FB;
   --bg-subtle: #eef0f4;
-  --border-subtle: #e2e4ea;
+  
+  /* Border Colors - Softer */
+  --border-subtle: #E5E7EB;
+  --border-strong: #D1D5DB;
+  
+  /* Text Colors - Refined hierarchy */
   --text: #111827;
-  --text-muted: #6b7280;
-  --text-soft: #9ca3af;
+  --text-muted: #6B7280;
+  --text-soft: #9CA3AF;
+  
+  /* Accent Colors - Unified palette */
   --accent: #4f46e5;
   --accent-soft: #eef2ff;
+  --accent-hover: #4338ca;
+  
+  /* Status Colors */
   --success: #10b981;
   --error: #ef4444;
+  --warning: #f59e0b;
+  
+  /* Typography Scale */
+  --text-24: 24px; /* h1 */
+  --text-18: 18px; /* h2 */
+  --text-16: 16px; /* body */
+  --text-14: 14px; /* small */
+  --text-12: 12px; /* caption */
+  
+  /* Spacing - 8px grid */
+  --spacing-1: 8px;
+  --spacing-2: 16px;
+  --spacing-3: 24px;
+  --spacing-4: 32px;
 }
 
 * {
@@ -28,18 +53,54 @@ body {
   background-color: var(--bg);
   color: var(--text);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-  font-size: 14px;
+  font-size: var(--text-16);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Typography Base */
-h1, h2, h3, h4, h5, h6 {
+/* Typography Scale - Meta-grade */
+h1 {
+  font-size: var(--text-24);
   font-weight: 600;
   line-height: 1.2;
   color: var(--text);
   letter-spacing: -0.01em;
+}
+
+h2 {
+  font-size: var(--text-18);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+h3, h4, h5, h6 {
+  font-size: var(--text-16);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+/* Body text */
+p, span, div {
+  font-size: var(--text-16);
+  line-height: 1.5;
+}
+
+/* Small text - minimum 12px */
+.text-sm, small {
+  font-size: var(--text-14);
+  line-height: 1.5;
+}
+
+/* Caption text */
+.text-xs, .caption {
+  font-size: var(--text-12);
+  line-height: 1.5;
+  font-weight: 500;
 }
 
 /* Scrollbar */

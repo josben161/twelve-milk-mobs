@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Panel } from '@/components/ui';
-import { StatusPill } from '@/components/ui';
+import { Panel, StatusPill, EmptyState } from '@/components/ui';
 import type { VideoSummary } from '@twelve/core-types';
 
 export default function VideosPage() {
@@ -38,11 +37,11 @@ export default function VideosPage() {
   }, []);
 
   return (
-    <>
+    <div className="w-full space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-semibold text-[var(--text)]">Videos</h1>
-        <p className="mt-1.5 text-sm text-[var(--text-muted)]">
+        <h1 className="text-2xl font-semibold mb-2 text-[var(--text)]">Videos</h1>
+        <p className="text-sm text-[var(--text-muted)] leading-relaxed">
           All campaign submissions with current validation status and TwelveLabs analysis.
         </p>
       </div>
@@ -52,30 +51,36 @@ export default function VideosPage() {
         {loading ? (
           <div className="p-8 text-center text-sm text-[var(--text-muted)]">Loading videos...</div>
         ) : error ? (
-          <div className="p-8 text-center text-sm text-rose-500">Error: {error}</div>
+          <EmptyState
+            title="Error loading videos"
+            description={error}
+          />
         ) : videos.length === 0 ? (
-          <div className="p-8 text-center text-sm text-[var(--text-muted)]">No videos found.</div>
+          <EmptyState
+            title="No videos found"
+            description="Videos will appear here once they are uploaded and processed."
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full">
               <thead className="bg-[var(--bg-subtle)] border-b border-[var(--border-subtle)]">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide">
                     Video
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide">
                     Mob
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide">
                     Status
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide">
                     Score
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide">
                     Created
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide">
+                  <th className="px-6 py-4 text-right text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide">
                     Actions
                   </th>
                 </tr>
@@ -86,7 +91,7 @@ export default function VideosPage() {
                     key={v.id}
                     className="hover:bg-[var(--bg-subtle)] transition-colors"
                   >
-                    <td className="px-4 py-3">
+                    <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="h-12 w-16 rounded-lg bg-gradient-to-br from-[var(--bg-subtle)] to-[var(--bg)] border border-[var(--border-subtle)] flex-shrink-0" />
                         <div className="flex flex-col min-w-0">
@@ -99,13 +104,13 @@ export default function VideosPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-6 py-4">
                       <span className="text-sm text-[var(--text)]">{v.mobId || '–'}</span>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-6 py-4">
                       <StatusPill status={v.status} />
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-6 py-4">
                       {v.validationScore != null ? (
                         <span className="text-sm font-semibold text-[var(--text)]">
                           {Math.round(v.validationScore * 100)}%
@@ -114,12 +119,12 @@ export default function VideosPage() {
                         <span className="text-sm text-[var(--text-soft)]">–</span>
                       )}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-6 py-4">
                       <span className="text-sm text-[var(--text-muted)]">
                         {new Date(v.createdAt).toLocaleDateString()}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-6 py-4 text-right">
                       <Link
                         href={`/videos/${v.id}`}
                         className="text-sm font-medium text-[var(--accent)] hover:text-[var(--accent)]/80 transition-colors"
@@ -134,6 +139,6 @@ export default function VideosPage() {
           </div>
         )}
       </Panel>
-    </>
+    </div>
   );
 }
