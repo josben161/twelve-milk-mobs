@@ -2,16 +2,34 @@
 export type VideoStatus = 'uploaded' | 'processing' | 'validated' | 'rejected';
 
 // Low-level storage representation (e.g. DynamoDB row)
-// This is your internal “source of truth” shape.
+// This is your internal "source of truth" shape.
 export interface VideoRecord {
   videoId: string;
   userId: string;       // backend user identifier (email, sub, etc.)
+  userHandle: string;   // user handle for display
   s3Key: string;        // path in S3 bucket
   hashtags: string[];
   createdAt: string;    // ISO timestamp
   status: VideoStatus;
 
-  validationScore?: number; // 0–1, optional until analysis finishes
+  // TwelveLabs Pegasus analysis results
+  participationScore?: number;    // 0–1, from Pegasus
+  mentionsMilk?: boolean;         // Pegasus flag
+  showsMilkObject?: boolean;       // Pegasus flag
+  showsActionAligned?: boolean;   // Pegasus flag
+  participationRationale?: string; // Pegasus explanation
+
+  // TwelveLabs Marengo embedding results
+  embedding?: string;             // JSON string of embedding vector
+  embeddingDim?: number;          // Dimension of embedding (e.g. 256)
+
+  // Legacy fields (deprecated, kept for backward compatibility)
+  validationScore?: number; // 0–1, optional until analysis finishes (use participationScore)
+  actions?: string[];       // detected actions from TL analysis
+  objectsScenes?: string[]; // detected objects/scenes from TL analysis
+  timeline?: string;        // JSON string of timeline events
+
+  // Clustering
   mobId?: string;           // cluster id
   embeddingId?: string;     // reference into vector store if you add one
 }
@@ -36,18 +54,23 @@ export interface VideoSummary {
 }
 
 /**
- * Detailed view of a video for admin / “view analysis”.
+ * Detailed view of a video for admin / "view analysis".
  * Builds on VideoSummary with semantic context from TwelveLabs.
  */
 export interface VideoDetail extends VideoSummary {
   location?: string;        // e.g. "Venice Skatepark"
+  playbackUrl?: string;    // CloudFront or S3 presigned URL for video playback
 
   // Semantic outputs from TwelveLabs:
   actions?: string[];       // e.g. ["Ollie", "Drink from milk carton"]
   objectsScenes?: string[]; // e.g. ["Skatepark bowl", "Milk carton", "LED lights"]
 
-  // coarse timeline of key moments
-  timeline?: { t: string; event: string }[];
+  // coarse timeline of key moments (highlights)
+  timeline?: Array<{
+    timestamp: number; // seconds
+    description: string;
+    score?: number; // 0–1 relevance
+  }>;
 }
 
 /**

@@ -1,7 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useAuth } from '@/components/auth/UserProvider';
+import { ProfileHeader, EmptyState } from '@/components/ui';
+import { StatusPill } from '@/components/ui';
 
 export const dynamic = 'force-dynamic';
 
@@ -85,70 +88,17 @@ export default function MyVideosPage() {
     );
   }
 
-  // Get avatar color gradient based on avatarColor
-  const getAvatarGradient = (color: string) => {
-    const gradients: Record<string, string> = {
-      indigo: 'from-indigo-500 via-purple-500 to-pink-500',
-      emerald: 'from-emerald-500 via-teal-500 to-cyan-500',
-      rose: 'from-rose-500 via-pink-500 to-fuchsia-500',
-    };
-    return gradients[color] || gradients.indigo;
-  };
-
-  const getAvatarShadow = (color: string) => {
-    const shadows: Record<string, string> = {
-      indigo: 'shadow-indigo-500/30',
-      emerald: 'shadow-emerald-500/30',
-      rose: 'shadow-rose-500/30',
-    };
-    return shadows[color] || shadows.indigo;
-  };
-
   return (
     <div className="pb-6 transition-colors duration-300">
       {/* profile header */}
-      <section className="flex items-center gap-4 px-4 py-6">
-        <div
-          className={`h-20 w-20 rounded-full bg-gradient-to-br ${getAvatarGradient(
-            currentUser.avatarColor
-          )} flex items-center justify-center text-xl font-bold text-white shadow-xl ${getAvatarShadow(
-            currentUser.avatarColor
-          )}`}
-        >
-          {currentUser.handle.charAt(0).toUpperCase()}
-        </div>
-        <div className="flex flex-col gap-2 flex-1">
-          <span
-            className="text-base font-bold transition-colors duration-300"
-            style={{ color: 'var(--text)' }}
-          >
-            @{currentUser.handle}
-          </span>
-          <span
-            className="text-sm transition-colors duration-300"
-            style={{ color: 'var(--text-muted)' }}
-          >
-            {currentUser.displayName}
-          </span>
-          <div
-            className="flex gap-6 text-xs transition-colors duration-300"
-            style={{ color: 'var(--text-muted)' }}
-          >
-            <div className="flex flex-col items-center">
-              <span className="font-bold text-sm" style={{ color: 'var(--text)' }}>4</span>
-              <span className="font-medium">Posts</span>
-            </div>
-            <div className="flex flex-col items-center">
-              <span className="font-bold text-sm" style={{ color: 'var(--text)' }}>128</span>
-              <span className="font-medium">Mobs joined</span>
-            </div>
-            <div className="flex flex-col items-center">
-              <span className="font-bold text-sm" style={{ color: 'var(--text)' }}>512</span>
-              <span className="font-medium">Views</span>
-            </div>
-          </div>
-        </div>
-      </section>
+      <ProfileHeader
+        user={currentUser}
+        stats={{
+          posts: myVideos.length,
+          mobs: 0,
+          views: 0,
+        }}
+      />
 
       {/* tabs */}
       <div
@@ -160,7 +110,7 @@ export default function MyVideosPage() {
         <button
           className="flex-1 py-3 text-center border-b-2 font-bold transition-all duration-300"
           style={{
-            borderBottomColor: 'var(--text)',
+            borderBottomColor: 'var(--accent)',
             borderBottomWidth: '2px',
             color: 'var(--text)',
           }}
@@ -168,7 +118,7 @@ export default function MyVideosPage() {
           Posts
         </button>
         <button
-          className="flex-1 py-3 text-center font-semibold transition-all duration-300 hover:opacity-70"
+          className="flex-1 py-3 text-center font-medium transition-all duration-300 hover:opacity-70"
           style={{ color: 'var(--text-muted)' }}
         >
           Saved
@@ -186,23 +136,30 @@ export default function MyVideosPage() {
           </p>
         </div>
       ) : myVideos.length === 0 ? (
-        <div className="px-4 py-12 text-center">
-          <p
-            className="text-sm transition-colors duration-300"
-            style={{ color: 'var(--text-muted)' }}
-          >
-            No videos yet. Upload your first video to get started!
-          </p>
-        </div>
+        <EmptyState
+          icon={
+            <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          }
+          title="No posts yet"
+          subtitle="When you share photos and videos, they'll appear here"
+          action={{
+            label: 'Share your first post',
+            href: '/upload',
+          }}
+        />
       ) : (
         <section
           className="grid grid-cols-3 gap-[1px] transition-colors duration-300"
           style={{ backgroundColor: 'var(--border-subtle)' }}
         >
           {myVideos.map((v) => (
-            <div
+            <Link
               key={v.id}
-              className="relative aspect-square transition-colors duration-300"
+              href={`/video/${v.id}`}
+              className="relative aspect-square transition-all duration-200 hover:scale-105 rounded-sm overflow-hidden"
               style={{
                 background: 'linear-gradient(to bottom right, var(--bg-soft), var(--bg))',
               }}
@@ -213,7 +170,12 @@ export default function MyVideosPage() {
               >
                 Video
               </span>
-            </div>
+              {v.status && (
+                <div className="absolute top-1 right-1">
+                  <StatusPill status={v.status as any} />
+                </div>
+              )}
+            </Link>
           ))}
         </section>
       )}

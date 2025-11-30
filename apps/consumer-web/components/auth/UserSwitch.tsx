@@ -27,12 +27,12 @@ export function UserSwitch() {
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1">
       {currentUser ? (
         <>
           {/* Avatar circle */}
           <div
-            className="h-7 w-7 rounded-full flex items-center justify-center text-xs font-semibold text-white flex-shrink-0"
+            className="h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-semibold text-white flex-shrink-0"
             style={{
               backgroundColor:
                 currentUser.avatarColor === 'indigo'
@@ -44,9 +44,9 @@ export function UserSwitch() {
           >
             {currentUser.handle.charAt(0).toUpperCase()}
           </div>
-          {/* Handle label */}
+          {/* Handle label - hidden on mobile, shown on larger screens */}
           <span
-            className="text-xs font-medium hidden sm:inline transition-colors duration-300"
+            className="text-[10px] font-medium hidden md:inline transition-colors duration-300"
             style={{ color: 'var(--text-muted)' }}
           >
             @{currentUser.handle}
@@ -55,7 +55,7 @@ export function UserSwitch() {
       ) : null}
 
       {/* Switch form */}
-      <form onSubmit={handleSubmit} className="flex items-center gap-1.5">
+      <form onSubmit={handleSubmit} className="flex items-center gap-1">
         <input
           type="text"
           value={userIdInput}
@@ -64,7 +64,7 @@ export function UserSwitch() {
             setError(null);
           }}
           placeholder="user_1"
-          className="w-20 px-2 py-1 text-xs rounded border transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+          className="w-16 px-1.5 py-0.5 text-[10px] rounded border transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
           style={{
             borderColor: 'var(--border-subtle)',
             backgroundColor: 'var(--bg)',
@@ -73,7 +73,7 @@ export function UserSwitch() {
         />
         <button
           type="submit"
-          className="px-2 py-1 text-xs font-medium rounded border transition-all duration-200 hover:opacity-80 active:scale-95"
+          className="px-1.5 py-0.5 text-[10px] font-medium rounded border transition-all duration-200 hover:opacity-80 active:scale-95 flex-shrink-0"
           style={{
             borderColor: 'var(--border-subtle)',
             backgroundColor: 'var(--bg-soft)',
@@ -85,7 +85,9 @@ export function UserSwitch() {
       </form>
 
       {error && (
-        <span className="text-xs text-rose-500 whitespace-nowrap">{error}</span>
+        <span className="text-[10px] text-rose-500 whitespace-nowrap hidden lg:inline">
+          {error}
+        </span>
       )}
     </div>
   );

@@ -1,27 +1,71 @@
-// apps/admin-web/app/videos/[videoId]/page.tsx
+'use client';
+
+import { useEffect, useState } from 'react';
+import { use } from 'react';
 import { Panel } from '@/components/ui';
 import { StatusPill } from '@/components/ui';
-import { adminVideos } from '../data';
+import type { VideoDetail } from '@twelve/core-types';
 
-interface Props {
-  params: { videoId: string };
-}
+export default function VideoDetailPage({
+  params,
+}: {
+  params: Promise<{ videoId: string }>;
+}) {
+  const { videoId } = use(params);
+  const [video, setVideo] = useState<VideoDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-export default function VideoDetailPage({ params }: Props) {
-  const video = adminVideos.find((v) => v.id === params.videoId);
+  useEffect(() => {
+    const fetchVideo = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const apiBase = process.env.NEXT_PUBLIC_API_BASE;
+        if (!apiBase) {
+          throw new Error('API base URL is not configured');
+        }
+        const res = await fetch(`${apiBase.replace(/\/$/, '')}/videos/${videoId}`);
+        if (!res.ok) {
+          throw new Error(`Failed to fetch video (${res.status})`);
+        }
+        const data = await res.json();
+        setVideo(data);
+      } catch (err) {
+        console.error('Error fetching video:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load video.');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  if (!video) {
+    fetchVideo();
+  }, [videoId]);
+
+  if (loading) {
+    return (
+      <>
+        <div>
+          <h1 className="text-2xl font-semibold text-[var(--text)]">Loading...</h1>
+        </div>
+      </>
+    );
+  }
+
+  if (error || !video) {
     return (
       <>
         <div>
           <h1 className="text-2xl font-semibold text-[var(--text)]">Video not found</h1>
           <p className="mt-1.5 text-sm text-[var(--text-muted)]">
-            The video you're looking for doesn't exist.
+            {error || "The video you're looking for doesn't exist."}
           </p>
         </div>
       </>
     );
   }
+
+  const timeline = video.timeline || [];
 
   return (
     <>
@@ -29,7 +73,7 @@ export default function VideoDetailPage({ params }: Props) {
       <div>
         <h1 className="text-2xl font-semibold text-[var(--text)]">Video analysis</h1>
         <p className="mt-1.5 text-sm text-[var(--text-muted)]">
-          {video.user} · {video.mob} · {video.createdAt}
+          @{video.userHandle} · {video.mobId || 'No mob'} · {new Date(video.createdAt).toLocaleDateString()}
         </p>
       </div>
 
@@ -47,47 +91,64 @@ export default function VideoDetailPage({ params }: Props) {
                 <p className="text-sm font-semibold text-[var(--text)] mb-1">Caption</p>
                 <p className="text-sm text-[var(--text-muted)]">{video.caption}</p>
               </div>
-              <div>
-                <p className="text-sm font-semibold text-[var(--text)] mb-2">Hashtags</p>
-                <div className="flex flex-wrap gap-2">
-                  {video.hashtags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--border-subtle)]"
-                    >
-                      {tag}
-                    </span>
-                  ))}
+              {video.hashtags && video.hashtags.length > 0 && (
+                <div>
+                  <p className="text-sm font-semibold text-[var(--text)] mb-2">Hashtags</p>
+                  <div className="flex flex-wrap gap-2">
+                    {video.hashtags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--border-subtle)]"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-[var(--text)] mb-1">Location</p>
-                <p className="text-sm text-[var(--text-muted)]">{video.location}</p>
-              </div>
+              )}
+              {video.location && (
+                <div>
+                  <p className="text-sm font-semibold text-[var(--text)] mb-1">Location</p>
+                  <p className="text-sm text-[var(--text-muted)]">{video.location}</p>
+                </div>
+              )}
             </div>
           </Panel>
 
           {/* Semantic Timeline Panel */}
-          <Panel className="p-6">
-            <div className="mb-4">
-              <h2 className="text-sm font-semibold text-[var(--text)] mb-1">Semantic timeline</h2>
-              <p className="text-xs text-[var(--text-muted)]">
-                Key moments detected by TwelveLabs analysis.
-              </p>
-            </div>
-            <div className="space-y-3">
-              {video.timeline.map((entry, index) => (
-                <div key={index} className="flex gap-4">
-                  <div className="flex-shrink-0 w-16">
-                    <span className="text-xs font-medium text-[var(--text-muted)]">{entry.t}</span>
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-[var(--text)]">{entry.event}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Panel>
+          {timeline.length > 0 && (
+            <Panel className="p-6">
+              <div className="mb-4">
+                <h2 className="text-sm font-semibold text-[var(--text)] mb-1">Semantic timeline</h2>
+                <p className="text-xs text-[var(--text-muted)]">
+                  Key moments detected by TwelveLabs analysis.
+                </p>
+              </div>
+              <div className="space-y-3">
+                {timeline.map((entry, index) => {
+                  const minutes = Math.floor(entry.timestamp / 60);
+                  const seconds = Math.floor(entry.timestamp % 60);
+                  const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                  
+                  return (
+                    <div key={index} className="flex gap-4">
+                      <div className="flex-shrink-0 w-16">
+                        <span className="text-xs font-medium text-[var(--text-muted)]">{timeString}</span>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm text-[var(--text)]">{entry.description}</p>
+                        {entry.score !== undefined && (
+                          <p className="text-[10px] text-[var(--text-muted)] mt-1">
+                            Relevance: {(entry.score * 100).toFixed(0)}%
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </Panel>
+          )}
         </div>
 
         {/* Right Column */}
@@ -101,34 +162,79 @@ export default function VideoDetailPage({ params }: Props) {
               </p>
             </div>
             <div className="space-y-4">
-              <div>
-                <p className="text-xs text-[var(--text-muted)] mb-2">Actions detected</p>
-                <div className="flex flex-wrap gap-2">
-                  {video.actions.map((action) => (
-                    <span
-                      key={action}
-                      className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--border-subtle)]"
-                    >
-                      {action}
-                    </span>
-                  ))}
+              {video.actions && video.actions.length > 0 && (
+                <div>
+                  <p className="text-xs text-[var(--text-muted)] mb-2">Actions detected</p>
+                  <div className="flex flex-wrap gap-2">
+                    {video.actions.map((action) => (
+                      <span
+                        key={action}
+                        className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--border-subtle)]"
+                      >
+                        {action}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              <div>
-                <p className="text-xs text-[var(--text-muted)] mb-2">Objects & scenes</p>
-                <div className="flex flex-wrap gap-2">
-                  {video.objectsScenes.map((item) => (
-                    <span
-                      key={item}
-                      className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--border-subtle)]"
-                    >
-                      {item}
-                    </span>
-                  ))}
+              )}
+              {video.objectsScenes && video.objectsScenes.length > 0 && (
+                <div>
+                  <p className="text-xs text-[var(--text-muted)] mb-2">Objects & scenes</p>
+                  <div className="flex flex-wrap gap-2">
+                    {video.objectsScenes.map((item) => (
+                      <span
+                        key={item}
+                        className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--border-subtle)]"
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
+              {(!video.actions || video.actions.length === 0) && (!video.objectsScenes || video.objectsScenes.length === 0) && (
+                <p className="text-xs text-[var(--text-muted)]">No analysis data available yet.</p>
+              )}
             </div>
           </Panel>
+
+          {/* Timeline Highlights Panel */}
+          {video.timeline && video.timeline.length > 0 && (
+            <Panel className="p-6">
+              <div className="mb-4">
+                <h2 className="text-sm font-semibold text-[var(--text)] mb-1">Timeline highlights</h2>
+                <p className="text-xs text-[var(--text-muted)]">
+                  Key moments extracted from video analysis.
+                </p>
+              </div>
+              <div className="space-y-2">
+                {video.timeline.map((highlight, idx) => {
+                  const minutes = Math.floor(highlight.timestamp / 60);
+                  const seconds = Math.floor(highlight.timestamp % 60);
+                  const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                  
+                  return (
+                    <div
+                      key={idx}
+                      className="flex items-start gap-3 p-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-subtle)]"
+                    >
+                      <div className="flex-shrink-0">
+                        <span className="text-xs font-medium text-[var(--accent)]">{timeString}</span>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs text-[var(--text)]">{highlight.description}</p>
+                        {highlight.score !== undefined && (
+                          <p className="text-[10px] text-[var(--text-muted)] mt-1">
+                            Relevance: {(highlight.score * 100).toFixed(0)}%
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </Panel>
+          )}
 
           {/* Decision Inputs Panel */}
           <Panel className="p-6">
@@ -143,7 +249,7 @@ export default function VideoDetailPage({ params }: Props) {
                 <div className="flex-shrink-0">
                   <div className="h-16 w-16 rounded-full bg-[var(--accent-soft)] border-2 border-[var(--accent)] flex items-center justify-center">
                     <span className="text-lg font-bold text-[var(--accent)]">
-                      {video.score != null ? Math.round(video.score * 100) : '–'}
+                      {video.validationScore != null ? Math.round(video.validationScore * 100) : '–'}
                     </span>
                   </div>
                 </div>

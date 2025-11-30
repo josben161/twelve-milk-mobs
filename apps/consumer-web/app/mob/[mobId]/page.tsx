@@ -1,54 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { use } from 'react';
-import type { VideoStatus } from '@twelve/core-types';
-import { Card, VideoCard, PageShell } from '@/components/ui';
-
-// Mock data
-const mockMobs: Record<
-  string,
-  {
-    id: string;
-    name: string;
-    description: string;
-    videoCount: number;
-    vibe: string;
-    videoIds: string[];
-  }
-> = {
-  skatepark: {
-    id: 'skatepark',
-    name: 'Skatepark milk tricks',
-    description: 'Action-heavy videos from skateparks',
-    videoCount: 24,
-    vibe: 'Skatepark, sunset, action-heavy',
-    videoIds: ['vid-001', 'vid-004'],
-  },
-  'bedroom-dance': {
-    id: 'bedroom-dance',
-    name: 'Bedroom Dance',
-    description: 'Late night dance sessions',
-    videoCount: 18,
-    vibe: 'Bedroom, night, energetic',
-    videoIds: ['vid-002'],
-  },
-  'cafe-study': {
-    id: 'cafe-study',
-    name: 'Café Study',
-    description: 'Chill study sessions with milk',
-    videoCount: 12,
-    vibe: 'Café, calm, focused',
-    videoIds: ['vid-003'],
-  },
-};
-
-const mockVideoTitles: Record<string, string> = {
-  'vid-001': 'Skatepark Milk Trick',
-  'vid-002': 'Bedroom Dance Session',
-  'vid-003': 'Café Study Vibes',
-  'vid-004': 'Action-Packed Milk Moment',
-};
+import { use, useEffect, useState } from 'react';
+import type { MobSummary, VideoSummary } from '@twelve/core-types';
+import { StatusPill } from '@/components/ui';
 
 export default function MobFeedPage({
   params,
@@ -56,61 +11,171 @@ export default function MobFeedPage({
   params: Promise<{ mobId: string }>;
 }) {
   const { mobId } = use(params);
-  const mob = mockMobs[mobId];
+  const [mob, setMob] = useState<MobSummary | null>(null);
+  const [videos, setVideos] = useState<VideoSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  if (!mob) {
+  useEffect(() => {
+    const fetchMob = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const apiBase = process.env.NEXT_PUBLIC_API_BASE;
+        if (!apiBase) {
+          throw new Error('API base URL is not configured');
+        }
+        const res = await fetch(`${apiBase.replace(/\/$/, '')}/mobs/${mobId}`);
+        if (!res.ok) {
+          throw new Error(`Failed to fetch mob (${res.status})`);
+        }
+        const data = await res.json();
+        setMob(data.mob);
+        setVideos(data.videos || []);
+      } catch (err) {
+        console.error('Error fetching mob:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load mob.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMob();
+  }, [mobId]);
+
+  if (loading) {
     return (
-      <PageShell>
-        <Card className="p-8 text-center">
-          <h1 className="text-2xl font-bold mb-2">Mob not found</h1>
-          <p className="text-slate-400 mb-4">
-            The mob with ID {mobId} could not be found.
-          </p>
-          <Link
-            href="/"
-            className="inline-flex items-center text-indigo-400 hover:text-indigo-300"
-          >
-            ← Back to Home
-          </Link>
-        </Card>
-      </PageShell>
+      <div className="pb-6 pt-4 text-center text-sm text-[var(--text-muted)]">
+        Loading mob...
+      </div>
     );
   }
 
-  // Mock video data for the mob
-  const mobVideos = mob.videoIds.map((videoId) => ({
-    videoId,
-    title: mockVideoTitles[videoId] || videoId,
-    status: 'validated' as VideoStatus,
-    createdAt: '2024-01-15T10:30:00Z',
-  }));
+  if (error || !mob) {
+    return (
+      <div className="pb-6 pt-4 px-4">
+        <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-soft)]/70 backdrop-blur-sm p-8 text-center">
+          <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--text)' }}>
+            Mob not found
+          </h1>
+          <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
+            {error || `The mob with ID ${mobId} could not be found.`}
+          </p>
+          <Link
+            href="/mob"
+            className="inline-flex items-center text-sm transition-colors"
+            style={{ color: 'var(--accent)' }}
+          >
+            ← Back to Mobs
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <PageShell>
+    <div className="pb-6 pt-4 transition-colors duration-300">
+      <Link
+        href="/mob"
+        className="inline-flex items-center text-sm mb-6 px-4 transition-colors"
+        style={{ color: 'var(--text-muted)' }}
+      >
+        ← Back to Mobs
+      </Link>
+
       {/* Hero */}
-      <Card className="p-8 mb-8 bg-gradient-to-br from-slate-900/90 via-slate-900/70 to-slate-950/50">
-        <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-slate-50 to-slate-300 bg-clip-text text-transparent">
-          Mob: {mob.name}
-        </h1>
-        <p className="text-lg text-slate-300 mb-2">{mob.description}</p>
-        <p className="text-sm text-slate-400">
-          {mob.videoCount} videos · '{mob.vibe}' vibe
-        </p>
-      </Card>
+      <div className="px-4 mb-6">
+        <div className="rounded-2xl border border-[var(--border-subtle)] bg-gradient-to-br from-[var(--bg-soft)]/90 via-[var(--bg-soft)]/70 to-[var(--bg)]/50 backdrop-blur-sm p-6 shadow-lg">
+          <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--text)' }}>
+            {mob.name}
+          </h1>
+          <p className="text-base mb-3" style={{ color: 'var(--text-muted)' }}>
+            {mob.description}
+          </p>
+          <div className="flex items-center gap-4 text-sm" style={{ color: 'var(--text-muted)' }}>
+            <span>
+              <span className="font-semibold" style={{ color: 'var(--text)' }}>
+                {mob.videoCount}
+              </span>{' '}
+              videos
+            </span>
+          </div>
+          {mob.exampleHashtags && mob.exampleHashtags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-4">
+              {mob.exampleHashtags.map((tag, idx) => (
+                <span
+                  key={idx}
+                  className="px-2 py-0.5 rounded-full text-[10px] font-medium"
+                  style={{
+                    backgroundColor: 'var(--accent-soft)',
+                    color: 'var(--accent)',
+                  }}
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Video Grid */}
-      {mobVideos.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {mobVideos.map((video) => (
-            <VideoCard key={video.videoId} {...video} />
+      {videos.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-4">
+          {videos.map((video) => (
+            <Link
+              key={video.id}
+              href={`/video/${video.id}`}
+              className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-soft)]/70 backdrop-blur-sm overflow-hidden shadow-lg transition-all duration-200 hover:border-[var(--accent)]/50 hover:shadow-xl"
+            >
+              <div className="relative h-44 w-full bg-gradient-to-tr from-[var(--bg)] via-[var(--bg-soft)] to-[var(--bg)]">
+                <div className="absolute inset-0 flex items-center justify-center text-xs" style={{ color: 'var(--text-muted)' }}>
+                  Video preview
+                </div>
+                <div className="absolute top-2 right-2">
+                  <StatusPill status={video.status} />
+                </div>
+              </div>
+              <div className="flex flex-col gap-2 px-4 py-3">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="truncate text-sm font-semibold" style={{ color: 'var(--text)' }}>
+                    @{video.userHandle}
+                  </h3>
+                </div>
+                {video.caption && (
+                  <p className="text-xs line-clamp-2" style={{ color: 'var(--text-muted)' }}>
+                    {video.caption}
+                  </p>
+                )}
+                {video.hashtags && video.hashtags.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {video.hashtags.slice(0, 3).map((tag, idx) => (
+                      <span
+                        key={idx}
+                        className="text-[10px] px-1.5 py-0.5 rounded"
+                        style={{
+                          backgroundColor: 'var(--accent-soft)',
+                          color: 'var(--accent)',
+                        }}
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </Link>
           ))}
         </div>
       ) : (
-        <Card className="p-8 text-center">
-          <p className="text-slate-400">No videos in this mob yet.</p>
-        </Card>
+        <div className="px-4">
+          <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-soft)]/70 backdrop-blur-sm p-8 text-center">
+            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+              No videos in this mob yet.
+            </p>
+          </div>
+        </div>
       )}
-    </PageShell>
+    </div>
   );
 }
-

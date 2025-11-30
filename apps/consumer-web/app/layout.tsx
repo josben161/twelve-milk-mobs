@@ -63,23 +63,23 @@ export default function RootLayout({
                   Social Platform
                 </span>
               </div>
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1.5">
                 <UserSwitch />
                 <button
                   type="button"
                   aria-label="Notifications"
-                  className="rounded-full p-2 hover:bg-[var(--bg)]/60 transition-all duration-200 hover:scale-110 active:scale-95"
+                  className="rounded-full p-1.5 hover:bg-[var(--bg)]/60 transition-all duration-200 hover:scale-110 active:scale-95 flex-shrink-0"
                   style={{ color: 'var(--text-muted)' }}
                 >
-                  <BellIcon className="h-5 w-5" />
+                  <BellIcon className="h-4 w-4" />
                 </button>
                 <button
                   type="button"
                   aria-label="Messages"
-                  className="rounded-full p-2 hover:bg-[var(--bg)]/60 transition-all duration-200 hover:scale-110 active:scale-95"
+                  className="rounded-full p-1.5 hover:bg-[var(--bg)]/60 transition-all duration-200 hover:scale-110 active:scale-95 flex-shrink-0"
                   style={{ color: 'var(--text-muted)' }}
                 >
-                  <MessageIcon className="h-5 w-5" />
+                  <MessageIcon className="h-4 w-4" />
                 </button>
                 <ThemeToggle />
               </div>

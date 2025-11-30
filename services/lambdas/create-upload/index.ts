@@ -43,6 +43,8 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const key = `${videoId}.mp4`;
     const createdAt = new Date().toISOString();
     const status: VideoStatus = 'uploaded';
+    const userId = parsed.userId || '';
+    const userHandle = parsed.userHandle || '';
 
     // 1) Write metadata to DynamoDB
     await ddb.send(
@@ -50,6 +52,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         TableName: tableName,
         Item: {
           videoId: { S: videoId },
+          userId: { S: userId },
+          userHandle: { S: userHandle },
+          s3Key: { S: key },
           status: { S: status },
           createdAt: { S: createdAt },
           hashtags: { SS: hashtags },

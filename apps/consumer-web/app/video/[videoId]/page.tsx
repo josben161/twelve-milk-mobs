@@ -1,80 +1,23 @@
 'use client';
 
 import Link from 'next/link';
-import { use } from 'react';
-import { Card, StatusPill, PageShell } from '@/components/ui';
+import { use, useEffect, useState } from 'react';
+import type { VideoDetail } from '@twelve/core-types';
+import { StatusPill, VideoPlayer } from '@/components/ui';
 
-// Mock data
-const mockVideos: Record<
-  string,
-  {
-    videoId: string;
-    title: string;
-    status: 'processing' | 'validated' | 'rejected';
-    hashtags: string[];
-    detectedActions: string[];
-    tags: { type: string; value: string }[];
-  }
-> = {
-  'vid-001': {
-    videoId: 'vid-001',
-    title: 'Skatepark Milk Trick',
-    status: 'validated',
-    hashtags: ['#gotmilk', '#skatepark', '#action'],
-    detectedActions: ['skateboarding', 'jumping', 'drinking'],
-    tags: [
-      { type: 'object', value: 'milk carton' },
-      { type: 'scene', value: 'outdoor skatepark' },
-      { type: 'emotion', value: 'excitement' },
-      { type: 'activity', value: 'extreme sports' },
-    ],
-  },
-  'vid-002': {
-    videoId: 'vid-002',
-    title: 'Bedroom Dance Session',
-    status: 'processing',
-    hashtags: ['#milkmob', '#bedroom', '#dance'],
-    detectedActions: ['dancing', 'moving'],
-    tags: [
-      { type: 'object', value: 'milk bottle' },
-      { type: 'scene', value: 'indoor bedroom' },
-      { type: 'emotion', value: 'joy' },
-    ],
-  },
-  'vid-003': {
-    videoId: 'vid-003',
-    title: 'Café Study Vibes',
-    status: 'rejected',
-    hashtags: ['#cafe', '#study'],
-    detectedActions: ['sitting', 'reading'],
-    tags: [
-      { type: 'scene', value: 'café interior' },
-      { type: 'emotion', value: 'calm' },
-    ],
-  },
-  'vid-004': {
-    videoId: 'vid-004',
-    title: 'Action-Packed Milk Moment',
-    status: 'validated',
-    hashtags: ['#gotmilk', '#action'],
-    detectedActions: ['running', 'jumping', 'drinking'],
-    tags: [
-      { type: 'object', value: 'milk carton' },
-      { type: 'scene', value: 'outdoor park' },
-      { type: 'emotion', value: 'energy' },
-      { type: 'activity', value: 'sports' },
-    ],
-  },
-};
+interface SimilarVideo {
+  videoId: string;
+  userHandle: string;
+  mobId: string | null;
+  score: number;
+}
 
-import type { VideoStatus } from '@twelve/core-types';
-
-// Status mapping for mock data
-const statusMap: Record<string, VideoStatus> = {
-  validated: 'validated',
-  processing: 'processing',
-  rejected: 'rejected',
-};
+interface ValidationResult {
+  videoId: string;
+  participationScore: number;
+  pass: boolean;
+  reasons: string[];
+}
 
 export default function VideoDetailPage({
   params,
@@ -82,127 +25,363 @@ export default function VideoDetailPage({
   params: Promise<{ videoId: string }>;
 }) {
   const { videoId } = use(params);
-  const video = mockVideos[videoId];
+  const [video, setVideo] = useState<VideoDetail | null>(null);
+  const [similarVideos, setSimilarVideos] = useState<SimilarVideo[]>([]);
+  const [validation, setValidation] = useState<ValidationResult | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  if (!video) {
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const apiBase = process.env.NEXT_PUBLIC_API_BASE;
+        if (!apiBase) {
+          throw new Error('API base URL is not configured');
+        }
+        const baseUrl = apiBase.replace(/\/$/, '');
+
+        // Fetch video detail
+        const videoRes = await fetch(`${baseUrl}/videos/${videoId}`);
+        if (!videoRes.ok) {
+          throw new Error(`Failed to fetch video (${videoRes.status})`);
+        }
+        const videoData = await videoRes.json();
+        setVideo(videoData);
+
+        // Fetch similar videos
+        try {
+          const similarRes = await fetch(`${baseUrl}/search/similar?videoId=${videoId}`);
+          if (similarRes.ok) {
+            const similarData = await similarRes.json();
+            setSimilarVideos(similarData.videos || []);
+          }
+        } catch (e) {
+          console.warn('Failed to fetch similar videos:', e);
+        }
+
+        // Fetch validation
+        try {
+          const validateRes = await fetch(`${baseUrl}/validate/${videoId}`);
+          if (validateRes.ok) {
+            const validateData = await validateRes.json();
+            setValidation(validateData);
+          }
+        } catch (e) {
+          console.warn('Failed to fetch validation:', e);
+        }
+      } catch (err) {
+        console.error('Error fetching video:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load video.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [videoId]);
+
+  if (loading) {
     return (
-      <PageShell>
-        <Card className="p-8 text-center">
-          <h1 className="text-2xl font-bold mb-2">Video not found</h1>
-          <p className="text-slate-400 mb-4">
-            The video with ID {videoId} could not be found.
-          </p>
-          <Link
-            href="/my-videos"
-            className="inline-flex items-center text-indigo-400 hover:text-indigo-300"
-          >
-            ← Back to My Videos
-          </Link>
-        </Card>
-      </PageShell>
+      <div className="pb-6 pt-4 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
+        Loading video...
+      </div>
     );
   }
 
-  const videoStatus = statusMap[video.status] || 'processing';
+  if (error || !video) {
+    return (
+      <div className="pb-6 pt-4 px-4">
+        <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-soft)]/70 backdrop-blur-sm p-8 text-center">
+          <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--text)' }}>
+            Video not found
+          </h1>
+          <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
+            {error || `The video with ID ${videoId} could not be found.`}
+          </p>
+          <Link
+            href="/my-videos"
+            className="inline-flex items-center text-sm transition-colors"
+            style={{ color: 'var(--accent)' }}
+          >
+            ← Back to My Videos
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <PageShell>
+    <div className="pb-6 pt-4 transition-colors duration-300">
       <Link
         href="/my-videos"
-        className="inline-flex items-center text-sm text-slate-400 hover:text-indigo-400 mb-6 transition-colors"
+        className="inline-flex items-center gap-2 text-sm mb-4 px-4 transition-colors hover:opacity-70"
+        style={{ color: 'var(--text-muted)' }}
       >
-        ← Back to My Videos
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+        Back to My Videos
       </Link>
 
-      <Card className="p-8 space-y-6">
-        {/* Video Player Placeholder */}
-        <div className="aspect-video rounded-lg bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 flex items-center justify-center shadow-[0_20px_60px_rgba(79,70,229,0.4)]">
-          <div className="text-center">
-            <svg
-              className="h-16 w-16 text-white/50 mx-auto mb-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <p className="text-white/50 text-sm">Video Player</p>
+      <div className="px-4 space-y-6">
+        {/* Video Player */}
+        {video.playbackUrl ? (
+          <div className="rounded-lg overflow-hidden shadow-lg">
+            <VideoPlayer 
+              videoUrl={video.playbackUrl} 
+              thumbnailUrl={video.thumbnailUrl || undefined}
+              autoplay={false}
+              muted={false}
+              className="w-full"
+            />
           </div>
-        </div>
+        ) : (
+          <div
+            className="aspect-video rounded-lg flex items-center justify-center shadow-lg"
+            style={{
+              background: 'linear-gradient(to bottom right, var(--accent), var(--accent-strong))',
+            }}
+          >
+            <div className="text-center">
+              <svg
+                className="h-16 w-16 text-white/50 mx-auto mb-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <p className="text-white/50 text-sm">Video processing...</p>
+            </div>
+          </div>
+        )}
 
         {/* Title & Status */}
         <div className="flex items-start justify-between gap-4">
-          <h1 className="text-2xl font-bold text-slate-50">{video.title}</h1>
-          <StatusPill status={videoStatus} />
+          <div className="flex-1">
+            <h1 className="text-2xl font-bold mb-1" style={{ color: 'var(--text)' }}>
+              @{video.userHandle}
+            </h1>
+            {video.caption && (
+              <p className="text-sm mb-2" style={{ color: 'var(--text-muted)' }}>
+                {video.caption}
+              </p>
+            )}
+          </div>
+          <StatusPill status={video.status} />
         </div>
+
+        {/* Validation Section */}
+        {validation && (
+          <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-soft)]/70 backdrop-blur-sm p-4">
+            <h2 className="text-base font-semibold mb-3" style={{ color: 'var(--text)' }}>
+              Participation Check
+            </h2>
+            <div className="flex items-center gap-3 mb-3">
+              <span
+                className={`text-lg font-bold ${validation.pass ? 'text-emerald-400' : 'text-rose-400'}`}
+              >
+                {(validation.participationScore * 100).toFixed(1)}%
+              </span>
+              <span
+                className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                  validation.pass
+                    ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/40'
+                    : 'bg-rose-500/10 text-rose-300 border border-rose-500/40'
+                }`}
+              >
+                {validation.pass ? 'Pass' : 'Fail'}
+              </span>
+            </div>
+            <ul className="space-y-1 text-xs" style={{ color: 'var(--text-muted)' }}>
+              {validation.reasons.map((reason, idx) => (
+                <li key={idx} className="flex items-start gap-2">
+                  <span>•</span>
+                  <span>{reason}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* Hashtags */}
-        <div>
-          <h2 className="text-sm font-medium text-slate-400 mb-3">Hashtags</h2>
-          <div className="flex flex-wrap gap-2">
-            {video.hashtags.map((tag, idx) => (
-              <span
-                key={idx}
-                className="inline-flex items-center rounded-full bg-indigo-600/20 px-3 py-1 text-xs font-medium text-indigo-300 border border-indigo-600/30"
-              >
-                {tag}
-              </span>
-            ))}
+        {video.hashtags && video.hashtags.length > 0 && (
+          <div>
+            <h2 className="text-sm font-medium mb-3" style={{ color: 'var(--text-muted)' }}>
+              Hashtags
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {video.hashtags.map((tag, idx) => (
+                <span
+                  key={idx}
+                  className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium border"
+                  style={{
+                    backgroundColor: 'var(--accent-soft)',
+                    color: 'var(--accent)',
+                    borderColor: 'var(--accent)',
+                  }}
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Detected Actions & Tags */}
-        <div className="border-t border-slate-800 pt-6">
-          <h2 className="text-lg font-semibold text-slate-50 mb-4">
-            Detected actions & tags
-          </h2>
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-sm font-medium text-slate-400 mb-2">
-                Actions
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {video.detectedActions.map((action, idx) => (
-                  <span
+        {/* Timeline Highlights */}
+        {video.timeline && video.timeline.length > 0 && (
+          <div>
+            <h2 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>
+              Timeline Highlights
+            </h2>
+            <div className="space-y-2">
+              {video.timeline.map((highlight, idx) => {
+                const minutes = Math.floor(highlight.timestamp / 60);
+                const seconds = Math.floor(highlight.timestamp % 60);
+                const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                return (
+                  <button
                     key={idx}
-                    className="inline-flex items-center rounded-md bg-slate-800 px-3 py-1.5 text-sm text-slate-300 border border-slate-700"
+                    onClick={() => {
+                      // Seek video player to timestamp
+                      const videoElement = document.querySelector('video');
+                      if (videoElement) {
+                        videoElement.currentTime = highlight.timestamp;
+                        videoElement.play();
+                      }
+                    }}
+                    className="w-full text-left rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-soft)]/70 backdrop-blur-sm p-3 transition-all duration-200 hover:border-[var(--accent)]/50 hover:bg-[var(--bg-soft)] active:scale-[0.98]"
                   >
-                    {action}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-slate-400 mb-2">
-                Tags
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {video.tags.map((tag, idx) => (
-                  <span
-                    key={idx}
-                    className="inline-flex items-center rounded-md bg-slate-800 px-3 py-1.5 text-sm text-slate-300 border border-slate-700"
-                  >
-                    <span className="text-slate-500 mr-1">{tag.type}:</span>
-                    {tag.value}
-                  </span>
-                ))}
-              </div>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span
+                            className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
+                            style={{
+                              backgroundColor: 'var(--accent-soft)',
+                              color: 'var(--accent)',
+                            }}
+                          >
+                            {timeString}
+                          </span>
+                          {highlight.score !== undefined && (
+                            <span
+                              className="text-[10px] px-1.5 py-0.5 rounded"
+                              style={{
+                                backgroundColor: 'var(--bg-soft)',
+                                color: 'var(--text-muted)',
+                              }}
+                            >
+                              {(highlight.score * 100).toFixed(0)}%
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm leading-relaxed" style={{ color: 'var(--text)' }}>
+                          {highlight.description}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
-        </div>
-      </Card>
-    </PageShell>
+        )}
+
+        {/* Similar Videos */}
+        {similarVideos.length > 0 && (
+          <div>
+            <h2 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>
+              More like this
+            </h2>
+            <div className="grid grid-cols-2 gap-3">
+              {similarVideos.slice(0, 4).map((similar) => (
+                <Link
+                  key={similar.videoId}
+                  href={`/video/${similar.videoId}`}
+                  className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-soft)]/70 backdrop-blur-sm p-3 transition-all duration-200 hover:border-[var(--accent)]/50 hover:scale-105 shadow-sm"
+                >
+                  <div className="text-xs font-medium mb-1" style={{ color: 'var(--text)' }}>
+                    @{similar.userHandle}
+                  </div>
+                  <div className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                    {(similar.score * 100).toFixed(0)}% similar
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Analysis Results */}
+        {(video.actions || video.objectsScenes) && (
+          <div className="border-t pt-6" style={{ borderColor: 'var(--border-subtle)' }}>
+            <h2 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>
+              Analysis Results
+            </h2>
+            <div className="space-y-4">
+              {video.actions && video.actions.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-medium mb-2" style={{ color: 'var(--text-muted)' }}>
+                    Detected Actions
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {video.actions.map((action, idx) => (
+                      <span
+                        key={idx}
+                        className="inline-flex items-center rounded-full px-3 py-1.5 text-sm border"
+                        style={{
+                          backgroundColor: 'var(--bg-soft)',
+                          color: 'var(--text)',
+                          borderColor: 'var(--border-subtle)',
+                        }}
+                      >
+                        {action}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {video.objectsScenes && video.objectsScenes.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-medium mb-2" style={{ color: 'var(--text-muted)' }}>
+                    Objects & Scenes
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {video.objectsScenes.map((item, idx) => (
+                      <span
+                        key={idx}
+                        className="inline-flex items-center rounded-full px-3 py-1.5 text-sm border"
+                        style={{
+                          backgroundColor: 'var(--bg-soft)',
+                          color: 'var(--text)',
+                          borderColor: 'var(--border-subtle)',
+                        }}
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
-
