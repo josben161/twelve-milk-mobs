@@ -50,7 +50,7 @@ export function Header() {
             className="text-[var(--text)] text-base"
             style={{
               fontFamily: '"Chomsky", serif',
-              fontWeight: 700,
+              fontWeight: 900,
             }}
           >
             Barn Social
