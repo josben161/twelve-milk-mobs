@@ -3,8 +3,7 @@
 /* Chomsky Font */
 @font-face {
   font-family: 'Chomsky';
-  src: url('/fonts/Chomsky.otf') format('opentype'),
-       url('/fonts/Chomsky.ttf') format('truetype');
+  src: url('/fonts/Chomsky.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -12,8 +11,7 @@
 
 @font-face {
   font-family: 'Chomsky';
-  src: url('/fonts/Chomsky-Bold.otf') format('opentype'),
-       url('/fonts/Chomsky-Bold.ttf') format('truetype');
+  src: url('/fonts/Chomsky.otf') format('opentype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
