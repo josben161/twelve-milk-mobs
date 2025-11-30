@@ -37,9 +37,9 @@ export default function MobsPage() {
   }, []);
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-10">
       <div>
-        <h1 className="text-2xl font-semibold mb-2 text-[var(--text)]">Mobs</h1>
+        <h1 className="text-2xl font-semibold mb-3 text-[var(--text)]">Mobs</h1>
         <p className="text-sm text-[var(--text-muted)] leading-relaxed">
           All Milk Mob clusters and their performance metrics.
         </p>
@@ -67,26 +67,28 @@ export default function MobsPage() {
         <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {mobs.map((mob) => (
             <Link key={mob.id} href={`/mobs/${mob.id}`}>
-              <Panel className="p-6 hover:border-[var(--accent)]/50 transition-colors cursor-pointer">
-                <h3 className="text-lg font-semibold mb-2 text-[var(--text)]">{mob.name}</h3>
-                <p className="text-sm text-[var(--text-muted)] mb-4 leading-relaxed">{mob.description}</p>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-[var(--text-muted)] mb-1">Videos</p>
-                    <p className="text-lg font-semibold text-[var(--text)]">{mob.videoCount}</p>
-                  </div>
-                  {mob.exampleHashtags && mob.exampleHashtags.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {mob.exampleHashtags.slice(0, 3).map((tag, idx) => (
-                        <span
-                          key={idx}
-                          className="px-3 py-1 rounded-lg text-xs font-medium bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--border-subtle)]"
-                        >
-                          {tag}
-                        </span>
-                      ))}
+              <Panel className="hover:border-[var(--accent)]/50 transition-colors cursor-pointer">
+                <div className="p-8">
+                  <h3 className="text-lg font-semibold mb-3 text-[var(--text)]">{mob.name}</h3>
+                  <p className="text-sm text-[var(--text-muted)] mb-6 leading-relaxed">{mob.description}</p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-[var(--text-muted)] mb-2">Videos</p>
+                      <p className="text-lg font-semibold text-[var(--text)]">{mob.videoCount}</p>
                     </div>
-                  )}
+                    {mob.exampleHashtags && mob.exampleHashtags.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {mob.exampleHashtags.slice(0, 3).map((tag, idx) => (
+                          <span
+                            key={idx}
+                            className="px-3 py-1 rounded-lg text-xs font-medium bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--border-subtle)]"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </Panel>
             </Link>

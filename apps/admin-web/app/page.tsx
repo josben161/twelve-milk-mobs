@@ -68,17 +68,17 @@ const statCards = [
 
 export default function AdminHomePage() {
   return (
-    <div className="w-full space-y-8">
+    <div className="w-full space-y-12">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-semibold mb-2 text-[var(--text)]">Campaign overview</h1>
+        <h1 className="text-2xl font-semibold mb-3 text-[var(--text)]">Campaign overview</h1>
         <p className="text-sm text-[var(--text-muted)] leading-relaxed">
           Monitor ingestion, validation quality, and engagement across all Milk Mob communities.
         </p>
       </div>
 
       {/* Stat Cards Grid */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
         {statCards.map((card) => (
           <StatCard
             key={card.label}
@@ -98,7 +98,7 @@ export default function AdminHomePage() {
         <Panel title="Validation funnel" description="Daily content ingestion and validation outcomes over time.">
           <div className="h-56 rounded-xl bg-[var(--bg-subtle)] flex items-center justify-center">
             <div className="text-center">
-              <p className="text-sm text-[var(--text-muted)] mb-1">Awaiting data...</p>
+              <p className="text-sm text-[var(--text-muted)] mb-2">Awaiting data...</p>
               <p className="text-xs text-[var(--text-soft)]">Chart will appear here when data is available</p>
             </div>
           </div>
@@ -106,10 +106,10 @@ export default function AdminHomePage() {
 
         {/* Quality Metrics Panel */}
         <Panel title="Quality metrics" description="System performance and processing efficiency.">
-          <div className="space-y-6">
+          <div className="space-y-8">
             {/* Average Validation Score */}
             <div>
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-3">
                 <span className="text-sm font-medium text-[var(--text-muted)]">
                   Average validation score
                 </span>
@@ -127,7 +127,7 @@ export default function AdminHomePage() {
 
             {/* Processing Time */}
             <div>
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-3">
                 <span className="text-sm font-medium text-[var(--text-muted)]">
                   Average processing time
                 </span>
@@ -142,7 +142,7 @@ export default function AdminHomePage() {
 
             {/* Modalities Covered */}
             <div>
-              <p className="text-sm font-medium text-[var(--text-muted)] mb-3">
+              <p className="text-sm font-medium text-[var(--text-muted)] mb-4">
                 Modalities covered
               </p>
               <div className="flex flex-wrap gap-2">

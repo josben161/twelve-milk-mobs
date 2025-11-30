@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { OverviewIcon, VideosIcon, MobsIcon, SettingsIcon } from '@/components/ui/Icons';
+import { OverviewIcon, VideosIcon, MobsIcon, SettingsIcon, AppLogo } from '@/components/ui/Icons';
 
 const navItems = [
   { href: '/', icon: OverviewIcon, label: 'Overview' },
@@ -19,9 +19,7 @@ export function Sidebar() {
     <aside className="hidden sm:flex w-16 flex-col min-h-screen border-r border-[var(--border-subtle)] bg-[var(--bg-elevated)]">
       {/* Logo Row */}
       <div className="flex items-center justify-center h-12 border-b border-[var(--border-subtle)]">
-        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[var(--accent)] to-indigo-600 flex items-center justify-center text-xs font-bold text-white">
-          MM
-        </div>
+        <AppLogo className="h-8 w-8" />
       </div>
 
       {/* Navigation */}

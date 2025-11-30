@@ -12,24 +12,22 @@ interface StatCardProps {
 
 export function StatCard({ label, value, change, changeLabel, trend = 'neutral', icon }: StatCardProps) {
   return (
-    <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-elevated)] p-6 shadow-sm">
-      <div className="flex items-start justify-between mb-3">
+    <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-elevated)] p-8 shadow-sm">
+      <div className="flex flex-col items-center text-center mb-4">
         {icon && (
-          <div className="h-8 w-8 rounded-lg bg-[var(--accent-soft)] flex items-center justify-center flex-shrink-0">
+          <div className="h-10 w-10 rounded-lg bg-[var(--accent-soft)] flex items-center justify-center flex-shrink-0 mb-3">
             {icon}
           </div>
         )}
-        <div className={`flex-1 ${icon ? 'ml-3' : ''}`}>
-          <p className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wide">
-            {label}
-          </p>
-        </div>
+        <p className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wide mb-3">
+          {label}
+        </p>
       </div>
-      <p className="text-2xl font-semibold text-[var(--text)] mb-2 leading-tight">
+      <p className="text-3xl font-semibold text-[var(--text)] mb-3 leading-tight text-center">
         {value}
       </p>
       {(change || changeLabel) && (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-center gap-2">
           {change && (
             <span
               className={`text-xs font-semibold ${
