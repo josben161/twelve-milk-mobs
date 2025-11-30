@@ -52,6 +52,233 @@
     "aws:cdk:path": "MilkMobsStack/UploadsBucket/Resource"
    }
   },
+  "UploadsBucketPolicy34A32B0B": {
+   "Type": "AWS::S3::BucketPolicy",
+   "Properties": {
+    "Bucket": {
+     "Ref": "UploadsBucket5E5E9B64"
+    },
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "s3:GetObject",
+       "Effect": "Allow",
+       "Principal": {
+        "CanonicalUser": {
+         "Fn::GetAtt": [
+          "OAIE1EFC67F",
+          "S3CanonicalUserId"
+         ]
+        }
+       },
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          {
+           "Fn::GetAtt": [
+            "UploadsBucket5E5E9B64",
+            "Arn"
+           ]
+          },
+          "/*"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": [
+        "s3:GetObject*",
+        "s3:GetBucket*",
+        "s3:List*"
+       ],
+       "Effect": "Allow",
+       "Principal": {
+        "CanonicalUser": {
+         "Fn::GetAtt": [
+          "OAIE1EFC67F",
+          "S3CanonicalUserId"
+         ]
+        }
+       },
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "UploadsBucket5E5E9B64",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "UploadsBucket5E5E9B64",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/UploadsBucket/Policy/Resource"
+   }
+  },
+  "UploadsBucketNotifications4592A072": {
+   "Type": "Custom::S3BucketNotifications",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "BucketNotificationsHandler050a0587b7544547bf325f094a3db8347ECC3691",
+      "Arn"
+     ]
+    },
+    "BucketName": {
+     "Ref": "UploadsBucket5E5E9B64"
+    },
+    "NotificationConfiguration": {
+     "LambdaFunctionConfigurations": [
+      {
+       "Events": [
+        "s3:ObjectCreated:*"
+       ],
+       "Filter": {
+        "Key": {
+         "FilterRules": [
+          {
+           "Name": "suffix",
+           "Value": ".mp4"
+          },
+          {
+           "Name": "prefix",
+           "Value": "vid_"
+          }
+         ]
+        }
+       },
+       "LambdaFunctionArn": {
+        "Fn::GetAtt": [
+         "StartAnalysisFn88339548",
+         "Arn"
+        ]
+       }
+      }
+     ]
+    },
+    "Managed": true,
+    "SkipDestinationValidation": false
+   },
+   "DependsOn": [
+    "UploadsBucketAllowBucketNotificationsToMilkMobsStackStartAnalysisFn1E73624BB3C32EE3",
+    "UploadsBucketPolicy34A32B0B"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/UploadsBucket/Notifications/Resource"
+   }
+  },
+  "UploadsBucketAllowBucketNotificationsToMilkMobsStackStartAnalysisFn1E73624BB3C32EE3": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "StartAnalysisFn88339548",
+      "Arn"
+     ]
+    },
+    "Principal": "s3.amazonaws.com",
+    "SourceAccount": "679729599398",
+    "SourceArn": {
+     "Fn::GetAtt": [
+      "UploadsBucket5E5E9B64",
+      "Arn"
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/UploadsBucket/AllowBucketNotificationsToMilkMobsStackStartAnalysisFn1E73624B"
+   }
+  },
+  "OAIE1EFC67F": {
+   "Type": "AWS::CloudFront::CloudFrontOriginAccessIdentity",
+   "Properties": {
+    "CloudFrontOriginAccessIdentityConfig": {
+     "Comment": "OAI for Milk Mobs video bucket"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/OAI/Resource"
+   }
+  },
+  "VideoDistribution93465BBB": {
+   "Type": "AWS::CloudFront::Distribution",
+   "Properties": {
+    "DistributionConfig": {
+     "Comment": "CloudFront distribution for Milk Mobs video delivery",
+     "CustomErrorResponses": [
+      {
+       "ErrorCachingMinTTL": 300,
+       "ErrorCode": 404,
+       "ResponseCode": 404,
+       "ResponsePagePath": "/404.html"
+      }
+     ],
+     "DefaultCacheBehavior": {
+      "AllowedMethods": [
+       "GET",
+       "HEAD"
+      ],
+      "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
+      "CachedMethods": [
+       "GET",
+       "HEAD"
+      ],
+      "Compress": true,
+      "TargetOriginId": "MilkMobsStackVideoDistributionOrigin18A5593E1",
+      "ViewerProtocolPolicy": "redirect-to-https"
+     },
+     "DefaultRootObject": "",
+     "Enabled": true,
+     "HttpVersion": "http2",
+     "IPV6Enabled": true,
+     "Origins": [
+      {
+       "DomainName": {
+        "Fn::GetAtt": [
+         "UploadsBucket5E5E9B64",
+         "RegionalDomainName"
+        ]
+       },
+       "Id": "MilkMobsStackVideoDistributionOrigin18A5593E1",
+       "S3OriginConfig": {
+        "OriginAccessIdentity": {
+         "Fn::Join": [
+          "",
+          [
+           "origin-access-identity/cloudfront/",
+           {
+            "Ref": "OAIE1EFC67F"
+           }
+          ]
+         ]
+        }
+       }
+      }
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/VideoDistribution/Resource"
+   }
+  },
   "VideosTable19B3D0C4": {
    "Type": "AWS::DynamoDB::Table",
    "Properties": {
@@ -73,6 +300,205 @@
    "DeletionPolicy": "Retain",
    "Metadata": {
     "aws:cdk:path": "MilkMobsStack/VideosTable/Resource"
+   }
+  },
+  "MobsTableC49D34D5": {
+   "Type": "AWS::DynamoDB::Table",
+   "Properties": {
+    "AttributeDefinitions": [
+     {
+      "AttributeName": "mobId",
+      "AttributeType": "S"
+     }
+    ],
+    "BillingMode": "PAY_PER_REQUEST",
+    "KeySchema": [
+     {
+      "AttributeName": "mobId",
+      "KeyType": "HASH"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MobsTable/Resource"
+   }
+  },
+  "VideoEmbeddingsDomain067A71F0": {
+   "Type": "AWS::OpenSearchService::Domain",
+   "Properties": {
+    "ClusterConfig": {
+     "DedicatedMasterEnabled": false,
+     "InstanceCount": 1,
+     "InstanceType": "t3.small.search",
+     "ZoneAwarenessEnabled": false
+    },
+    "DomainEndpointOptions": {
+     "EnforceHTTPS": true,
+     "TLSSecurityPolicy": "Policy-Min-TLS-1-2-2019-07"
+    },
+    "DomainName": "milk-mobs-videos",
+    "EBSOptions": {
+     "EBSEnabled": true,
+     "VolumeSize": 20,
+     "VolumeType": "gp3"
+    },
+    "EncryptionAtRestOptions": {
+     "Enabled": true
+    },
+    "EngineVersion": "OpenSearch_2.3",
+    "LogPublishingOptions": {},
+    "NodeToNodeEncryptionOptions": {
+     "Enabled": true
+    }
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/VideoEmbeddingsDomain/Resource"
+   }
+  },
+  "VideoEmbeddingsDomainAccessPolicyBD06A7D5": {
+   "Type": "Custom::OpenSearchAccessPolicy",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "AWS679f53fac002430cb0da5b7982bd22872D164C4C",
+      "Arn"
+     ]
+    },
+    "Create": {
+     "Fn::Join": [
+      "",
+      [
+       "{\"action\":\"updateDomainConfig\",\"service\":\"OpenSearch\",\"parameters\":{\"DomainName\":\"",
+       {
+        "Ref": "VideoEmbeddingsDomain067A71F0"
+       },
+       "\",\"AccessPolicies\":\"{\\\"Statement\\\":[{\\\"Action\\\":[\\\"es:ESHttpPost\\\",\\\"es:ESHttpPut\\\",\\\"es:ESHttpGet\\\"],\\\"Effect\\\":\\\"Allow\\\",\\\"Principal\\\":{\\\"Service\\\":\\\"lambda.amazonaws.com\\\"},\\\"Resource\\\":\\\"*\\\"}],\\\"Version\\\":\\\"2012-10-17\\\"}\"},\"outputPaths\":[\"DomainConfig.AccessPolicies\"],\"physicalResourceId\":{\"id\":\"",
+       {
+        "Ref": "VideoEmbeddingsDomain067A71F0"
+       },
+       "AccessPolicy\"}}"
+      ]
+     ]
+    },
+    "Update": {
+     "Fn::Join": [
+      "",
+      [
+       "{\"action\":\"updateDomainConfig\",\"service\":\"OpenSearch\",\"parameters\":{\"DomainName\":\"",
+       {
+        "Ref": "VideoEmbeddingsDomain067A71F0"
+       },
+       "\",\"AccessPolicies\":\"{\\\"Statement\\\":[{\\\"Action\\\":[\\\"es:ESHttpPost\\\",\\\"es:ESHttpPut\\\",\\\"es:ESHttpGet\\\"],\\\"Effect\\\":\\\"Allow\\\",\\\"Principal\\\":{\\\"Service\\\":\\\"lambda.amazonaws.com\\\"},\\\"Resource\\\":\\\"*\\\"}],\\\"Version\\\":\\\"2012-10-17\\\"}\"},\"outputPaths\":[\"DomainConfig.AccessPolicies\"],\"physicalResourceId\":{\"id\":\"",
+       {
+        "Ref": "VideoEmbeddingsDomain067A71F0"
+       },
+       "AccessPolicy\"}}"
+      ]
+     ]
+    },
+    "InstallLatestAwsSdk": false
+   },
+   "DependsOn": [
+    "VideoEmbeddingsDomainAccessPolicyCustomResourcePolicy7D3B0618"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/VideoEmbeddingsDomain/AccessPolicy/Resource/Default"
+   }
+  },
+  "VideoEmbeddingsDomainAccessPolicyCustomResourcePolicy7D3B0618": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "es:UpdateDomainConfig",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "VideoEmbeddingsDomain067A71F0",
+         "Arn"
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "VideoEmbeddingsDomainAccessPolicyCustomResourcePolicy7D3B0618",
+    "Roles": [
+     {
+      "Ref": "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/VideoEmbeddingsDomain/AccessPolicy/CustomResourcePolicy/Resource"
+   }
+  },
+  "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/AWS679f53fac002430cb0da5b7982bd2287/ServiceRole/Resource"
+   }
+  },
+  "AWS679f53fac002430cb0da5b7982bd22872D164C4C": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
+     "S3Key": "bc8ef58951f4c88e641dd23090e9d2e2e61c7530a07960e767522941e959b625.zip"
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs22.x",
+    "Timeout": 120
+   },
+   "DependsOn": [
+    "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/AWS679f53fac002430cb0da5b7982bd2287/Resource",
+    "aws:asset:path": "asset.bc8ef58951f4c88e641dd23090e9d2e2e61c7530a07960e767522941e959b625",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
    }
   },
   "CreateUploadFnServiceRole251FC044": {
@@ -174,7 +600,7 @@
    "Properties": {
     "Code": {
      "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
-     "S3Key": "afeedc3ead683460baf11081b7c74069ca57a5a1a2fed3f7de680177956baa7c.zip"
+     "S3Key": "eaaa82d6d7e7f541e984b72b6c9d2da75fd4aa926701b96ba0434dc378d0ca20.zip"
     },
     "Environment": {
      "Variables": {
@@ -202,9 +628,1875 @@
    ],
    "Metadata": {
     "aws:cdk:path": "MilkMobsStack/CreateUploadFn/Resource",
-    "aws:asset:path": "asset.afeedc3ead683460baf11081b7c74069ca57a5a1a2fed3f7de680177956baa7c",
+    "aws:asset:path": "asset.eaaa82d6d7e7f541e984b72b6c9d2da75fd4aa926701b96ba0434dc378d0ca20",
     "aws:asset:is-bundled": true,
     "aws:asset:property": "Code"
+   }
+  },
+  "ListUserVideosFnServiceRole216C1658": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/ListUserVideosFn/ServiceRole/Resource"
+   }
+  },
+  "ListUserVideosFnServiceRoleDefaultPolicy14C72D28": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:Query",
+        "dynamodb:GetItem",
+        "dynamodb:Scan",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DescribeTable"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "VideosTable19B3D0C4",
+         "Arn"
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "ListUserVideosFnServiceRoleDefaultPolicy14C72D28",
+    "Roles": [
+     {
+      "Ref": "ListUserVideosFnServiceRole216C1658"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/ListUserVideosFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "ListUserVideosFn6B2F49BA": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
+     "S3Key": "18ff8563a9fb2aa1821d4a035ff8260368b2b4164205ce8ba7fd14ebc10a513d.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "VIDEOS_TABLE_NAME": {
+       "Ref": "VideosTable19B3D0C4"
+      }
+     }
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "ListUserVideosFnServiceRole216C1658",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 10
+   },
+   "DependsOn": [
+    "ListUserVideosFnServiceRoleDefaultPolicy14C72D28",
+    "ListUserVideosFnServiceRole216C1658"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/ListUserVideosFn/Resource",
+    "aws:asset:path": "asset.18ff8563a9fb2aa1821d4a035ff8260368b2b4164205ce8ba7fd14ebc10a513d",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "AnalysisMarkProcessingFnServiceRole940C5341": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/AnalysisMarkProcessingFn/ServiceRole/Resource"
+   }
+  },
+  "AnalysisMarkProcessingFnServiceRoleDefaultPolicyFB07D9A9": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:Query",
+        "dynamodb:GetItem",
+        "dynamodb:Scan",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "VideosTable19B3D0C4",
+         "Arn"
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "AnalysisMarkProcessingFnServiceRoleDefaultPolicyFB07D9A9",
+    "Roles": [
+     {
+      "Ref": "AnalysisMarkProcessingFnServiceRole940C5341"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/AnalysisMarkProcessingFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "AnalysisMarkProcessingFn1DCE525A": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
+     "S3Key": "0112a5d4dd48909f7495ea2055c40da6cdb8e33920a05c7b3da2787bd48a5a06.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "VIDEOS_TABLE_NAME": {
+       "Ref": "VideosTable19B3D0C4"
+      }
+     }
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "AnalysisMarkProcessingFnServiceRole940C5341",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "AnalysisMarkProcessingFnServiceRoleDefaultPolicyFB07D9A9",
+    "AnalysisMarkProcessingFnServiceRole940C5341"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/AnalysisMarkProcessingFn/Resource",
+    "aws:asset:path": "asset.0112a5d4dd48909f7495ea2055c40da6cdb8e33920a05c7b3da2787bd48a5a06",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "AnalysisPegasusFnServiceRoleD6E86B57": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/AnalysisPegasusFn/ServiceRole/Resource"
+   }
+  },
+  "AnalysisPegasusFnServiceRoleDefaultPolicyD1910F6B": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "bedrock:InvokeModel",
+       "Effect": "Allow",
+       "Resource": "arn:aws:bedrock:us-east-1::foundation-model/*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "AnalysisPegasusFnServiceRoleDefaultPolicyD1910F6B",
+    "Roles": [
+     {
+      "Ref": "AnalysisPegasusFnServiceRoleD6E86B57"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/AnalysisPegasusFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "AnalysisPegasusFnA65D88A0": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
+     "S3Key": "65b021ece6784bea716b261364f31f3ce4f7c36a8008e6a36906141f4b92cd35.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "BEDROCK_REGION": "us-east-1",
+      "TWELVELABS_PEGASUS_MODEL_ID": ""
+     }
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "AnalysisPegasusFnServiceRoleD6E86B57",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 300
+   },
+   "DependsOn": [
+    "AnalysisPegasusFnServiceRoleDefaultPolicyD1910F6B",
+    "AnalysisPegasusFnServiceRoleD6E86B57"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/AnalysisPegasusFn/Resource",
+    "aws:asset:path": "asset.65b021ece6784bea716b261364f31f3ce4f7c36a8008e6a36906141f4b92cd35",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "AnalysisMarengoFnServiceRole715EE6E9": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/AnalysisMarengoFn/ServiceRole/Resource"
+   }
+  },
+  "AnalysisMarengoFnServiceRoleDefaultPolicyC454C6D6": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "bedrock:InvokeModel",
+       "Effect": "Allow",
+       "Resource": "arn:aws:bedrock:us-east-1::foundation-model/*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "AnalysisMarengoFnServiceRoleDefaultPolicyC454C6D6",
+    "Roles": [
+     {
+      "Ref": "AnalysisMarengoFnServiceRole715EE6E9"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/AnalysisMarengoFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "AnalysisMarengoFnE7B906B8": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
+     "S3Key": "030c61c980ca9e2ac639cf048e3b6d11ac2ebb6d70a097d9871891e7a5468ee8.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "BEDROCK_REGION": "us-east-1",
+      "TWELVELABS_MARENGO_MODEL_ID": ""
+     }
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "AnalysisMarengoFnServiceRole715EE6E9",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 300
+   },
+   "DependsOn": [
+    "AnalysisMarengoFnServiceRoleDefaultPolicyC454C6D6",
+    "AnalysisMarengoFnServiceRole715EE6E9"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/AnalysisMarengoFn/Resource",
+    "aws:asset:path": "asset.030c61c980ca9e2ac639cf048e3b6d11ac2ebb6d70a097d9871891e7a5468ee8",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "AnalysisWriteResultFnServiceRoleC6A2489F": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/AnalysisWriteResultFn/ServiceRole/Resource"
+   }
+  },
+  "AnalysisWriteResultFnServiceRoleDefaultPolicy528B933B": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "es:ESHttpDelete",
+        "es:ESHttpPost",
+        "es:ESHttpPut",
+        "es:ESHttpPatch"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "VideoEmbeddingsDomain067A71F0",
+             "Arn"
+            ]
+           },
+           "/videos"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "VideoEmbeddingsDomain067A71F0",
+             "Arn"
+            ]
+           },
+           "/videos/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:Query",
+        "dynamodb:GetItem",
+        "dynamodb:Scan",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "VideosTable19B3D0C4",
+         "Arn"
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "AnalysisWriteResultFnServiceRoleDefaultPolicy528B933B",
+    "Roles": [
+     {
+      "Ref": "AnalysisWriteResultFnServiceRoleC6A2489F"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/AnalysisWriteResultFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "AnalysisWriteResultFnC2A76429": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
+     "S3Key": "1ada41b3dc2ce17209443ecde5697637edf110b3ca3e69af16045ace58969824.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "VIDEOS_TABLE_NAME": {
+       "Ref": "VideosTable19B3D0C4"
+      },
+      "OPENSEARCH_ENDPOINT": {
+       "Fn::GetAtt": [
+        "VideoEmbeddingsDomain067A71F0",
+        "DomainEndpoint"
+       ]
+      },
+      "OPENSEARCH_INDEX_NAME": "videos"
+     }
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "AnalysisWriteResultFnServiceRoleC6A2489F",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "AnalysisWriteResultFnServiceRoleDefaultPolicy528B933B",
+    "AnalysisWriteResultFnServiceRoleC6A2489F"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/AnalysisWriteResultFn/Resource",
+    "aws:asset:path": "asset.1ada41b3dc2ce17209443ecde5697637edf110b3ca3e69af16045ace58969824",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "StartAnalysisFnServiceRole90D56A70": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/StartAnalysisFn/ServiceRole/Resource"
+   }
+  },
+  "StartAnalysisFnServiceRoleDefaultPolicy455DEEBF": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "states:StartExecution",
+       "Effect": "Allow",
+       "Resource": {
+        "Ref": "VideoAnalysisStateMachineA7892CAE"
+       }
+      },
+      {
+       "Action": [
+        "s3:GetObject*",
+        "s3:GetBucket*",
+        "s3:List*"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "UploadsBucket5E5E9B64",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "UploadsBucket5E5E9B64",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:Query",
+        "dynamodb:GetItem",
+        "dynamodb:Scan",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DescribeTable"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "VideosTable19B3D0C4",
+         "Arn"
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "StartAnalysisFnServiceRoleDefaultPolicy455DEEBF",
+    "Roles": [
+     {
+      "Ref": "StartAnalysisFnServiceRole90D56A70"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/StartAnalysisFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "StartAnalysisFn88339548": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
+     "S3Key": "9209d3643e33f0e16155bce8514babbf14249c28d8ca4ba1db86abe4efb486dc.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "VIDEOS_TABLE_NAME": {
+       "Ref": "VideosTable19B3D0C4"
+      },
+      "STATE_MACHINE_ARN": {
+       "Ref": "VideoAnalysisStateMachineA7892CAE"
+      }
+     }
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "StartAnalysisFnServiceRole90D56A70",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "StartAnalysisFnServiceRoleDefaultPolicy455DEEBF",
+    "StartAnalysisFnServiceRole90D56A70"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/StartAnalysisFn/Resource",
+    "aws:asset:path": "asset.9209d3643e33f0e16155bce8514babbf14249c28d8ca4ba1db86abe4efb486dc",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "ClusterVideoFnServiceRoleC7038455": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/ClusterVideoFn/ServiceRole/Resource"
+   }
+  },
+  "ClusterVideoFnServiceRoleDefaultPolicyDAFFA579": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:Query",
+        "dynamodb:GetItem",
+        "dynamodb:Scan",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "VideosTable19B3D0C4",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:Query",
+        "dynamodb:GetItem",
+        "dynamodb:Scan",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "MobsTableC49D34D5",
+         "Arn"
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "ClusterVideoFnServiceRoleDefaultPolicyDAFFA579",
+    "Roles": [
+     {
+      "Ref": "ClusterVideoFnServiceRoleC7038455"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/ClusterVideoFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "ClusterVideoFnA18F77E1": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
+     "S3Key": "d383478a4fccac49c46c5e9b530ae2e95ba647262e7ac936df4735f98a06f37a.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "VIDEOS_TABLE_NAME": {
+       "Ref": "VideosTable19B3D0C4"
+      },
+      "MOBS_TABLE_NAME": {
+       "Ref": "MobsTableC49D34D5"
+      }
+     }
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "ClusterVideoFnServiceRoleC7038455",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "ClusterVideoFnServiceRoleDefaultPolicyDAFFA579",
+    "ClusterVideoFnServiceRoleC7038455"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/ClusterVideoFn/Resource",
+    "aws:asset:path": "asset.d383478a4fccac49c46c5e9b530ae2e95ba647262e7ac936df4735f98a06f37a",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "GetVideoDetailFnServiceRole230300F7": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/GetVideoDetailFn/ServiceRole/Resource"
+   }
+  },
+  "GetVideoDetailFnServiceRoleDefaultPolicy38F3D09E": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:GetObject*",
+        "s3:GetBucket*",
+        "s3:List*"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "UploadsBucket5E5E9B64",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "UploadsBucket5E5E9B64",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:Query",
+        "dynamodb:GetItem",
+        "dynamodb:Scan",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DescribeTable"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "VideosTable19B3D0C4",
+         "Arn"
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "GetVideoDetailFnServiceRoleDefaultPolicy38F3D09E",
+    "Roles": [
+     {
+      "Ref": "GetVideoDetailFnServiceRole230300F7"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/GetVideoDetailFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "GetVideoDetailFn98896F83": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
+     "S3Key": "854391241ab631a3ed022c38d022c9b5c8dfaa3eea05ae0e3e85c7cbcc6ee71c.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "VIDEOS_TABLE_NAME": {
+       "Ref": "VideosTable19B3D0C4"
+      },
+      "UPLOADS_BUCKET_NAME": {
+       "Ref": "UploadsBucket5E5E9B64"
+      },
+      "CLOUDFRONT_DISTRIBUTION_DOMAIN": {
+       "Fn::GetAtt": [
+        "VideoDistribution93465BBB",
+        "DomainName"
+       ]
+      }
+     }
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "GetVideoDetailFnServiceRole230300F7",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 10
+   },
+   "DependsOn": [
+    "GetVideoDetailFnServiceRoleDefaultPolicy38F3D09E",
+    "GetVideoDetailFnServiceRole230300F7"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/GetVideoDetailFn/Resource",
+    "aws:asset:path": "asset.854391241ab631a3ed022c38d022c9b5c8dfaa3eea05ae0e3e85c7cbcc6ee71c",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "AdminListVideosFnServiceRole563BEDBF": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/AdminListVideosFn/ServiceRole/Resource"
+   }
+  },
+  "AdminListVideosFnServiceRoleDefaultPolicy56299FD5": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:Query",
+        "dynamodb:GetItem",
+        "dynamodb:Scan",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DescribeTable"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "VideosTable19B3D0C4",
+         "Arn"
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "AdminListVideosFnServiceRoleDefaultPolicy56299FD5",
+    "Roles": [
+     {
+      "Ref": "AdminListVideosFnServiceRole563BEDBF"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/AdminListVideosFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "AdminListVideosFn3DCC5AE5": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
+     "S3Key": "fd65fff01be4dadc31863e173b2d5e896aa09c6e6ccac517e9e6171dc5c341d5.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "VIDEOS_TABLE_NAME": {
+       "Ref": "VideosTable19B3D0C4"
+      }
+     }
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "AdminListVideosFnServiceRole563BEDBF",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 10
+   },
+   "DependsOn": [
+    "AdminListVideosFnServiceRoleDefaultPolicy56299FD5",
+    "AdminListVideosFnServiceRole563BEDBF"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/AdminListVideosFn/Resource",
+    "aws:asset:path": "asset.fd65fff01be4dadc31863e173b2d5e896aa09c6e6ccac517e9e6171dc5c341d5",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "ListMobsFnServiceRole1DEE32AB": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/ListMobsFn/ServiceRole/Resource"
+   }
+  },
+  "ListMobsFnServiceRoleDefaultPolicy806D424A": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:Query",
+        "dynamodb:GetItem",
+        "dynamodb:Scan",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DescribeTable"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "MobsTableC49D34D5",
+         "Arn"
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "ListMobsFnServiceRoleDefaultPolicy806D424A",
+    "Roles": [
+     {
+      "Ref": "ListMobsFnServiceRole1DEE32AB"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/ListMobsFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "ListMobsFn0BE77E3A": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
+     "S3Key": "530a840deadd912bbff044e9e719c0e0050d1424e3a07eb2f07f3f35e30c6dee.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "MOBS_TABLE_NAME": {
+       "Ref": "MobsTableC49D34D5"
+      }
+     }
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "ListMobsFnServiceRole1DEE32AB",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 10
+   },
+   "DependsOn": [
+    "ListMobsFnServiceRoleDefaultPolicy806D424A",
+    "ListMobsFnServiceRole1DEE32AB"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/ListMobsFn/Resource",
+    "aws:asset:path": "asset.530a840deadd912bbff044e9e719c0e0050d1424e3a07eb2f07f3f35e30c6dee",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "GetMobFnServiceRole21BE82D4": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/GetMobFn/ServiceRole/Resource"
+   }
+  },
+  "GetMobFnServiceRoleDefaultPolicy44FAB3F3": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:Query",
+        "dynamodb:GetItem",
+        "dynamodb:Scan",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DescribeTable"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "VideosTable19B3D0C4",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:Query",
+        "dynamodb:GetItem",
+        "dynamodb:Scan",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DescribeTable"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "MobsTableC49D34D5",
+         "Arn"
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "GetMobFnServiceRoleDefaultPolicy44FAB3F3",
+    "Roles": [
+     {
+      "Ref": "GetMobFnServiceRole21BE82D4"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/GetMobFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "GetMobFn1FB67C2C": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
+     "S3Key": "9e60789dd1a8fa93a0dc4dec7f82fa4558731dd1a2343dfac3e1c159a03a60bb.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "MOBS_TABLE_NAME": {
+       "Ref": "MobsTableC49D34D5"
+      },
+      "VIDEOS_TABLE_NAME": {
+       "Ref": "VideosTable19B3D0C4"
+      }
+     }
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "GetMobFnServiceRole21BE82D4",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 10
+   },
+   "DependsOn": [
+    "GetMobFnServiceRoleDefaultPolicy44FAB3F3",
+    "GetMobFnServiceRole21BE82D4"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/GetMobFn/Resource",
+    "aws:asset:path": "asset.9e60789dd1a8fa93a0dc4dec7f82fa4558731dd1a2343dfac3e1c159a03a60bb",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "MilkMobsEventBus5827410E": {
+   "Type": "AWS::Events::EventBus",
+   "Properties": {
+    "Name": "milk-mobs-bus"
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsEventBus/Resource"
+   }
+  },
+  "VideoAnalysisStateMachineRole21C1D5B6": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "states.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/VideoAnalysisStateMachine/Role/Resource"
+   }
+  },
+  "VideoAnalysisStateMachineRoleDefaultPolicy2F1FF8F4": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "AnalysisMarkProcessingFn1DCE525A",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "AnalysisMarkProcessingFn1DCE525A",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "AnalysisWriteResultFnC2A76429",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "AnalysisWriteResultFnC2A76429",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "events:PutEvents",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "MilkMobsEventBus5827410E",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "AnalysisPegasusFnA65D88A0",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "AnalysisPegasusFnA65D88A0",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "AnalysisMarengoFnE7B906B8",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "AnalysisMarengoFnE7B906B8",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "VideoAnalysisStateMachineRoleDefaultPolicy2F1FF8F4",
+    "Roles": [
+     {
+      "Ref": "VideoAnalysisStateMachineRole21C1D5B6"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/VideoAnalysisStateMachine/Role/DefaultPolicy/Resource"
+   }
+  },
+  "VideoAnalysisStateMachineA7892CAE": {
+   "Type": "AWS::StepFunctions::StateMachine",
+   "Properties": {
+    "DefinitionString": {
+     "Fn::Join": [
+      "",
+      [
+       "{\"StartAt\":\"MarkProcessingTask\",\"States\":{\"MarkProcessingTask\":{\"Next\":\"ParallelAnalysis\",\"Retry\":[{\"ErrorEquals\":[\"Lambda.ClientExecutionTimeoutException\",\"Lambda.ServiceException\",\"Lambda.AWSLambdaException\",\"Lambda.SdkClientException\"],\"IntervalSeconds\":2,\"MaxAttempts\":6,\"BackoffRate\":2}],\"Type\":\"Task\",\"OutputPath\":\"$.Payload\",\"Resource\":\"arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":states:::lambda:invoke\",\"Parameters\":{\"FunctionName\":\"",
+       {
+        "Fn::GetAtt": [
+         "AnalysisMarkProcessingFn1DCE525A",
+         "Arn"
+        ]
+       },
+       "\",\"Payload.$\":\"$\"}},\"ParallelAnalysis\":{\"Type\":\"Parallel\",\"Comment\":\"Run Pegasus and Marengo analysis in parallel\",\"Next\":\"MergeResults\",\"Branches\":[{\"StartAt\":\"PegasusTask\",\"States\":{\"PegasusTask\":{\"End\":true,\"Retry\":[{\"ErrorEquals\":[\"Lambda.ClientExecutionTimeoutException\",\"Lambda.ServiceException\",\"Lambda.AWSLambdaException\",\"Lambda.SdkClientException\"],\"IntervalSeconds\":2,\"MaxAttempts\":6,\"BackoffRate\":2}],\"Type\":\"Task\",\"OutputPath\":\"$.Payload\",\"Resource\":\"arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":states:::lambda:invoke\",\"Parameters\":{\"FunctionName\":\"",
+       {
+        "Fn::GetAtt": [
+         "AnalysisPegasusFnA65D88A0",
+         "Arn"
+        ]
+       },
+       "\",\"Payload.$\":\"$\"}}}},{\"StartAt\":\"MarengoTask\",\"States\":{\"MarengoTask\":{\"End\":true,\"Retry\":[{\"ErrorEquals\":[\"Lambda.ClientExecutionTimeoutException\",\"Lambda.ServiceException\",\"Lambda.AWSLambdaException\",\"Lambda.SdkClientException\"],\"IntervalSeconds\":2,\"MaxAttempts\":6,\"BackoffRate\":2}],\"Type\":\"Task\",\"OutputPath\":\"$.Payload\",\"Resource\":\"arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":states:::lambda:invoke\",\"Parameters\":{\"FunctionName\":\"",
+       {
+        "Fn::GetAtt": [
+         "AnalysisMarengoFnE7B906B8",
+         "Arn"
+        ]
+       },
+       "\",\"Payload.$\":\"$\"}}}}]},\"MergeResults\":{\"Type\":\"Pass\",\"Parameters\":{\"videoId.$\":\"$.videoId\",\"s3Bucket.$\":\"$.s3Bucket\",\"s3Key.$\":\"$.s3Key\",\"hashtags.$\":\"$.hashtags\",\"participation.$\":\"$[0].participation\",\"embedding.$\":\"$[1].embedding\"},\"Next\":\"WriteResultTask\"},\"WriteResultTask\":{\"Next\":\"EmitVideoAnalyzedEvent\",\"Retry\":[{\"ErrorEquals\":[\"Lambda.ClientExecutionTimeoutException\",\"Lambda.ServiceException\",\"Lambda.AWSLambdaException\",\"Lambda.SdkClientException\"],\"IntervalSeconds\":2,\"MaxAttempts\":6,\"BackoffRate\":2}],\"Type\":\"Task\",\"OutputPath\":\"$.Payload\",\"Resource\":\"arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":states:::lambda:invoke\",\"Parameters\":{\"FunctionName\":\"",
+       {
+        "Fn::GetAtt": [
+         "AnalysisWriteResultFnC2A76429",
+         "Arn"
+        ]
+       },
+       "\",\"Payload.$\":\"$\"}},\"EmitVideoAnalyzedEvent\":{\"End\":true,\"Type\":\"Task\",\"Resource\":\"arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":states:::events:putEvents\",\"Parameters\":{\"Entries\":[{\"Detail\":{\"videoId.$\":\"$.videoId\",\"status.$\":\"$.status\",\"participationScore.$\":\"$.participationScore\",\"mobId.$\":\"$.mobId\"},\"DetailType\":\"VideoAnalyzed\",\"EventBusName\":\"",
+       {
+        "Fn::GetAtt": [
+         "MilkMobsEventBus5827410E",
+         "Arn"
+        ]
+       },
+       "\",\"Source\":\"milk-mobs.analysis\"}]}}},\"TimeoutSeconds\":600,\"Comment\":\"Video analysis pipeline using Pegasus and Marengo\"}"
+      ]
+     ]
+    },
+    "RoleArn": {
+     "Fn::GetAtt": [
+      "VideoAnalysisStateMachineRole21C1D5B6",
+      "Arn"
+     ]
+    }
+   },
+   "DependsOn": [
+    "VideoAnalysisStateMachineRoleDefaultPolicy2F1FF8F4",
+    "VideoAnalysisStateMachineRole21C1D5B6"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/VideoAnalysisStateMachine/Resource"
+   }
+  },
+  "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/Resource"
+   }
+  },
+  "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "s3:PutBucketNotification",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "UploadsBucket5E5E9B64",
+         "Arn"
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36",
+    "Roles": [
+     {
+      "Ref": "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/DefaultPolicy/Resource"
+   }
+  },
+  "BucketNotificationsHandler050a0587b7544547bf325f094a3db8347ECC3691": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Description": "AWS CloudFormation handler for \"Custom::S3BucketNotifications\" resources (@aws-cdk/aws-s3)",
+    "Code": {
+     "ZipFile": "import boto3  # type: ignore\nimport json\nimport logging\nimport urllib.request\n\ns3 = boto3.client(\"s3\")\n\nEVENTBRIDGE_CONFIGURATION = 'EventBridgeConfiguration'\nCONFIGURATION_TYPES = [\"TopicConfigurations\", \"QueueConfigurations\", \"LambdaFunctionConfigurations\"]\n\ndef handler(event: dict, context):\n  response_status = \"SUCCESS\"\n  error_message = \"\"\n  try:\n    props = event[\"ResourceProperties\"]\n    notification_configuration = props[\"NotificationConfiguration\"]\n    managed = props.get('Managed', 'true').lower() == 'true'\n    skipDestinationValidation = props.get('SkipDestinationValidation', 'false').lower() == 'true'\n    stack_id = event['StackId']\n    old = event.get(\"OldResourceProperties\", {}).get(\"NotificationConfiguration\", {})\n    if managed:\n      config = handle_managed(event[\"RequestType\"], notification_configuration)\n    else:\n      config = handle_unmanaged(props[\"BucketName\"], stack_id, event[\"RequestType\"], notification_configuration, old)\n    s3.put_bucket_notification_configuration(Bucket=props[\"BucketName\"], NotificationConfiguration=config, SkipDestinationValidation=skipDestinationValidation)\n  except Exception as e:\n    logging.exception(\"Failed to put bucket notification configuration\")\n    response_status = \"FAILED\"\n    error_message = f\"Error: {str(e)}. \"\n  finally:\n    submit_response(event, context, response_status, error_message)\n\ndef handle_managed(request_type, notification_configuration):\n  if request_type == 'Delete':\n    return {}\n  return notification_configuration\n\ndef handle_unmanaged(bucket, stack_id, request_type, notification_configuration, old):\n  def get_id(n):\n    n['Id'] = ''\n    sorted_notifications = sort_filter_rules(n)\n    strToHash=json.dumps(sorted_notifications, sort_keys=True).replace('\"Name\": \"prefix\"', '\"Name\": \"Prefix\"').replace('\"Name\": \"suffix\"', '\"Name\": \"Suffix\"')\n    return f\"{stack_id}-{hash(strToHash)}\"\n  def with_id(n):\n    n['Id'] = get_id(n)\n    return n\n\n  external_notifications = {}\n  existing_notifications = s3.get_bucket_notification_configuration(Bucket=bucket)\n  for t in CONFIGURATION_TYPES:\n    if request_type == 'Update':\n        old_incoming_ids = [get_id(n) for n in old.get(t, [])]\n        external_notifications[t] = [n for n in existing_notifications.get(t, []) if not get_id(n) in old_incoming_ids]      \n    elif request_type == 'Delete':\n        external_notifications[t] = [n for n in existing_notifications.get(t, []) if not n['Id'].startswith(f\"{stack_id}-\")]\n    elif request_type == 'Create':\n        external_notifications[t] = [n for n in existing_notifications.get(t, [])]\n  if EVENTBRIDGE_CONFIGURATION in existing_notifications:\n    external_notifications[EVENTBRIDGE_CONFIGURATION] = existing_notifications[EVENTBRIDGE_CONFIGURATION]\n\n  if request_type == 'Delete':\n    return external_notifications\n\n  notifications = {}\n  for t in CONFIGURATION_TYPES:\n    external = external_notifications.get(t, [])\n    incoming = [with_id(n) for n in notification_configuration.get(t, [])]\n    notifications[t] = external + incoming\n\n  if EVENTBRIDGE_CONFIGURATION in notification_configuration:\n    notifications[EVENTBRIDGE_CONFIGURATION] = notification_configuration[EVENTBRIDGE_CONFIGURATION]\n  elif EVENTBRIDGE_CONFIGURATION in external_notifications:\n    notifications[EVENTBRIDGE_CONFIGURATION] = external_notifications[EVENTBRIDGE_CONFIGURATION]\n\n  return notifications\n\ndef submit_response(event: dict, context, response_status: str, error_message: str):\n  response_body = json.dumps(\n    {\n      \"Status\": response_status,\n      \"Reason\": f\"{error_message}See the details in CloudWatch Log Stream: {context.log_stream_name}\",\n      \"PhysicalResourceId\": event.get(\"PhysicalResourceId\") or event[\"LogicalResourceId\"],\n      \"StackId\": event[\"StackId\"],\n      \"RequestId\": event[\"RequestId\"],\n      \"LogicalResourceId\": event[\"LogicalResourceId\"],\n      \"NoEcho\": False,\n    }\n  ).encode(\"utf-8\")\n  headers = {\"content-type\": \"\", \"content-length\": str(len(response_body))}\n  try:\n    req = urllib.request.Request(url=event[\"ResponseURL\"], headers=headers, data=response_body, method=\"PUT\")\n    with urllib.request.urlopen(req) as response:\n      print(response.read().decode(\"utf-8\"))\n    print(\"Status code: \" + response.reason)\n  except Exception as e:\n      print(\"send(..) failed executing request.urlopen(..): \" + str(e))\n\ndef sort_filter_rules(json_obj):\n  if not isinstance(json_obj, dict):\n      return json_obj\n  for key, value in json_obj.items():\n      if isinstance(value, dict):\n          json_obj[key] = sort_filter_rules(value)\n      elif isinstance(value, list):\n          json_obj[key] = [sort_filter_rules(item) for item in value]\n  if \"Filter\" in json_obj and \"Key\" in json_obj[\"Filter\"] and \"FilterRules\" in json_obj[\"Filter\"][\"Key\"]:\n      filter_rules = json_obj[\"Filter\"][\"Key\"][\"FilterRules\"]\n      sorted_filter_rules = sorted(filter_rules, key=lambda x: x[\"Name\"])\n      json_obj[\"Filter\"][\"Key\"][\"FilterRules\"] = sorted_filter_rules\n  return json_obj"
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC",
+      "Arn"
+     ]
+    },
+    "Runtime": "python3.13",
+    "Timeout": 300
+   },
+   "DependsOn": [
+    "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36",
+    "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Resource"
+   }
+  },
+  "ClusterEmbeddingsFnServiceRoleE3AD4487": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/ClusterEmbeddingsFn/ServiceRole/Resource"
+   }
+  },
+  "ClusterEmbeddingsFnServiceRoleDefaultPolicyB0282385": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:Query",
+        "dynamodb:GetItem",
+        "dynamodb:Scan",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DescribeTable"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "VideosTable19B3D0C4",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:Query",
+        "dynamodb:GetItem",
+        "dynamodb:Scan",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "VideosTable19B3D0C4",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:Query",
+        "dynamodb:GetItem",
+        "dynamodb:Scan",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "MobsTableC49D34D5",
+         "Arn"
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "ClusterEmbeddingsFnServiceRoleDefaultPolicyB0282385",
+    "Roles": [
+     {
+      "Ref": "ClusterEmbeddingsFnServiceRoleE3AD4487"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/ClusterEmbeddingsFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "ClusterEmbeddingsFnF96ED85B": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
+     "S3Key": "623c310c2414a8dd3ade79235d990c8c10d27273a478467a1e3d9eff7a5edfd3.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "VIDEOS_TABLE_NAME": {
+       "Ref": "VideosTable19B3D0C4"
+      },
+      "MOBS_TABLE_NAME": {
+       "Ref": "MobsTableC49D34D5"
+      }
+     }
+    },
+    "Handler": "index.handler",
+    "MemorySize": 512,
+    "Role": {
+     "Fn::GetAtt": [
+      "ClusterEmbeddingsFnServiceRoleE3AD4487",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 300
+   },
+   "DependsOn": [
+    "ClusterEmbeddingsFnServiceRoleDefaultPolicyB0282385",
+    "ClusterEmbeddingsFnServiceRoleE3AD4487"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/ClusterEmbeddingsFn/Resource",
+    "aws:asset:path": "asset.623c310c2414a8dd3ade79235d990c8c10d27273a478467a1e3d9eff7a5edfd3",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "ClusteringSchedule9F442E8C": {
+   "Type": "AWS::Events::Rule",
+   "Properties": {
+    "Description": "Trigger batch clustering of video embeddings",
+    "ScheduleExpression": "rate(1 hour)",
+    "State": "ENABLED",
+    "Targets": [
+     {
+      "Arn": {
+       "Fn::GetAtt": [
+        "ClusterEmbeddingsFnF96ED85B",
+        "Arn"
+       ]
+      },
+      "Id": "Target0"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/ClusteringSchedule/Resource"
+   }
+  },
+  "ClusteringScheduleAllowEventRuleMilkMobsStackClusterEmbeddingsFnA7F1B5F81323C14D": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "ClusterEmbeddingsFnF96ED85B",
+      "Arn"
+     ]
+    },
+    "Principal": "events.amazonaws.com",
+    "SourceArn": {
+     "Fn::GetAtt": [
+      "ClusteringSchedule9F442E8C",
+      "Arn"
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/ClusteringSchedule/AllowEventRuleMilkMobsStackClusterEmbeddingsFnA7F1B5F8"
    }
   },
   "MilkMobsApiB76DFE80": {
@@ -271,7 +2563,7 @@
     "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Account"
    }
   },
-  "MilkMobsApiDeployment87A47DF970eeaac172d5fbce1fbd40c30f1afe8e": {
+  "MilkMobsApiDeployment87A47DF9f1370d24316db5969f4366a1747d14bd": {
    "Type": "AWS::ApiGateway::Deployment",
    "Properties": {
     "Description": "Automatically created by the RestApi construct",
@@ -280,12 +2572,40 @@
     }
    },
    "DependsOn": [
+    "MilkMobsApiadminOPTIONS263D3C37",
+    "MilkMobsApiadminEFD758FD",
+    "MilkMobsApiadminvideosGET0E3A684B",
+    "MilkMobsApiadminvideosOPTIONSF02CB596",
+    "MilkMobsApiadminvideos77E8CFED",
+    "MilkMobsApimobsmobIdGET0ECBA1DC",
+    "MilkMobsApimobsmobIdOPTIONS1209B5E7",
+    "MilkMobsApimobsmobIdF0789012",
+    "MilkMobsApimobsGET0951FDEC",
+    "MilkMobsApimobsOPTIONSA9666A90",
+    "MilkMobsApimobsAA7D8C29",
     "MilkMobsApiOPTIONSFE397549",
+    "MilkMobsApisearchOPTIONS61896BF0",
+    "MilkMobsApisearch587405B7",
+    "MilkMobsApisearchsimilarGET9141152B",
+    "MilkMobsApisearchsimilarOPTIONS01B398F1",
+    "MilkMobsApisearchsimilar1862FE4A",
+    "MilkMobsApivalidatevideoIdGET05A96543",
+    "MilkMobsApivalidatevideoIdOPTIONS7CF11721",
+    "MilkMobsApivalidatevideoId1D263AB4",
+    "MilkMobsApivalidateOPTIONSB5EED471",
+    "MilkMobsApivalidatePOST5664FE5A",
+    "MilkMobsApivalidateFD68B44A",
+    "MilkMobsApivideosvideoIdGETBFB4E054",
+    "MilkMobsApivideosvideoIdOPTIONS4D3DE0C8",
+    "MilkMobsApivideosvideoId87C65709",
     "MilkMobsApivideosOPTIONSC6D72157",
     "MilkMobsApivideosE506076B",
     "MilkMobsApivideossubmitOPTIONS5DB3D8F2",
     "MilkMobsApivideossubmitPOSTF4D95FAD",
-    "MilkMobsApivideossubmit533FD090"
+    "MilkMobsApivideossubmit533FD090",
+    "MilkMobsApivideosuserGET3F815581",
+    "MilkMobsApivideosuserOPTIONS5CD0C06A",
+    "MilkMobsApivideosuserEA56AC32"
    ],
    "Metadata": {
     "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Deployment/Resource",
@@ -296,7 +2616,7 @@
    "Type": "AWS::ApiGateway::Stage",
    "Properties": {
     "DeploymentId": {
-     "Ref": "MilkMobsApiDeployment87A47DF970eeaac172d5fbce1fbd40c30f1afe8e"
+     "Ref": "MilkMobsApiDeployment87A47DF9f1370d24316db5969f4366a1747d14bd"
     },
     "RestApiId": {
      "Ref": "MilkMobsApiB76DFE80"
@@ -587,10 +2907,1934 @@
     "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/videos/submit/POST/Resource"
    }
   },
+  "MilkMobsApivideosuserEA56AC32": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "MilkMobsApivideosE506076B"
+    },
+    "PathPart": "user",
+    "RestApiId": {
+     "Ref": "MilkMobsApiB76DFE80"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/videos/user/Resource"
+   }
+  },
+  "MilkMobsApivideosuserOPTIONS5CD0C06A": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "MilkMobsApivideosuserEA56AC32"
+    },
+    "RestApiId": {
+     "Ref": "MilkMobsApiB76DFE80"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/videos/user/OPTIONS/Resource"
+   }
+  },
+  "MilkMobsApivideosuserGETApiPermissionMilkMobsStackMilkMobsApi1ED7FB9DGETvideosuser38E747BD": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "ListUserVideosFn6B2F49BA",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:679729599398:",
+       {
+        "Ref": "MilkMobsApiB76DFE80"
+       },
+       "/",
+       {
+        "Ref": "MilkMobsApiDeploymentStageprod1C57746E"
+       },
+       "/GET/videos/user"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/videos/user/GET/ApiPermission.MilkMobsStackMilkMobsApi1ED7FB9D.GET..videos.user"
+   }
+  },
+  "MilkMobsApivideosuserGETApiPermissionTestMilkMobsStackMilkMobsApi1ED7FB9DGETvideosuser64CC13C7": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "ListUserVideosFn6B2F49BA",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:679729599398:",
+       {
+        "Ref": "MilkMobsApiB76DFE80"
+       },
+       "/test-invoke-stage/GET/videos/user"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/videos/user/GET/ApiPermission.Test.MilkMobsStackMilkMobsApi1ED7FB9D.GET..videos.user"
+   }
+  },
+  "MilkMobsApivideosuserGET3F815581": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "AuthorizationType": "NONE",
+    "HttpMethod": "GET",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:us-east-1:lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "ListUserVideosFn6B2F49BA",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "MethodResponses": [
+     {
+      "StatusCode": "200"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "MilkMobsApivideosuserEA56AC32"
+    },
+    "RestApiId": {
+     "Ref": "MilkMobsApiB76DFE80"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/videos/user/GET/Resource"
+   }
+  },
+  "MilkMobsApivideosvideoId87C65709": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "MilkMobsApivideosE506076B"
+    },
+    "PathPart": "{videoId}",
+    "RestApiId": {
+     "Ref": "MilkMobsApiB76DFE80"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/videos/{videoId}/Resource"
+   }
+  },
+  "MilkMobsApivideosvideoIdOPTIONS4D3DE0C8": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "MilkMobsApivideosvideoId87C65709"
+    },
+    "RestApiId": {
+     "Ref": "MilkMobsApiB76DFE80"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/videos/{videoId}/OPTIONS/Resource"
+   }
+  },
+  "MilkMobsApivideosvideoIdGETApiPermissionMilkMobsStackMilkMobsApi1ED7FB9DGETvideosvideoId96EA7D67": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "GetVideoDetailFn98896F83",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:679729599398:",
+       {
+        "Ref": "MilkMobsApiB76DFE80"
+       },
+       "/",
+       {
+        "Ref": "MilkMobsApiDeploymentStageprod1C57746E"
+       },
+       "/GET/videos/*"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/videos/{videoId}/GET/ApiPermission.MilkMobsStackMilkMobsApi1ED7FB9D.GET..videos.{videoId}"
+   }
+  },
+  "MilkMobsApivideosvideoIdGETApiPermissionTestMilkMobsStackMilkMobsApi1ED7FB9DGETvideosvideoId87A7331C": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "GetVideoDetailFn98896F83",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:679729599398:",
+       {
+        "Ref": "MilkMobsApiB76DFE80"
+       },
+       "/test-invoke-stage/GET/videos/*"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/videos/{videoId}/GET/ApiPermission.Test.MilkMobsStackMilkMobsApi1ED7FB9D.GET..videos.{videoId}"
+   }
+  },
+  "MilkMobsApivideosvideoIdGETBFB4E054": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "AuthorizationType": "NONE",
+    "HttpMethod": "GET",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:us-east-1:lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "GetVideoDetailFn98896F83",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "MethodResponses": [
+     {
+      "StatusCode": "200"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "MilkMobsApivideosvideoId87C65709"
+    },
+    "RestApiId": {
+     "Ref": "MilkMobsApiB76DFE80"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/videos/{videoId}/GET/Resource"
+   }
+  },
+  "MilkMobsApiadminEFD758FD": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Fn::GetAtt": [
+      "MilkMobsApiB76DFE80",
+      "RootResourceId"
+     ]
+    },
+    "PathPart": "admin",
+    "RestApiId": {
+     "Ref": "MilkMobsApiB76DFE80"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/admin/Resource"
+   }
+  },
+  "MilkMobsApiadminOPTIONS263D3C37": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "MilkMobsApiadminEFD758FD"
+    },
+    "RestApiId": {
+     "Ref": "MilkMobsApiB76DFE80"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/admin/OPTIONS/Resource"
+   }
+  },
+  "MilkMobsApiadminvideos77E8CFED": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "MilkMobsApiadminEFD758FD"
+    },
+    "PathPart": "videos",
+    "RestApiId": {
+     "Ref": "MilkMobsApiB76DFE80"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/admin/videos/Resource"
+   }
+  },
+  "MilkMobsApiadminvideosOPTIONSF02CB596": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "MilkMobsApiadminvideos77E8CFED"
+    },
+    "RestApiId": {
+     "Ref": "MilkMobsApiB76DFE80"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/admin/videos/OPTIONS/Resource"
+   }
+  },
+  "MilkMobsApiadminvideosGETApiPermissionMilkMobsStackMilkMobsApi1ED7FB9DGETadminvideos1581E706": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "AdminListVideosFn3DCC5AE5",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:679729599398:",
+       {
+        "Ref": "MilkMobsApiB76DFE80"
+       },
+       "/",
+       {
+        "Ref": "MilkMobsApiDeploymentStageprod1C57746E"
+       },
+       "/GET/admin/videos"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/admin/videos/GET/ApiPermission.MilkMobsStackMilkMobsApi1ED7FB9D.GET..admin.videos"
+   }
+  },
+  "MilkMobsApiadminvideosGETApiPermissionTestMilkMobsStackMilkMobsApi1ED7FB9DGETadminvideos90331C82": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "AdminListVideosFn3DCC5AE5",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:679729599398:",
+       {
+        "Ref": "MilkMobsApiB76DFE80"
+       },
+       "/test-invoke-stage/GET/admin/videos"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/admin/videos/GET/ApiPermission.Test.MilkMobsStackMilkMobsApi1ED7FB9D.GET..admin.videos"
+   }
+  },
+  "MilkMobsApiadminvideosGET0E3A684B": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "AuthorizationType": "NONE",
+    "HttpMethod": "GET",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:us-east-1:lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "AdminListVideosFn3DCC5AE5",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "MethodResponses": [
+     {
+      "StatusCode": "200"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "MilkMobsApiadminvideos77E8CFED"
+    },
+    "RestApiId": {
+     "Ref": "MilkMobsApiB76DFE80"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/admin/videos/GET/Resource"
+   }
+  },
+  "MilkMobsApimobsAA7D8C29": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Fn::GetAtt": [
+      "MilkMobsApiB76DFE80",
+      "RootResourceId"
+     ]
+    },
+    "PathPart": "mobs",
+    "RestApiId": {
+     "Ref": "MilkMobsApiB76DFE80"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/mobs/Resource"
+   }
+  },
+  "MilkMobsApimobsOPTIONSA9666A90": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "MilkMobsApimobsAA7D8C29"
+    },
+    "RestApiId": {
+     "Ref": "MilkMobsApiB76DFE80"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/mobs/OPTIONS/Resource"
+   }
+  },
+  "MilkMobsApimobsGETApiPermissionMilkMobsStackMilkMobsApi1ED7FB9DGETmobsF31C48BA": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "ListMobsFn0BE77E3A",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:679729599398:",
+       {
+        "Ref": "MilkMobsApiB76DFE80"
+       },
+       "/",
+       {
+        "Ref": "MilkMobsApiDeploymentStageprod1C57746E"
+       },
+       "/GET/mobs"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/mobs/GET/ApiPermission.MilkMobsStackMilkMobsApi1ED7FB9D.GET..mobs"
+   }
+  },
+  "MilkMobsApimobsGETApiPermissionTestMilkMobsStackMilkMobsApi1ED7FB9DGETmobs90597FF2": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "ListMobsFn0BE77E3A",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:679729599398:",
+       {
+        "Ref": "MilkMobsApiB76DFE80"
+       },
+       "/test-invoke-stage/GET/mobs"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/mobs/GET/ApiPermission.Test.MilkMobsStackMilkMobsApi1ED7FB9D.GET..mobs"
+   }
+  },
+  "MilkMobsApimobsGET0951FDEC": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "AuthorizationType": "NONE",
+    "HttpMethod": "GET",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:us-east-1:lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "ListMobsFn0BE77E3A",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "MethodResponses": [
+     {
+      "StatusCode": "200"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "MilkMobsApimobsAA7D8C29"
+    },
+    "RestApiId": {
+     "Ref": "MilkMobsApiB76DFE80"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/mobs/GET/Resource"
+   }
+  },
+  "MilkMobsApimobsmobIdF0789012": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "MilkMobsApimobsAA7D8C29"
+    },
+    "PathPart": "{mobId}",
+    "RestApiId": {
+     "Ref": "MilkMobsApiB76DFE80"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/mobs/{mobId}/Resource"
+   }
+  },
+  "MilkMobsApimobsmobIdOPTIONS1209B5E7": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "MilkMobsApimobsmobIdF0789012"
+    },
+    "RestApiId": {
+     "Ref": "MilkMobsApiB76DFE80"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/mobs/{mobId}/OPTIONS/Resource"
+   }
+  },
+  "MilkMobsApimobsmobIdGETApiPermissionMilkMobsStackMilkMobsApi1ED7FB9DGETmobsmobIdD6746AA4": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "GetMobFn1FB67C2C",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:679729599398:",
+       {
+        "Ref": "MilkMobsApiB76DFE80"
+       },
+       "/",
+       {
+        "Ref": "MilkMobsApiDeploymentStageprod1C57746E"
+       },
+       "/GET/mobs/*"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/mobs/{mobId}/GET/ApiPermission.MilkMobsStackMilkMobsApi1ED7FB9D.GET..mobs.{mobId}"
+   }
+  },
+  "MilkMobsApimobsmobIdGETApiPermissionTestMilkMobsStackMilkMobsApi1ED7FB9DGETmobsmobIdD21CCC3A": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "GetMobFn1FB67C2C",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:679729599398:",
+       {
+        "Ref": "MilkMobsApiB76DFE80"
+       },
+       "/test-invoke-stage/GET/mobs/*"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/mobs/{mobId}/GET/ApiPermission.Test.MilkMobsStackMilkMobsApi1ED7FB9D.GET..mobs.{mobId}"
+   }
+  },
+  "MilkMobsApimobsmobIdGET0ECBA1DC": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "AuthorizationType": "NONE",
+    "HttpMethod": "GET",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:us-east-1:lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "GetMobFn1FB67C2C",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "MethodResponses": [
+     {
+      "StatusCode": "200"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "MilkMobsApimobsmobIdF0789012"
+    },
+    "RestApiId": {
+     "Ref": "MilkMobsApiB76DFE80"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/mobs/{mobId}/GET/Resource"
+   }
+  },
+  "MilkMobsApisearch587405B7": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Fn::GetAtt": [
+      "MilkMobsApiB76DFE80",
+      "RootResourceId"
+     ]
+    },
+    "PathPart": "search",
+    "RestApiId": {
+     "Ref": "MilkMobsApiB76DFE80"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/search/Resource"
+   }
+  },
+  "MilkMobsApisearchOPTIONS61896BF0": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "MilkMobsApisearch587405B7"
+    },
+    "RestApiId": {
+     "Ref": "MilkMobsApiB76DFE80"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/search/OPTIONS/Resource"
+   }
+  },
+  "MilkMobsApisearchsimilar1862FE4A": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "MilkMobsApisearch587405B7"
+    },
+    "PathPart": "similar",
+    "RestApiId": {
+     "Ref": "MilkMobsApiB76DFE80"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/search/similar/Resource"
+   }
+  },
+  "MilkMobsApisearchsimilarOPTIONS01B398F1": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "MilkMobsApisearchsimilar1862FE4A"
+    },
+    "RestApiId": {
+     "Ref": "MilkMobsApiB76DFE80"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/search/similar/OPTIONS/Resource"
+   }
+  },
+  "MilkMobsApisearchsimilarGETApiPermissionMilkMobsStackMilkMobsApi1ED7FB9DGETsearchsimilar656EB0C2": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "SearchSimilarFn25B2FAE1",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:679729599398:",
+       {
+        "Ref": "MilkMobsApiB76DFE80"
+       },
+       "/",
+       {
+        "Ref": "MilkMobsApiDeploymentStageprod1C57746E"
+       },
+       "/GET/search/similar"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/search/similar/GET/ApiPermission.MilkMobsStackMilkMobsApi1ED7FB9D.GET..search.similar"
+   }
+  },
+  "MilkMobsApisearchsimilarGETApiPermissionTestMilkMobsStackMilkMobsApi1ED7FB9DGETsearchsimilarD483590D": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "SearchSimilarFn25B2FAE1",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:679729599398:",
+       {
+        "Ref": "MilkMobsApiB76DFE80"
+       },
+       "/test-invoke-stage/GET/search/similar"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/search/similar/GET/ApiPermission.Test.MilkMobsStackMilkMobsApi1ED7FB9D.GET..search.similar"
+   }
+  },
+  "MilkMobsApisearchsimilarGET9141152B": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "AuthorizationType": "NONE",
+    "HttpMethod": "GET",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:us-east-1:lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "SearchSimilarFn25B2FAE1",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "MethodResponses": [
+     {
+      "StatusCode": "200"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "MilkMobsApisearchsimilar1862FE4A"
+    },
+    "RestApiId": {
+     "Ref": "MilkMobsApiB76DFE80"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/search/similar/GET/Resource"
+   }
+  },
+  "MilkMobsApivalidateFD68B44A": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Fn::GetAtt": [
+      "MilkMobsApiB76DFE80",
+      "RootResourceId"
+     ]
+    },
+    "PathPart": "validate",
+    "RestApiId": {
+     "Ref": "MilkMobsApiB76DFE80"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/validate/Resource"
+   }
+  },
+  "MilkMobsApivalidateOPTIONSB5EED471": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "MilkMobsApivalidateFD68B44A"
+    },
+    "RestApiId": {
+     "Ref": "MilkMobsApiB76DFE80"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/validate/OPTIONS/Resource"
+   }
+  },
+  "MilkMobsApivalidatePOSTApiPermissionMilkMobsStackMilkMobsApi1ED7FB9DPOSTvalidate3A485031": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "ValidateVideoFn38264D58",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:679729599398:",
+       {
+        "Ref": "MilkMobsApiB76DFE80"
+       },
+       "/",
+       {
+        "Ref": "MilkMobsApiDeploymentStageprod1C57746E"
+       },
+       "/POST/validate"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/validate/POST/ApiPermission.MilkMobsStackMilkMobsApi1ED7FB9D.POST..validate"
+   }
+  },
+  "MilkMobsApivalidatePOSTApiPermissionTestMilkMobsStackMilkMobsApi1ED7FB9DPOSTvalidate9444BDCE": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "ValidateVideoFn38264D58",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:679729599398:",
+       {
+        "Ref": "MilkMobsApiB76DFE80"
+       },
+       "/test-invoke-stage/POST/validate"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/validate/POST/ApiPermission.Test.MilkMobsStackMilkMobsApi1ED7FB9D.POST..validate"
+   }
+  },
+  "MilkMobsApivalidatePOST5664FE5A": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "AuthorizationType": "NONE",
+    "HttpMethod": "POST",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:us-east-1:lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "ValidateVideoFn38264D58",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "MethodResponses": [
+     {
+      "StatusCode": "200"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "MilkMobsApivalidateFD68B44A"
+    },
+    "RestApiId": {
+     "Ref": "MilkMobsApiB76DFE80"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/validate/POST/Resource"
+   }
+  },
+  "MilkMobsApivalidatevideoId1D263AB4": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "MilkMobsApivalidateFD68B44A"
+    },
+    "PathPart": "{videoId}",
+    "RestApiId": {
+     "Ref": "MilkMobsApiB76DFE80"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/validate/{videoId}/Resource"
+   }
+  },
+  "MilkMobsApivalidatevideoIdOPTIONS7CF11721": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "MilkMobsApivalidatevideoId1D263AB4"
+    },
+    "RestApiId": {
+     "Ref": "MilkMobsApiB76DFE80"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/validate/{videoId}/OPTIONS/Resource"
+   }
+  },
+  "MilkMobsApivalidatevideoIdGETApiPermissionMilkMobsStackMilkMobsApi1ED7FB9DGETvalidatevideoId4C85ACC2": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "ValidateVideoFn38264D58",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:679729599398:",
+       {
+        "Ref": "MilkMobsApiB76DFE80"
+       },
+       "/",
+       {
+        "Ref": "MilkMobsApiDeploymentStageprod1C57746E"
+       },
+       "/GET/validate/*"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/validate/{videoId}/GET/ApiPermission.MilkMobsStackMilkMobsApi1ED7FB9D.GET..validate.{videoId}"
+   }
+  },
+  "MilkMobsApivalidatevideoIdGETApiPermissionTestMilkMobsStackMilkMobsApi1ED7FB9DGETvalidatevideoId253CCEAE": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "ValidateVideoFn38264D58",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:679729599398:",
+       {
+        "Ref": "MilkMobsApiB76DFE80"
+       },
+       "/test-invoke-stage/GET/validate/*"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/validate/{videoId}/GET/ApiPermission.Test.MilkMobsStackMilkMobsApi1ED7FB9D.GET..validate.{videoId}"
+   }
+  },
+  "MilkMobsApivalidatevideoIdGET05A96543": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "AuthorizationType": "NONE",
+    "HttpMethod": "GET",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:us-east-1:lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "ValidateVideoFn38264D58",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "MethodResponses": [
+     {
+      "StatusCode": "200"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "MilkMobsApivalidatevideoId1D263AB4"
+    },
+    "RestApiId": {
+     "Ref": "MilkMobsApiB76DFE80"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/validate/{videoId}/GET/Resource"
+   }
+  },
+  "SearchSimilarFnServiceRoleFB263920": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/SearchSimilarFn/ServiceRole/Resource"
+   }
+  },
+  "SearchSimilarFnServiceRoleDefaultPolicy5789A8B3": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "es:ESHttpGet",
+        "es:ESHttpHead"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "VideoEmbeddingsDomain067A71F0",
+             "Arn"
+            ]
+           },
+           "/videos"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "VideoEmbeddingsDomain067A71F0",
+             "Arn"
+            ]
+           },
+           "/videos/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:Query",
+        "dynamodb:GetItem",
+        "dynamodb:Scan",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DescribeTable"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "VideosTable19B3D0C4",
+         "Arn"
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "SearchSimilarFnServiceRoleDefaultPolicy5789A8B3",
+    "Roles": [
+     {
+      "Ref": "SearchSimilarFnServiceRoleFB263920"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/SearchSimilarFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "SearchSimilarFn25B2FAE1": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
+     "S3Key": "dd1495dab84731dd6f25a436c4948bf151fa4aa4d9e52cdaca77a6c926baf61d.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "VIDEOS_TABLE_NAME": {
+       "Ref": "VideosTable19B3D0C4"
+      },
+      "OPENSEARCH_ENDPOINT": {
+       "Fn::GetAtt": [
+        "VideoEmbeddingsDomain067A71F0",
+        "DomainEndpoint"
+       ]
+      },
+      "OPENSEARCH_INDEX_NAME": "videos"
+     }
+    },
+    "Handler": "index.handler",
+    "MemorySize": 512,
+    "Role": {
+     "Fn::GetAtt": [
+      "SearchSimilarFnServiceRoleFB263920",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "SearchSimilarFnServiceRoleDefaultPolicy5789A8B3",
+    "SearchSimilarFnServiceRoleFB263920"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/SearchSimilarFn/Resource",
+    "aws:asset:path": "asset.dd1495dab84731dd6f25a436c4948bf151fa4aa4d9e52cdaca77a6c926baf61d",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "ValidateVideoFnServiceRole71BD5B19": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/ValidateVideoFn/ServiceRole/Resource"
+   }
+  },
+  "ValidateVideoFnServiceRoleDefaultPolicyEBF4EB71": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:Query",
+        "dynamodb:GetItem",
+        "dynamodb:Scan",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DescribeTable"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "VideosTable19B3D0C4",
+         "Arn"
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "ValidateVideoFnServiceRoleDefaultPolicyEBF4EB71",
+    "Roles": [
+     {
+      "Ref": "ValidateVideoFnServiceRole71BD5B19"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/ValidateVideoFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "ValidateVideoFn38264D58": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
+     "S3Key": "bcf3ebb70b23d30ba3fd08d275a6ff89aecfb7b368625b6f60d74caae1c8487a.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "VIDEOS_TABLE_NAME": {
+       "Ref": "VideosTable19B3D0C4"
+      }
+     }
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "ValidateVideoFnServiceRole71BD5B19",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Timeout": 10
+   },
+   "DependsOn": [
+    "ValidateVideoFnServiceRoleDefaultPolicyEBF4EB71",
+    "ValidateVideoFnServiceRole71BD5B19"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/ValidateVideoFn/Resource",
+    "aws:asset:path": "asset.bcf3ebb70b23d30ba3fd08d275a6ff89aecfb7b368625b6f60d74caae1c8487a",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "MilkMobsDashboard03BF16C9": {
+   "Type": "AWS::CloudWatch::Dashboard",
+   "Properties": {
+    "DashboardBody": {
+     "Fn::Join": [
+      "",
+      [
+       "{\"widgets\":[{\"type\":\"metric\",\"width\":24,\"height\":6,\"x\":0,\"y\":0,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Analysis Lambda Invocations\",\"region\":\"",
+       {
+        "Ref": "AWS::Region"
+       },
+       "\",\"metrics\":[[\"AWS/Lambda\",\"Invocations\",\"FunctionName\",\"",
+       {
+        "Ref": "AnalysisMarkProcessingFn1DCE525A"
+       },
+       "\",{\"label\":\"",
+       {
+        "Ref": "AnalysisMarkProcessingFn1DCE525A"
+       },
+       "\",\"stat\":\"Sum\"}],[\"AWS/Lambda\",\"Invocations\",\"FunctionName\",\"",
+       {
+        "Ref": "AnalysisPegasusFnA65D88A0"
+       },
+       "\",{\"label\":\"",
+       {
+        "Ref": "AnalysisPegasusFnA65D88A0"
+       },
+       "\",\"stat\":\"Sum\"}],[\"AWS/Lambda\",\"Invocations\",\"FunctionName\",\"",
+       {
+        "Ref": "AnalysisMarengoFnE7B906B8"
+       },
+       "\",{\"label\":\"",
+       {
+        "Ref": "AnalysisMarengoFnE7B906B8"
+       },
+       "\",\"stat\":\"Sum\"}],[\"AWS/Lambda\",\"Invocations\",\"FunctionName\",\"",
+       {
+        "Ref": "AnalysisWriteResultFnC2A76429"
+       },
+       "\",{\"label\":\"",
+       {
+        "Ref": "AnalysisWriteResultFnC2A76429"
+       },
+       "\",\"stat\":\"Sum\"}],[\"AWS/Lambda\",\"Invocations\",\"FunctionName\",\"",
+       {
+        "Ref": "ClusterEmbeddingsFnF96ED85B"
+       },
+       "\",{\"label\":\"",
+       {
+        "Ref": "ClusterEmbeddingsFnF96ED85B"
+       },
+       "\",\"stat\":\"Sum\"}],[\"AWS/Lambda\",\"Invocations\",\"FunctionName\",\"",
+       {
+        "Ref": "ValidateVideoFn38264D58"
+       },
+       "\",{\"label\":\"",
+       {
+        "Ref": "ValidateVideoFn38264D58"
+       },
+       "\",\"stat\":\"Sum\"}],[\"AWS/Lambda\",\"Invocations\",\"FunctionName\",\"",
+       {
+        "Ref": "SearchSimilarFn25B2FAE1"
+       },
+       "\",{\"label\":\"",
+       {
+        "Ref": "SearchSimilarFn25B2FAE1"
+       },
+       "\",\"stat\":\"Sum\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":24,\"height\":6,\"x\":0,\"y\":6,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Analysis Lambda Errors\",\"region\":\"",
+       {
+        "Ref": "AWS::Region"
+       },
+       "\",\"metrics\":[[\"AWS/Lambda\",\"Errors\",\"FunctionName\",\"",
+       {
+        "Ref": "AnalysisMarkProcessingFn1DCE525A"
+       },
+       "\",{\"label\":\"",
+       {
+        "Ref": "AnalysisMarkProcessingFn1DCE525A"
+       },
+       "\",\"stat\":\"Sum\"}],[\"AWS/Lambda\",\"Errors\",\"FunctionName\",\"",
+       {
+        "Ref": "AnalysisPegasusFnA65D88A0"
+       },
+       "\",{\"label\":\"",
+       {
+        "Ref": "AnalysisPegasusFnA65D88A0"
+       },
+       "\",\"stat\":\"Sum\"}],[\"AWS/Lambda\",\"Errors\",\"FunctionName\",\"",
+       {
+        "Ref": "AnalysisMarengoFnE7B906B8"
+       },
+       "\",{\"label\":\"",
+       {
+        "Ref": "AnalysisMarengoFnE7B906B8"
+       },
+       "\",\"stat\":\"Sum\"}],[\"AWS/Lambda\",\"Errors\",\"FunctionName\",\"",
+       {
+        "Ref": "AnalysisWriteResultFnC2A76429"
+       },
+       "\",{\"label\":\"",
+       {
+        "Ref": "AnalysisWriteResultFnC2A76429"
+       },
+       "\",\"stat\":\"Sum\"}],[\"AWS/Lambda\",\"Errors\",\"FunctionName\",\"",
+       {
+        "Ref": "ClusterEmbeddingsFnF96ED85B"
+       },
+       "\",{\"label\":\"",
+       {
+        "Ref": "ClusterEmbeddingsFnF96ED85B"
+       },
+       "\",\"stat\":\"Sum\"}],[\"AWS/Lambda\",\"Errors\",\"FunctionName\",\"",
+       {
+        "Ref": "ValidateVideoFn38264D58"
+       },
+       "\",{\"label\":\"",
+       {
+        "Ref": "ValidateVideoFn38264D58"
+       },
+       "\",\"stat\":\"Sum\"}],[\"AWS/Lambda\",\"Errors\",\"FunctionName\",\"",
+       {
+        "Ref": "SearchSimilarFn25B2FAE1"
+       },
+       "\",{\"label\":\"",
+       {
+        "Ref": "SearchSimilarFn25B2FAE1"
+       },
+       "\",\"stat\":\"Sum\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":24,\"height\":6,\"x\":0,\"y\":12,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Step Functions Executions\",\"region\":\"",
+       {
+        "Ref": "AWS::Region"
+       },
+       "\",\"metrics\":[[\"AWS/States\",\"ExecutionsStarted\",\"StateMachineArn\",\"",
+       {
+        "Ref": "VideoAnalysisStateMachineA7892CAE"
+       },
+       "\",{\"label\":\"Total\",\"stat\":\"Sum\"}],[\"AWS/States\",\"ExecutionsFailed\",\"StateMachineArn\",\"",
+       {
+        "Ref": "VideoAnalysisStateMachineA7892CAE"
+       },
+       "\",{\"label\":\"Failed\",\"stat\":\"Sum\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":24,\"height\":6,\"x\":0,\"y\":18,\"properties\":{\"view\":\"timeSeries\",\"title\":\"DynamoDB Read/Write Capacity\",\"region\":\"",
+       {
+        "Ref": "AWS::Region"
+       },
+       "\",\"metrics\":[[\"AWS/DynamoDB\",\"ConsumedReadCapacityUnits\",\"TableName\",\"",
+       {
+        "Ref": "VideosTable19B3D0C4"
+       },
+       "\",{\"label\":\"Videos Read\",\"stat\":\"Sum\"}],[\"AWS/DynamoDB\",\"ConsumedWriteCapacityUnits\",\"TableName\",\"",
+       {
+        "Ref": "VideosTable19B3D0C4"
+       },
+       "\",{\"label\":\"Videos Write\",\"stat\":\"Sum\"}],[\"AWS/DynamoDB\",\"ConsumedReadCapacityUnits\",\"TableName\",\"",
+       {
+        "Ref": "MobsTableC49D34D5"
+       },
+       "\",{\"label\":\"Mobs Read\",\"stat\":\"Sum\"}],[\"AWS/DynamoDB\",\"ConsumedWriteCapacityUnits\",\"TableName\",\"",
+       {
+        "Ref": "MobsTableC49D34D5"
+       },
+       "\",{\"label\":\"Mobs Write\",\"stat\":\"Sum\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":24,\"height\":6,\"x\":0,\"y\":24,\"properties\":{\"view\":\"timeSeries\",\"title\":\"S3 Bucket Size\",\"region\":\"",
+       {
+        "Ref": "AWS::Region"
+       },
+       "\",\"metrics\":[[\"AWS/S3\",\"BucketSizeBytes\",\"BucketName\",\"",
+       {
+        "Ref": "UploadsBucket5E5E9B64"
+       },
+       "\",\"StorageType\",\"StandardStorage\",{\"label\":\"Uploads Bucket Size\"}]],\"yAxis\":{}}}]}"
+      ]
+     ]
+    },
+    "DashboardName": "MilkMobsSystemHealth"
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsDashboard/Resource"
+   }
+  },
   "CDKMetadata": {
    "Type": "AWS::CDK::Metadata",
    "Properties": {
-    "Analytics": "v2:deflate64:H4sIAAAAAAAA/02Q226DMAyGn6X3qcdgL0A77W4H0d1XJridW0gQTlahKO8+JbB1V//nQ37bKaGsCig2eJOt7q7bnlsIB4f6qvAmxyAVhJ3XV3JqfzIrLbJDoai62eBguxbCJ7Y9pa4MUfU4tB0eje3oIvCW5cUb7dgaxThAaOzyIOuH7VnPKVwoKqmOKEJOoE6yGkLYn8yfT2qnaWARtiYqHPmMjm44Q2hIXD1yHnDHWmvrjVPPNPZ2Hsjkw/5FB4fnvNUCDYn1k6Z0rXol92W7VFzpt7oOyRzjPZ0XT0Zszqnn3bvRu6jSp8BFHr7LAh6foNhchHk7eeN4IGgW/QGUsvVEnAEAAA=="
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/21S227bMAz9lr4rapbsB3JZgQLtGiR9D2iZdpjYkiFSCQLB/z5Idi4b9nTOochDSuJMz+ZTPX2BC09MeZo0VOi4EzAnBRfeR57ruAzmhKJWlR3ZABvXkLk+wqMexBIYe9VAW5Sg46qyG/QtMZOzake2blCcfQvWSIrcyaq6B3tlGhfKyjsrOn55qskujEHm9xKtkOTWq5TzlnL+m7EmFk9FuJk/616VVwutKwsdv6FoMCVk0ivXoWUEbw6M/kwGdVy7FmgwyaxXBK2Oj1cY2dYNTgl7xfM9MKOwXiQYX2RvXYlH1r8z3G+PZ7TCOv5KuAycbO58G0bfkH0Fu2qs470An1jHj2z+bs/uhGoo9FTWuAmSFf9Tp+MGPDQNNmoDzGonIPgJ5kA2t3rWvYKOahC8wFXHLbIsOsrzPOjCGBesqDV2jbu2aPPSPKmdQH1zrlFtkV3wBtOyqE+UgyvT4chup2OTzMeluICYg45r4EPhwOequ+j754qHjQksrt37UbNeXHiVY49Of8v8ZWlUsnXy/ArSBelV+j195NfzbKp//NTTlyMTTXywQi3q7YB/AHJgngNaAwAA"
    },
    "Metadata": {
     "aws:cdk:path": "MilkMobsStack/CDKMetadata/Default"
@@ -662,6 +4906,91 @@
    },
    "Export": {
     "Name": "MilkMobsVideosTableName"
+   }
+  },
+  "MobsTableName": {
+   "Description": "DynamoDB table name for mob clusters",
+   "Value": {
+    "Ref": "MobsTableC49D34D5"
+   },
+   "Export": {
+    "Name": "MilkMobsMobsTableName"
+   }
+  },
+  "StateMachineArn": {
+   "Description": "Step Functions state machine ARN for video analysis",
+   "Value": {
+    "Ref": "VideoAnalysisStateMachineA7892CAE"
+   },
+   "Export": {
+    "Name": "MilkMobsStateMachineArn"
+   }
+  },
+  "EventBusName": {
+   "Description": "EventBridge bus name for video analysis events",
+   "Value": {
+    "Ref": "MilkMobsEventBus5827410E"
+   },
+   "Export": {
+    "Name": "MilkMobsEventBusName"
+   }
+  },
+  "CloudFrontDistributionDomain": {
+   "Description": "CloudFront distribution domain for video delivery",
+   "Value": {
+    "Fn::GetAtt": [
+     "VideoDistribution93465BBB",
+     "DomainName"
+    ]
+   },
+   "Export": {
+    "Name": "MilkMobsCloudFrontDomain"
+   }
+  },
+  "CloudFrontDistributionId": {
+   "Description": "CloudFront distribution ID",
+   "Value": {
+    "Ref": "VideoDistribution93465BBB"
+   },
+   "Export": {
+    "Name": "MilkMobsCloudFrontId"
+   }
+  },
+  "OpenSearchEndpoint": {
+   "Description": "OpenSearch domain endpoint for vector search",
+   "Value": {
+    "Fn::GetAtt": [
+     "VideoEmbeddingsDomain067A71F0",
+     "DomainEndpoint"
+    ]
+   },
+   "Export": {
+    "Name": "MilkMobsOpenSearchEndpoint"
+   }
+  },
+  "DashboardUrl": {
+   "Description": "CloudWatch Dashboard URL",
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://",
+      {
+       "Ref": "AWS::Region"
+      },
+      ".console.aws.amazon.com/cloudwatch/home?region=",
+      {
+       "Ref": "AWS::Region"
+      },
+      "#dashboards:name=",
+      {
+       "Ref": "MilkMobsDashboard03BF16C9"
+      }
+     ]
+    ]
+   },
+   "Export": {
+    "Name": "MilkMobsDashboardUrl"
    }
   }
  },

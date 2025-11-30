@@ -18,7 +18,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::679729599398:role/cdk-hnb659fds-deploy-role-679729599398-us-east-1",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::679729599398:role/cdk-hnb659fds-cfn-exec-role-679729599398-us-east-1",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-679729599398-us-east-1/7ee9a64028c794de47ee6514730616a5be9d7a71081c2f78417bcf67bde87598.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-679729599398-us-east-1/8ce01b570b7e454c1209900c27413ad40ab851a1757ec6db6f3df036564c2ac0.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -40,10 +40,92 @@
             "data": "UploadsBucket5E5E9B64"
           }
         ],
+        "/MilkMobsStack/UploadsBucket/Policy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "UploadsBucketPolicy34A32B0B"
+          }
+        ],
+        "/MilkMobsStack/UploadsBucket/Notifications/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "UploadsBucketNotifications4592A072"
+          }
+        ],
+        "/MilkMobsStack/UploadsBucket/AllowBucketNotificationsToMilkMobsStackStartAnalysisFn1E73624B": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "UploadsBucketAllowBucketNotificationsToMilkMobsStackStartAnalysisFn1E73624BB3C32EE3"
+          }
+        ],
+        "/MilkMobsStack/OAI/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "OAIE1EFC67F"
+          }
+        ],
+        "/MilkMobsStack/VideoDistribution/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "VideoDistribution93465BBB"
+          }
+        ],
         "/MilkMobsStack/VideosTable/Resource": [
           {
             "type": "aws:cdk:logicalId",
             "data": "VideosTable19B3D0C4"
+          }
+        ],
+        "/MilkMobsStack/MobsTable/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MobsTableC49D34D5"
+          }
+        ],
+        "/MilkMobsStack/VideoEmbeddingsDomain": [
+          {
+            "type": "aws:cdk:hasPhysicalName",
+            "data": "milk-mobs-videos"
+          }
+        ],
+        "/MilkMobsStack/VideoEmbeddingsDomain/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "VideoEmbeddingsDomain067A71F0"
+          }
+        ],
+        "/MilkMobsStack/VideoEmbeddingsDomain/AccessPolicy/Resource/Default": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "VideoEmbeddingsDomainAccessPolicyBD06A7D5"
+          }
+        ],
+        "/MilkMobsStack/VideoEmbeddingsDomain/AccessPolicy/CustomResourcePolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "VideoEmbeddingsDomainAccessPolicyCustomResourcePolicy7D3B0618"
+          }
+        ],
+        "/MilkMobsStack/AWS679f53fac002430cb0da5b7982bd2287": [
+          {
+            "type": "aws:cdk:is-custom-resource-handler-singleton",
+            "data": true
+          },
+          {
+            "type": "aws:cdk:is-custom-resource-handler-runtime-family",
+            "data": 0
+          }
+        ],
+        "/MilkMobsStack/AWS679f53fac002430cb0da5b7982bd2287/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2"
+          }
+        ],
+        "/MilkMobsStack/AWS679f53fac002430cb0da5b7982bd2287/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AWS679f53fac002430cb0da5b7982bd22872D164C4C"
           }
         ],
         "/MilkMobsStack/CreateUploadFn/ServiceRole/Resource": [
@@ -62,6 +144,276 @@
           {
             "type": "aws:cdk:logicalId",
             "data": "CreateUploadFnFC5660F7"
+          }
+        ],
+        "/MilkMobsStack/ListUserVideosFn/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ListUserVideosFnServiceRole216C1658"
+          }
+        ],
+        "/MilkMobsStack/ListUserVideosFn/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ListUserVideosFnServiceRoleDefaultPolicy14C72D28"
+          }
+        ],
+        "/MilkMobsStack/ListUserVideosFn/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ListUserVideosFn6B2F49BA"
+          }
+        ],
+        "/MilkMobsStack/AnalysisMarkProcessingFn/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AnalysisMarkProcessingFnServiceRole940C5341"
+          }
+        ],
+        "/MilkMobsStack/AnalysisMarkProcessingFn/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AnalysisMarkProcessingFnServiceRoleDefaultPolicyFB07D9A9"
+          }
+        ],
+        "/MilkMobsStack/AnalysisMarkProcessingFn/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AnalysisMarkProcessingFn1DCE525A"
+          }
+        ],
+        "/MilkMobsStack/AnalysisPegasusFn/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AnalysisPegasusFnServiceRoleD6E86B57"
+          }
+        ],
+        "/MilkMobsStack/AnalysisPegasusFn/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AnalysisPegasusFnServiceRoleDefaultPolicyD1910F6B"
+          }
+        ],
+        "/MilkMobsStack/AnalysisPegasusFn/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AnalysisPegasusFnA65D88A0"
+          }
+        ],
+        "/MilkMobsStack/AnalysisMarengoFn/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AnalysisMarengoFnServiceRole715EE6E9"
+          }
+        ],
+        "/MilkMobsStack/AnalysisMarengoFn/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AnalysisMarengoFnServiceRoleDefaultPolicyC454C6D6"
+          }
+        ],
+        "/MilkMobsStack/AnalysisMarengoFn/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AnalysisMarengoFnE7B906B8"
+          }
+        ],
+        "/MilkMobsStack/AnalysisWriteResultFn/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AnalysisWriteResultFnServiceRoleC6A2489F"
+          }
+        ],
+        "/MilkMobsStack/AnalysisWriteResultFn/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AnalysisWriteResultFnServiceRoleDefaultPolicy528B933B"
+          }
+        ],
+        "/MilkMobsStack/AnalysisWriteResultFn/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AnalysisWriteResultFnC2A76429"
+          }
+        ],
+        "/MilkMobsStack/StartAnalysisFn/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "StartAnalysisFnServiceRole90D56A70"
+          }
+        ],
+        "/MilkMobsStack/StartAnalysisFn/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "StartAnalysisFnServiceRoleDefaultPolicy455DEEBF"
+          }
+        ],
+        "/MilkMobsStack/StartAnalysisFn/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "StartAnalysisFn88339548"
+          }
+        ],
+        "/MilkMobsStack/ClusterVideoFn/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ClusterVideoFnServiceRoleC7038455"
+          }
+        ],
+        "/MilkMobsStack/ClusterVideoFn/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ClusterVideoFnServiceRoleDefaultPolicyDAFFA579"
+          }
+        ],
+        "/MilkMobsStack/ClusterVideoFn/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ClusterVideoFnA18F77E1"
+          }
+        ],
+        "/MilkMobsStack/GetVideoDetailFn/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GetVideoDetailFnServiceRole230300F7"
+          }
+        ],
+        "/MilkMobsStack/GetVideoDetailFn/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GetVideoDetailFnServiceRoleDefaultPolicy38F3D09E"
+          }
+        ],
+        "/MilkMobsStack/GetVideoDetailFn/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GetVideoDetailFn98896F83"
+          }
+        ],
+        "/MilkMobsStack/AdminListVideosFn/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AdminListVideosFnServiceRole563BEDBF"
+          }
+        ],
+        "/MilkMobsStack/AdminListVideosFn/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AdminListVideosFnServiceRoleDefaultPolicy56299FD5"
+          }
+        ],
+        "/MilkMobsStack/AdminListVideosFn/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AdminListVideosFn3DCC5AE5"
+          }
+        ],
+        "/MilkMobsStack/ListMobsFn/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ListMobsFnServiceRole1DEE32AB"
+          }
+        ],
+        "/MilkMobsStack/ListMobsFn/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ListMobsFnServiceRoleDefaultPolicy806D424A"
+          }
+        ],
+        "/MilkMobsStack/ListMobsFn/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ListMobsFn0BE77E3A"
+          }
+        ],
+        "/MilkMobsStack/GetMobFn/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GetMobFnServiceRole21BE82D4"
+          }
+        ],
+        "/MilkMobsStack/GetMobFn/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GetMobFnServiceRoleDefaultPolicy44FAB3F3"
+          }
+        ],
+        "/MilkMobsStack/GetMobFn/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GetMobFn1FB67C2C"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsEventBus/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsEventBus5827410E"
+          }
+        ],
+        "/MilkMobsStack/VideoAnalysisStateMachine/Role/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "VideoAnalysisStateMachineRole21C1D5B6"
+          }
+        ],
+        "/MilkMobsStack/VideoAnalysisStateMachine/Role/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "VideoAnalysisStateMachineRoleDefaultPolicy2F1FF8F4"
+          }
+        ],
+        "/MilkMobsStack/VideoAnalysisStateMachine/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "VideoAnalysisStateMachineA7892CAE"
+          }
+        ],
+        "/MilkMobsStack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC"
+          }
+        ],
+        "/MilkMobsStack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36"
+          }
+        ],
+        "/MilkMobsStack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "BucketNotificationsHandler050a0587b7544547bf325f094a3db8347ECC3691"
+          }
+        ],
+        "/MilkMobsStack/ClusterEmbeddingsFn/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ClusterEmbeddingsFnServiceRoleE3AD4487"
+          }
+        ],
+        "/MilkMobsStack/ClusterEmbeddingsFn/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ClusterEmbeddingsFnServiceRoleDefaultPolicyB0282385"
+          }
+        ],
+        "/MilkMobsStack/ClusterEmbeddingsFn/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ClusterEmbeddingsFnF96ED85B"
+          }
+        ],
+        "/MilkMobsStack/ClusteringSchedule/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ClusteringSchedule9F442E8C"
+          }
+        ],
+        "/MilkMobsStack/ClusteringSchedule/AllowEventRuleMilkMobsStackClusterEmbeddingsFnA7F1B5F8": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ClusteringScheduleAllowEventRuleMilkMobsStackClusterEmbeddingsFnA7F1B5F81323C14D"
           }
         ],
         "/MilkMobsStack/MilkMobsApi/Resource": [
@@ -85,7 +437,7 @@
         "/MilkMobsStack/MilkMobsApi/Deployment/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "MilkMobsApiDeployment87A47DF970eeaac172d5fbce1fbd40c30f1afe8e"
+            "data": "MilkMobsApiDeployment87A47DF9f1370d24316db5969f4366a1747d14bd"
           }
         ],
         "/MilkMobsStack/MilkMobsApi/DeploymentStage.prod/Resource": [
@@ -148,6 +500,306 @@
             "data": "MilkMobsApivideossubmitPOSTF4D95FAD"
           }
         ],
+        "/MilkMobsStack/MilkMobsApi/Default/videos/user/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApivideosuserEA56AC32"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/videos/user/OPTIONS/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApivideosuserOPTIONS5CD0C06A"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/videos/user/GET/ApiPermission.MilkMobsStackMilkMobsApi1ED7FB9D.GET..videos.user": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApivideosuserGETApiPermissionMilkMobsStackMilkMobsApi1ED7FB9DGETvideosuser38E747BD"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/videos/user/GET/ApiPermission.Test.MilkMobsStackMilkMobsApi1ED7FB9D.GET..videos.user": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApivideosuserGETApiPermissionTestMilkMobsStackMilkMobsApi1ED7FB9DGETvideosuser64CC13C7"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/videos/user/GET/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApivideosuserGET3F815581"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/videos/{videoId}/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApivideosvideoId87C65709"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/videos/{videoId}/OPTIONS/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApivideosvideoIdOPTIONS4D3DE0C8"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/videos/{videoId}/GET/ApiPermission.MilkMobsStackMilkMobsApi1ED7FB9D.GET..videos.{videoId}": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApivideosvideoIdGETApiPermissionMilkMobsStackMilkMobsApi1ED7FB9DGETvideosvideoId96EA7D67"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/videos/{videoId}/GET/ApiPermission.Test.MilkMobsStackMilkMobsApi1ED7FB9D.GET..videos.{videoId}": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApivideosvideoIdGETApiPermissionTestMilkMobsStackMilkMobsApi1ED7FB9DGETvideosvideoId87A7331C"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/videos/{videoId}/GET/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApivideosvideoIdGETBFB4E054"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/admin/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApiadminEFD758FD"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/admin/OPTIONS/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApiadminOPTIONS263D3C37"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/admin/videos/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApiadminvideos77E8CFED"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/admin/videos/OPTIONS/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApiadminvideosOPTIONSF02CB596"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/admin/videos/GET/ApiPermission.MilkMobsStackMilkMobsApi1ED7FB9D.GET..admin.videos": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApiadminvideosGETApiPermissionMilkMobsStackMilkMobsApi1ED7FB9DGETadminvideos1581E706"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/admin/videos/GET/ApiPermission.Test.MilkMobsStackMilkMobsApi1ED7FB9D.GET..admin.videos": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApiadminvideosGETApiPermissionTestMilkMobsStackMilkMobsApi1ED7FB9DGETadminvideos90331C82"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/admin/videos/GET/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApiadminvideosGET0E3A684B"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/mobs/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApimobsAA7D8C29"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/mobs/OPTIONS/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApimobsOPTIONSA9666A90"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/mobs/GET/ApiPermission.MilkMobsStackMilkMobsApi1ED7FB9D.GET..mobs": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApimobsGETApiPermissionMilkMobsStackMilkMobsApi1ED7FB9DGETmobsF31C48BA"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/mobs/GET/ApiPermission.Test.MilkMobsStackMilkMobsApi1ED7FB9D.GET..mobs": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApimobsGETApiPermissionTestMilkMobsStackMilkMobsApi1ED7FB9DGETmobs90597FF2"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/mobs/GET/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApimobsGET0951FDEC"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/mobs/{mobId}/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApimobsmobIdF0789012"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/mobs/{mobId}/OPTIONS/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApimobsmobIdOPTIONS1209B5E7"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/mobs/{mobId}/GET/ApiPermission.MilkMobsStackMilkMobsApi1ED7FB9D.GET..mobs.{mobId}": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApimobsmobIdGETApiPermissionMilkMobsStackMilkMobsApi1ED7FB9DGETmobsmobIdD6746AA4"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/mobs/{mobId}/GET/ApiPermission.Test.MilkMobsStackMilkMobsApi1ED7FB9D.GET..mobs.{mobId}": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApimobsmobIdGETApiPermissionTestMilkMobsStackMilkMobsApi1ED7FB9DGETmobsmobIdD21CCC3A"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/mobs/{mobId}/GET/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApimobsmobIdGET0ECBA1DC"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/search/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApisearch587405B7"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/search/OPTIONS/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApisearchOPTIONS61896BF0"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/search/similar/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApisearchsimilar1862FE4A"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/search/similar/OPTIONS/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApisearchsimilarOPTIONS01B398F1"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/search/similar/GET/ApiPermission.MilkMobsStackMilkMobsApi1ED7FB9D.GET..search.similar": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApisearchsimilarGETApiPermissionMilkMobsStackMilkMobsApi1ED7FB9DGETsearchsimilar656EB0C2"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/search/similar/GET/ApiPermission.Test.MilkMobsStackMilkMobsApi1ED7FB9D.GET..search.similar": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApisearchsimilarGETApiPermissionTestMilkMobsStackMilkMobsApi1ED7FB9DGETsearchsimilarD483590D"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/search/similar/GET/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApisearchsimilarGET9141152B"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/validate/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApivalidateFD68B44A"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/validate/OPTIONS/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApivalidateOPTIONSB5EED471"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/validate/POST/ApiPermission.MilkMobsStackMilkMobsApi1ED7FB9D.POST..validate": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApivalidatePOSTApiPermissionMilkMobsStackMilkMobsApi1ED7FB9DPOSTvalidate3A485031"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/validate/POST/ApiPermission.Test.MilkMobsStackMilkMobsApi1ED7FB9D.POST..validate": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApivalidatePOSTApiPermissionTestMilkMobsStackMilkMobsApi1ED7FB9DPOSTvalidate9444BDCE"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/validate/POST/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApivalidatePOST5664FE5A"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/validate/{videoId}/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApivalidatevideoId1D263AB4"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/validate/{videoId}/OPTIONS/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApivalidatevideoIdOPTIONS7CF11721"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/validate/{videoId}/GET/ApiPermission.MilkMobsStackMilkMobsApi1ED7FB9D.GET..validate.{videoId}": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApivalidatevideoIdGETApiPermissionMilkMobsStackMilkMobsApi1ED7FB9DGETvalidatevideoId4C85ACC2"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/validate/{videoId}/GET/ApiPermission.Test.MilkMobsStackMilkMobsApi1ED7FB9D.GET..validate.{videoId}": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApivalidatevideoIdGETApiPermissionTestMilkMobsStackMilkMobsApi1ED7FB9DGETvalidatevideoId253CCEAE"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/validate/{videoId}/GET/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApivalidatevideoIdGET05A96543"
+          }
+        ],
+        "/MilkMobsStack/SearchSimilarFn/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "SearchSimilarFnServiceRoleFB263920"
+          }
+        ],
+        "/MilkMobsStack/SearchSimilarFn/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "SearchSimilarFnServiceRoleDefaultPolicy5789A8B3"
+          }
+        ],
+        "/MilkMobsStack/SearchSimilarFn/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "SearchSimilarFn25B2FAE1"
+          }
+        ],
+        "/MilkMobsStack/ValidateVideoFn/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ValidateVideoFnServiceRole71BD5B19"
+          }
+        ],
+        "/MilkMobsStack/ValidateVideoFn/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ValidateVideoFnServiceRoleDefaultPolicyEBF4EB71"
+          }
+        ],
+        "/MilkMobsStack/ValidateVideoFn/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "ValidateVideoFn38264D58"
+          }
+        ],
         "/MilkMobsStack/ApiBaseUrl": [
           {
             "type": "aws:cdk:logicalId",
@@ -164,6 +816,54 @@
           {
             "type": "aws:cdk:logicalId",
             "data": "VideosTableName"
+          }
+        ],
+        "/MilkMobsStack/MobsTableName": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MobsTableName"
+          }
+        ],
+        "/MilkMobsStack/StateMachineArn": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "StateMachineArn"
+          }
+        ],
+        "/MilkMobsStack/EventBusName": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "EventBusName"
+          }
+        ],
+        "/MilkMobsStack/CloudFrontDistributionDomain": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CloudFrontDistributionDomain"
+          }
+        ],
+        "/MilkMobsStack/CloudFrontDistributionId": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "CloudFrontDistributionId"
+          }
+        ],
+        "/MilkMobsStack/OpenSearchEndpoint": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "OpenSearchEndpoint"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsDashboard/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsDashboard03BF16C9"
+          }
+        ],
+        "/MilkMobsStack/DashboardUrl": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "DashboardUrl"
           }
         ],
         "/MilkMobsStack/CDKMetadata/Default": [
