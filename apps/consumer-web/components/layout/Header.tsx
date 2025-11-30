@@ -45,9 +45,9 @@ export function Header() {
     <header className="fixed top-0 left-0 right-0 z-50 flex justify-center border-b border-[var(--border-subtle)] bg-[var(--bg-soft)]/95 backdrop-blur-xl transition-colors duration-300">
       <div className="flex w-full max-w-[480px] items-center justify-between px-3 h-11">
         <div className="flex items-center gap-2">
-          <AppLogo className="h-6 w-6 flex-shrink-0" />
+          <AppLogo className="h-9 w-9 flex-shrink-0" />
           <span
-            className="text-xl"
+            className="text-2xl"
             style={{
               fontFamily: '"Chomsky", serif',
               fontWeight: 700,
