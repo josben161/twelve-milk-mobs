@@ -46,7 +46,14 @@ export function Header() {
       <div className="flex w-full max-w-[480px] items-center justify-between px-3 h-11">
         <div className="flex items-center gap-2">
           <AppLogo className="h-6 w-6 flex-shrink-0" />
-          <span className="font-general font-semibold tracking-tight text-slate-800">
+          <span
+            className="text-[#142F62]"
+            style={{
+              fontFamily: '"Söhne", sans-serif',
+              fontWeight: 600,
+              letterSpacing: '-0.01em',
+            }}
+          >
             The Barn Social Platform
           </span>
         </div>
