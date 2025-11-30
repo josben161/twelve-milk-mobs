@@ -8,7 +8,7 @@ import { Header } from '@/components/layout/Header';
 import { BottomNav } from '@/components/layout/BottomNav';
 
 export const metadata: Metadata = {
-  title: 'The Barn Social Platform',
+  title: 'Barn Social',
   description: 'Social Platform feed powered by TwelveLabs',
 };
 

@@ -54,7 +54,7 @@ export function Header() {
               letterSpacing: '-0.01em',
             }}
           >
-            The Barn Social Platform
+            Barn Social
           </span>
         </div>
         <div className="flex items-center gap-1">
