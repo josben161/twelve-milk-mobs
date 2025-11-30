@@ -47,9 +47,10 @@ export function Header() {
         <div className="flex items-center gap-2">
           <AppLogo className="h-6 w-6 flex-shrink-0" />
           <span
-            className="text-[var(--text)] font-medium text-base"
+            className="text-[var(--text)] text-base"
             style={{
-              fontFamily: '"Engravers Old English", serif',
+              fontFamily: '"Chomsky", serif',
+              fontWeight: 700,
             }}
           >
             Barn Social
