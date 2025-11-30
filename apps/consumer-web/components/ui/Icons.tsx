@@ -225,31 +225,23 @@ export function AppLogo(props: SVGProps<SVGSVGElement>) {
     <svg
       width="32"
       height="32"
-      viewBox="0 0 32 32"
+      viewBox="0 0 128 128"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       {...props}
     >
-      {/* Modern app logo - abstract geometric shape */}
       <defs>
-        <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#6366f1" />
-          <stop offset="50%" stopColor="#8b5cf6" />
-          <stop offset="100%" stopColor="#ec4899" />
+        <linearGradient id="barnGradient" x1="0" y1="0" x2="128" y2="128">
+          <stop offset="0%" stopColor="#ef4444" />
+          <stop offset="100%" stopColor="#dc2626" />
         </linearGradient>
       </defs>
-      <rect
-        width="32"
-        height="32"
-        rx="8"
-        fill="url(#logoGradient)"
-      />
-      <path
-        d="M16 8L24 12V20L16 24L8 20V12L16 8Z"
-        fill="white"
-        fillOpacity="0.9"
-      />
-      <circle cx="16" cy="16" r="4" fill="white" />
+      <rect width="128" height="128" rx="28" fill="white" />
+      <path d="M28 74V56l36-28 36 28v18" fill="url(#barnGradient)" />
+      <rect x="48" y="74" width="32" height="36" rx="4" fill="#fff" />
+      <path d="M28 74h72" stroke="#991b1b" strokeWidth="8" strokeLinecap="round" />
+      <path d="M64 28l36 28v54H28V56z" stroke="#991b1b" strokeWidth="6" fill="none" />
+      <circle cx="64" cy="92" r="6" fill="#991b1b" />
     </svg>
   );
 }
