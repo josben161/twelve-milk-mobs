@@ -222,11 +222,13 @@ export function MoreIcon(props: SVGProps<SVGSVGElement>) {
 
 export function AppLogo(props: SVGProps<SVGSVGElement>) {
   return (
-  <svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
-    <rect width="128" height="128" rx="28" fill="#fafafa"/>
-    <path d="M44 38h40l6 54H38l6-54z" fill="#6b7280"/>
-    <path d="M48 38c0-10 8-18 18-18s18 8 18 18" stroke="#6b7280" stroke-width="8" stroke-linecap="round"/>
-    <circle cx="64" cy="86" r="6" fill="#111827"/>
+  <svg width="128" height="128" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+    <rect width="128" height="128" rx="28" fill="#fff"/>
+    <circle cx="64" cy="64" r="40" fill="#e5e7eb"/>
+    <circle cx="48" cy="58" r="8" fill="#111827"/>
+    <circle cx="80" cy="58" r="8" fill="#111827"/>
+    <ellipse cx="64" cy="80" rx="16" ry="10" fill="#fca5a5"/>
+    <path d="M44 40c6-8 20-10 24-10s18 2 24 10" stroke="#9ca3af" stroke-width="6" stroke-linecap="round"/>
   </svg>
   );
 }
