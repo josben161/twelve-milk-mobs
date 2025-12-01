@@ -1,72 +1,113 @@
 // apps/admin-web/app/page.tsx
-import { StatCard } from '@/components/ui';
-import { Panel } from '@/components/ui';
+'use client';
 
-const mockStats = {
-  totalVideos: 428,
-  validated: 312,
-  rejected: 46,
-  mobs: 12,
-  avgValidationScore: 0.87,
-  avgTimeToValidate: '3m 42s',
-};
+import { useEffect, useState } from 'react';
+import { StatCard, Panel, ValidationFunnelChart, QualityMetricsChart } from '@/components/ui';
+import { getDashboardStats } from '@/lib/api';
+import type { AdminStats } from '@twelve/core-types';
 
-const statCards = [
-  {
-    label: 'Total videos',
-    value: mockStats.totalVideos.toLocaleString(),
-    change: '+52',
-    changeLabel: 'Last 24 hours',
-    trend: 'up' as const,
-    icon: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-        <path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-        <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    ),
-  },
-  {
-    label: 'Validated',
-    value: mockStats.validated.toLocaleString(),
-    change: '73%',
-    changeLabel: 'Approval rate',
-    trend: 'neutral' as const,
-    icon: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-        <path d="M20 6L9 17l-5-5" />
-      </svg>
-    ),
-  },
-  {
-    label: 'Rejected',
-    value: mockStats.rejected.toLocaleString(),
-    change: '11%',
-    changeLabel: 'Rejection rate',
-    trend: 'down' as const,
-    icon: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-        <path d="M18 6L6 18M6 6l12 12" />
-      </svg>
-    ),
-  },
-  {
-    label: 'Active mobs',
-    value: mockStats.mobs.toString(),
-    change: '12',
-    changeLabel: 'Communities',
-    trend: 'neutral' as const,
-    icon: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
-        <circle cx="9" cy="7" r="4" />
-        <path d="M23 21v-2a4 4 0 00-3-3.87" />
-        <path d="M16 3.13a4 4 0 010 7.75" />
-      </svg>
-    ),
-  },
-];
+function formatTime(seconds: number): string {
+  if (seconds < 60) return `${Math.round(seconds)}s`;
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.round(seconds % 60);
+  if (mins < 60) return `${mins}m ${secs}s`;
+  const hours = Math.floor(mins / 60);
+  const remainingMins = mins % 60;
+  return `${hours}h ${remainingMins}m`;
+}
 
 export default function AdminHomePage() {
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await getDashboardStats();
+        setStats(data);
+      } catch (err) {
+        console.error('Error fetching dashboard stats:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load dashboard stats.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  // Calculate derived values
+  const approvalRate = stats && stats.totalVideos > 0
+    ? ((stats.validated / stats.totalVideos) * 100).toFixed(0)
+    : '0';
+  const rejectionRate = stats && stats.totalVideos > 0
+    ? ((stats.rejected / stats.totalVideos) * 100).toFixed(0)
+    : '0';
+
+  const statCards = stats
+    ? [
+        {
+          label: 'Total videos',
+          value: stats.totalVideos.toLocaleString(),
+          change: stats.totalVideos > 0 ? '+' : '0',
+          changeLabel: 'Total count',
+          trend: 'neutral' as const,
+          icon: (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+              <path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+              <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          ),
+        },
+        {
+          label: 'Validated',
+          value: stats.validated.toLocaleString(),
+          change: `${approvalRate}%`,
+          changeLabel: 'Approval rate',
+          trend: 'neutral' as const,
+          icon: (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+              <path d="M20 6L9 17l-5-5" />
+            </svg>
+          ),
+        },
+        {
+          label: 'Rejected',
+          value: stats.rejected.toLocaleString(),
+          change: `${rejectionRate}%`,
+          changeLabel: 'Rejection rate',
+          trend: 'down' as const,
+          icon: (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          ),
+        },
+        {
+          label: 'Active mobs',
+          value: stats.activeMobs.toString(),
+          change: stats.activeMobs.toString(),
+          changeLabel: 'Communities',
+          trend: 'neutral' as const,
+          icon: (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 00-3-3.87" />
+              <path d="M16 3.13a4 4 0 010 7.75" />
+            </svg>
+          ),
+        },
+      ]
+    : [];
+
+  // Placeholder chart data (will be enhanced later with time series data)
+  const funnelData: Array<{ date: string; uploaded: number; validated: number; rejected: number }> = [];
+  const qualityData: Array<{ date: string; avgScore: number; avgTime: number }> = [];
+
   return (
     <div className="w-full space-y-12">
       {/* Page Header */}
@@ -77,88 +118,103 @@ export default function AdminHomePage() {
         </p>
       </div>
 
-      {/* Stat Cards Grid */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
-        {statCards.map((card) => (
-          <StatCard
-            key={card.label}
-            label={card.label}
-            value={card.value}
-            change={card.change}
-            changeLabel={card.changeLabel}
-            trend={card.trend}
-            icon={card.icon}
-          />
-        ))}
-      </section>
+      {/* Loading State */}
+      {loading && (
+        <div className="text-center py-12">
+          <p className="text-sm text-[var(--text-muted)]">Loading dashboard...</p>
+        </div>
+      )}
 
-      {/* Charts & Panels */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Validation Funnel Panel */}
-        <Panel title="Validation funnel" description="Daily content ingestion and validation outcomes over time.">
-          <div className="h-56 rounded-xl bg-[var(--bg-subtle)] flex items-center justify-center">
-            <div className="text-center">
-              <p className="text-sm text-[var(--text-muted)] mb-2">Awaiting data...</p>
-              <p className="text-xs text-[var(--text-soft)]">Chart will appear here when data is available</p>
-            </div>
-          </div>
-        </Panel>
+      {/* Error State */}
+      {error && !loading && (
+        <div className="text-center py-12">
+          <p className="text-sm text-[var(--text-muted)] mb-2">Failed to load dashboard</p>
+          <p className="text-xs text-[var(--text-soft)]">{error}</p>
+        </div>
+      )}
 
-        {/* Quality Metrics Panel */}
-        <Panel title="Quality metrics" description="System performance and processing efficiency.">
-          <div className="space-y-8">
-            {/* Average Validation Score */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-medium text-[var(--text-muted)]">
-                  Average validation score
-                </span>
-                <span className="text-base font-semibold text-[var(--text)]">
-                  {Math.round(mockStats.avgValidationScore * 100)}%
-                </span>
-              </div>
-              <div className="h-2 bg-[var(--bg-subtle)] rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-[var(--accent)] to-indigo-500 rounded-full transition-all"
-                  style={{ width: `${mockStats.avgValidationScore * 100}%` }}
-                />
-              </div>
-            </div>
+      {/* Stats Content */}
+      {!loading && !error && stats && (
+        <>
+          {/* Stat Cards Grid */}
+          <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+            {statCards.map((card) => (
+              <StatCard
+                key={card.label}
+                label={card.label}
+                value={card.value}
+                change={card.change}
+                changeLabel={card.changeLabel}
+                trend={card.trend}
+                icon={card.icon}
+              />
+            ))}
+          </section>
 
-            {/* Processing Time */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-medium text-[var(--text-muted)]">
-                  Average processing time
-                </span>
-                <span className="text-base font-semibold text-[var(--text)]">
-                  {mockStats.avgTimeToValidate}
-                </span>
-              </div>
-              <p className="text-sm text-[var(--text-muted)] leading-relaxed">
-                Time from user upload to automated validation decision.
-              </p>
-            </div>
+          {/* Charts & Panels */}
+          <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Validation Funnel Panel */}
+            <Panel title="Validation funnel" description="Daily content ingestion and validation outcomes over time.">
+              <ValidationFunnelChart data={funnelData} />
+            </Panel>
 
-            {/* Modalities Covered */}
-            <div>
-              <p className="text-sm font-medium text-[var(--text-muted)] mb-4">
-                Modalities covered
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {['Video', 'Audio', 'Text'].map((modality) => (
-                  <span
-                    key={modality}
-                    className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--border-subtle)]"
-                  >
-                    {modality}
-                  </span>
-                ))}
+            {/* Quality Metrics Panel */}
+            <Panel title="Quality metrics" description="System performance and processing efficiency.">
+              <div className="space-y-8">
+                {/* Average Validation Score */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-medium text-[var(--text-muted)]">
+                      Average validation score
+                    </span>
+                    <span className="text-base font-semibold text-[var(--text)]">
+                      {Math.round(stats.avgValidationScore * 100)}%
+                    </span>
+                  </div>
+                  <div className="h-2 bg-[var(--bg-subtle)] rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-[var(--accent)] to-indigo-500 rounded-full transition-all"
+                      style={{ width: `${Math.min(stats.avgValidationScore * 100, 100)}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Processing Time */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-medium text-[var(--text-muted)]">
+                      Average processing time
+                    </span>
+                    <span className="text-base font-semibold text-[var(--text)]">
+                      {formatTime(stats.avgTimeToValidateSeconds)}
+                    </span>
+                  </div>
+                  <p className="text-sm text-[var(--text-muted)] leading-relaxed">
+                    Time from user upload to automated validation decision.
+                  </p>
+                </div>
+
+                {/* Modalities Covered */}
+                <div>
+                  <p className="text-sm font-medium text-[var(--text-muted)] mb-4">
+                    Modalities covered
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {['Video', 'Audio', 'Text'].map((modality) => (
+                      <span
+                        key={modality}
+                        className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--border-subtle)]"
+                      >
+                        {modality}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        </Panel>
-      </section>
+            </Panel>
+          </section>
+        </>
+      )}
     </div>
   );
 }

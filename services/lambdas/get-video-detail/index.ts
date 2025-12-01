@@ -68,11 +68,14 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     // Generate playback URL (CloudFront if available, otherwise S3 presigned URL)
     const s3Key = result.Item.s3Key?.S || '';
     let playbackUrl: string | undefined;
+    let thumbnailUrl: string | undefined;
 
     if (s3Key) {
       if (cloudfrontDomain) {
-        // Use CloudFront URL
+        // Use CloudFront URL (bucket is private, CloudFront OAI provides access)
         playbackUrl = `https://${cloudfrontDomain}/${s3Key}`;
+        // For now, use the same URL as thumbnail (can be enhanced with thumbnail generation later)
+        thumbnailUrl = playbackUrl; // Placeholder - can generate thumbnail from first frame later
       } else {
         // Fallback to S3 presigned URL
         try {
@@ -81,8 +84,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
             Key: s3Key,
           });
           playbackUrl = await getSignedUrl(s3, getObjectCmd, {
-            expiresIn: 15 * 60, // 15 minutes
+            expiresIn: 60 * 60, // 1 hour
           });
+          thumbnailUrl = playbackUrl; // Placeholder
         } catch (err) {
           console.warn(`Failed to generate presigned URL for ${s3Key}:`, err);
         }
@@ -99,7 +103,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       createdAt: result.Item.createdAt?.S || '',
       caption: result.Item.hashtags?.SS?.[0] || '', // Use first hashtag as caption
       hashtags: result.Item.hashtags?.SS || [],
-      thumbnailUrl: null, // Can be generated from S3 key later
+      thumbnailUrl,
       playbackUrl,
       validationScore: result.Item.participationScore?.N
         ? parseFloat(result.Item.participationScore.N)

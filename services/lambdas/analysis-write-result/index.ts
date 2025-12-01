@@ -5,6 +5,7 @@ import { SignatureV4 } from '@aws-sdk/signature-v4';
 import { HttpRequest } from '@aws-sdk/protocol-http';
 import { Sha256 } from '@aws-crypto/sha256-js';
 import type { ParticipationResult, EmbeddingResult } from '../../../packages/twelvelabs-client/src/index';
+import { createLogger } from '../shared/logger';
 
 const tableName = process.env.VIDEOS_TABLE_NAME!;
 const opensearchEndpoint = process.env.OPENSEARCH_ENDPOINT;
@@ -31,16 +32,21 @@ interface AnalysisOutput {
 
 export const handler = async (
   event: AnalysisInput,
-  _context: Context
+  context: Context
 ): Promise<AnalysisOutput> => {
-  console.log(`Writing analysis results for video: ${event.videoId}`);
+  const logger = createLogger({
+    videoId: event.videoId,
+    requestId: context.requestId,
+  });
+
+  logger.info('Writing analysis results', {
+    participationScore: event.participation.participationScore,
+    embeddingDim: event.embedding.dim,
+  });
 
   const { videoId, participation, embedding } = event;
   
-  // Determine status based on participation score (threshold: 0.7)
-  const status = participation.participationScore >= 0.7 ? 'validated' : 'rejected';
-
-  // Update DynamoDB with analysis results
+  // Update DynamoDB with analysis results (status will be set by validation step)
   await ddb.send(
     new UpdateItemCommand({
       TableName: tableName,
@@ -48,8 +54,7 @@ export const handler = async (
         videoId: { S: videoId },
       },
       UpdateExpression: `
-        SET #status = :status,
-            participationScore = :score,
+        SET participationScore = :score,
             mentionsMilk = :mentionsMilk,
             showsMilkObject = :showsMilkObject,
             showsActionAligned = :showsActionAligned,
@@ -58,11 +63,7 @@ export const handler = async (
             embeddingDim = :embeddingDim,
             timeline = :timeline
       `,
-      ExpressionAttributeNames: {
-        '#status': 'status',
-      },
       ExpressionAttributeValues: {
-        ':status': { S: status },
         ':score': { N: participation.participationScore.toString() },
         ':mentionsMilk': { BOOL: participation.mentionsMilk },
         ':showsMilkObject': { BOOL: participation.showsMilkObject },
@@ -75,7 +76,7 @@ export const handler = async (
     })
   );
 
-  console.log(`Analysis results written to DynamoDB for ${videoId}, status: ${status}`);
+  logger.info('Analysis results written to DynamoDB');
 
   // Index embedding in OpenSearch if endpoint is configured
   if (opensearchEndpoint) {
@@ -106,18 +107,18 @@ export const handler = async (
 
       // Index document in OpenSearch
       await indexInOpenSearch(videoId, document);
-      console.log(`Embedding indexed in OpenSearch for ${videoId}`);
+      logger.info('Embedding indexed in OpenSearch');
     } catch (err) {
       // Log error but don't fail the Lambda - OpenSearch indexing is optional
-      console.error(`Failed to index embedding in OpenSearch for ${videoId}:`, err);
+      logger.error('Failed to index embedding in OpenSearch', err);
     }
   }
 
   return {
     videoId,
-    status,
+    status: 'processing', // Status will be set by validation step
     participationScore: participation.participationScore,
-    mobId: null, // Will be assigned by clustering job
+    mobId: null, // Will be assigned by clustering step
   };
 }
 
@@ -134,7 +135,9 @@ async function ensureIndexExists(): Promise<void> {
     hostname: indexUrl.hostname,
     path: indexUrl.pathname,
     method: 'HEAD',
-    headers: {},
+    headers: {
+      'Host': indexUrl.host,
+    },
   });
 
   const signer = new SignatureV4({
@@ -182,6 +185,7 @@ async function ensureIndexExists(): Promise<void> {
     path: indexUrl.pathname,
     method: 'PUT',
     headers: {
+      'Host': indexUrl.host,
       'Content-Type': 'application/json',
       'Content-Length': Buffer.byteLength(JSON.stringify(mapping)).toString(),
     },
@@ -218,6 +222,7 @@ async function indexInOpenSearch(videoId: string, document: any): Promise<void> 
     path: url.pathname,
     method: 'PUT',
     headers: {
+      'Host': url.host,
       'Content-Type': 'application/json',
       'Content-Length': Buffer.byteLength(body).toString(),
     },

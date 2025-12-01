@@ -1,5 +1,5 @@
-import type { APIGatewayProxyHandlerV2 } from 'aws-lambda';
-import { DynamoDBClient, GetItemCommand, UpdateItemCommand, PutItemCommand } from '@aws-sdk/client-dynamodb';
+import type { APIGatewayProxyHandlerV2, Context } from 'aws-lambda';
+import { DynamoDBClient, GetItemCommand, UpdateItemCommand, PutItemCommand, ScanCommand } from '@aws-sdk/client-dynamodb';
 
 const videosTableName = process.env.VIDEOS_TABLE_NAME!;
 const mobsTableName = process.env.MOBS_TABLE_NAME!;
@@ -16,10 +16,86 @@ interface ClusterRequest {
   videoId: string;
 }
 
+interface StepFunctionsInput {
+  videoId: string;
+  status?: string;
+  participationScore?: number;
+  mobId?: string | null;
+}
+
+interface StepFunctionsOutput extends StepFunctionsInput {
+  mobId: string;
+}
+
 /**
- * Rule-based clustering: assign video to mob based on keywords
+ * Cosine similarity between two vectors
  */
-function determineMobId(hashtags: string[], actions: string[], objectsScenes: string[]): string {
+function cosineSimilarity(a: number[], b: number[]): number {
+  if (a.length !== b.length) return 0;
+  
+  let dotProduct = 0;
+  let normA = 0;
+  let normB = 0;
+  
+  for (let i = 0; i < a.length; i++) {
+    dotProduct += a[i] * b[i];
+    normA += a[i] * a[i];
+    normB += b[i] * b[i];
+  }
+  
+  const denominator = Math.sqrt(normA) * Math.sqrt(normB);
+  return denominator === 0 ? 0 : dotProduct / denominator;
+}
+
+/**
+ * Find nearest mob by embedding similarity
+ */
+async function findNearestMobByEmbedding(videoEmbedding: number[]): Promise<string | null> {
+  try {
+    // Scan all mobs to find centroids
+    const mobsScan = await ddb.send(
+      new ScanCommand({
+        TableName: mobsTableName,
+        ProjectionExpression: 'mobId, centroid',
+      })
+    );
+
+    let bestMobId: string | null = null;
+    let bestSimilarity = -1;
+    const similarityThreshold = 0.7; // Minimum similarity to assign to existing mob
+
+    for (const mob of mobsScan.Items || []) {
+      const mobId = mob.mobId?.S;
+      const centroidStr = mob.centroid?.S;
+      
+      if (!mobId || !centroidStr) continue;
+
+      try {
+        const centroid = JSON.parse(centroidStr);
+        if (!Array.isArray(centroid) || centroid.length !== videoEmbedding.length) continue;
+
+        const similarity = cosineSimilarity(videoEmbedding, centroid);
+        if (similarity > bestSimilarity && similarity >= similarityThreshold) {
+          bestSimilarity = similarity;
+          bestMobId = mobId;
+        }
+      } catch (e) {
+        console.warn(`Failed to parse centroid for mob ${mobId}:`, e);
+        continue;
+      }
+    }
+
+    return bestMobId;
+  } catch (err) {
+    console.error('Error finding nearest mob by embedding:', err);
+    return null;
+  }
+}
+
+/**
+ * Rule-based clustering: assign video to mob based on keywords (fallback)
+ */
+function determineMobIdByKeywords(hashtags: string[], actions: string[], objectsScenes: string[]): string {
   const allText = [
     ...hashtags.map((h) => h.toLowerCase()),
     ...actions.map((a) => a.toLowerCase()),
@@ -112,85 +188,137 @@ async function upsertMob(mobId: string, exampleHashtags: string[]): Promise<void
   }
 }
 
-export const handler: APIGatewayProxyHandlerV2 = async (event) => {
-  try {
-    // Extract videoId from event body or path parameters
-    let videoId: string;
-    
-    if (event.body) {
-      const body = JSON.parse(event.body) as ClusterRequest;
-      videoId = body.videoId;
-    } else if (event.pathParameters?.videoId) {
-      videoId = event.pathParameters.videoId;
-    } else {
-      return {
-        statusCode: 400,
-        headers: corsHeaders,
-        body: JSON.stringify({ error: 'videoId is required' }),
-      };
-    }
+/**
+ * Main clustering logic: uses embeddings first, falls back to keywords
+ */
+async function clusterVideo(videoId: string): Promise<string> {
+  console.log(`Clustering video: ${videoId}`);
 
-    console.log(`Clustering video: ${videoId}`);
-
-    // Fetch video record from Videos table
-    const videoResult = await ddb.send(
-      new GetItemCommand({
-        TableName: videosTableName,
-        Key: {
-          videoId: { S: videoId },
-        },
-      })
-    );
-
-    if (!videoResult.Item) {
-      return {
-        statusCode: 404,
-        headers: corsHeaders,
-        body: JSON.stringify({ error: 'Video not found' }),
-      };
-    }
-
-    const hashtags = videoResult.Item.hashtags?.SS || [];
-    const actions = videoResult.Item.actions?.SS || [];
-    const objectsScenes = videoResult.Item.objectsScenes?.SS || [];
-
-    // Determine mobId based on content
-    const mobId = determineMobId(hashtags, actions, objectsScenes);
-
-    console.log(`Assigned video ${videoId} to mob: ${mobId}`);
-
-    // Update video with mobId
-    await ddb.send(
-      new UpdateItemCommand({
-        TableName: videosTableName,
-        Key: {
-          videoId: { S: videoId },
-        },
-        UpdateExpression: 'SET mobId = :mobId',
-        ExpressionAttributeValues: {
-          ':mobId': { S: mobId },
-        },
-      })
-    );
-
-    // Upsert mob summary
-    await upsertMob(mobId, hashtags);
-
-    return {
-      statusCode: 200,
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'application/json',
+  // Fetch video record from Videos table
+  const videoResult = await ddb.send(
+    new GetItemCommand({
+      TableName: videosTableName,
+      Key: {
+        videoId: { S: videoId },
       },
-      body: JSON.stringify({ videoId, mobId }),
-    };
-  } catch (err) {
-    console.error('Error in cluster-video', err);
+    })
+  );
+
+  if (!videoResult.Item) {
+    throw new Error(`Video ${videoId} not found`);
+  }
+
+  const hashtags = videoResult.Item.hashtags?.SS || [];
+  const actions = videoResult.Item.actions?.SS || [];
+  const objectsScenes = videoResult.Item.objectsScenes?.SS || [];
+  const embeddingStr = videoResult.Item.embedding?.S;
+
+  let mobId: string;
+
+  // Try embedding-based clustering first
+  if (embeddingStr) {
+    try {
+      const embedding = JSON.parse(embeddingStr);
+      if (Array.isArray(embedding) && embedding.length > 0) {
+        const nearestMobId = await findNearestMobByEmbedding(embedding);
+        if (nearestMobId) {
+          console.log(`Assigned video ${videoId} to existing mob ${nearestMobId} by embedding similarity`);
+          mobId = nearestMobId;
+        } else {
+          // No similar mob found, use keyword-based clustering
+          console.log(`No similar mob found for ${videoId}, using keyword-based clustering`);
+          mobId = determineMobIdByKeywords(hashtags, actions, objectsScenes);
+        }
+      } else {
+        // Invalid embedding, fallback to keywords
+        mobId = determineMobIdByKeywords(hashtags, actions, objectsScenes);
+      }
+    } catch (e) {
+      console.warn(`Failed to parse embedding for ${videoId}, using keyword-based clustering:`, e);
+      mobId = determineMobIdByKeywords(hashtags, actions, objectsScenes);
+    }
+  } else {
+    // No embedding available, use keyword-based clustering
+    console.log(`No embedding available for ${videoId}, using keyword-based clustering`);
+    mobId = determineMobIdByKeywords(hashtags, actions, objectsScenes);
+  }
+
+  console.log(`Assigned video ${videoId} to mob: ${mobId}`);
+
+  // Update video with mobId
+  await ddb.send(
+    new UpdateItemCommand({
+      TableName: videosTableName,
+      Key: {
+        videoId: { S: videoId },
+      },
+      UpdateExpression: 'SET mobId = :mobId',
+      ExpressionAttributeValues: {
+        ':mobId': { S: mobId },
+      },
+    })
+  );
+
+  // Upsert mob summary
+  await upsertMob(mobId, hashtags);
+
+  return mobId;
+}
+
+/**
+ * Unified handler that works for both Step Functions and API Gateway
+ */
+export const handler = async (
+  event: StepFunctionsInput | APIGatewayProxyHandlerV2['event'],
+  context?: Context
+): Promise<StepFunctionsOutput | APIGatewayProxyHandlerV2['response']> => {
+  // Detect if this is a Step Functions invocation (has videoId directly) or API Gateway
+  if ('videoId' in event && typeof event.videoId === 'string') {
+    // Step Functions invocation
+    const stepInput = event as StepFunctionsInput;
+    const mobId = await clusterVideo(stepInput.videoId);
     return {
-      statusCode: 500,
-      headers: corsHeaders,
-      body: JSON.stringify({ error: 'Internal server error' }),
+      ...stepInput,
+      mobId,
     };
+  } else {
+    // API Gateway invocation
+    const apiEvent = event as Parameters<APIGatewayProxyHandlerV2>[0];
+    try {
+      // Extract videoId from event body or path parameters
+      let videoId: string;
+      
+      if (apiEvent.body) {
+        const body = JSON.parse(apiEvent.body) as ClusterRequest;
+        videoId = body.videoId;
+      } else if (apiEvent.pathParameters?.videoId) {
+        videoId = apiEvent.pathParameters.videoId;
+      } else {
+        return {
+          statusCode: 400,
+          headers: corsHeaders,
+          body: JSON.stringify({ error: 'videoId is required' }),
+        };
+      }
+
+      const mobId = await clusterVideo(videoId);
+
+      return {
+        statusCode: 200,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ videoId, mobId }),
+      };
+    } catch (err) {
+      console.error('Error in cluster-video', err);
+      return {
+        statusCode: 500,
+        headers: corsHeaders,
+        body: JSON.stringify({ error: 'Internal server error' }),
+      };
+    }
   }
 };
 

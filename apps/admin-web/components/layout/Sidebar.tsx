@@ -3,12 +3,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { OverviewIcon, VideosIcon, MobsIcon, SettingsIcon, AppLogo } from '@/components/ui/Icons';
+import { OverviewIcon, VideosIcon, MobsIcon, SettingsIcon, StatisticsIcon, AppLogo } from '@/components/ui/Icons';
 
 const navItems = [
   { href: '/', icon: OverviewIcon, label: 'Overview' },
   { href: '/videos', icon: VideosIcon, label: 'Videos' },
   { href: '/mobs', icon: MobsIcon, label: 'Mobs' },
+  { href: '/statistics', icon: StatisticsIcon, label: 'Statistics' },
   { href: '/settings', icon: SettingsIcon, label: 'Settings' },
 ];
 

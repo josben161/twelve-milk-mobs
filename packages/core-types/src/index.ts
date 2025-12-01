@@ -113,3 +113,44 @@ export interface AdminStats {
   // seconds
   avgTimeToValidateSeconds: number;
 }
+
+/**
+ * Feed post format for consumer web home feed
+ */
+export interface FeedPost {
+  id: string;
+  user: {
+    handle: string;
+    avatarColor: string;
+  };
+  mobName: string | null;
+  location: string | null;
+  tags: string[];
+  caption: string;
+  status: string;
+  createdAt: string;
+  video: {
+    id: string;
+    videoUrl?: string;
+    thumbnailUrl?: string;
+  };
+}
+
+/**
+ * Usage statistics for AWS services
+ */
+export interface UsageStats {
+  timeRange: string;
+  bedrock: {
+    invocations: number;
+    estimatedCost: number;
+    byModel: Array<{ modelId: string; invocations: number }>;
+  };
+  lambda: { invocations: number; duration: number; errors: number; estimatedCost: number };
+  apiGateway: { requests: number; errors: number; dataTransfer: number; estimatedCost: number };
+  dynamodb: { readUnits: number; writeUnits: number; storage: number; estimatedCost: number };
+  s3: { storage: number; requests: number; dataTransfer: number; estimatedCost: number };
+  opensearch: { instanceHours: number; storage: number; estimatedCost: number };
+  stepFunctions: { executions: number; duration: number; estimatedCost: number };
+  cloudfront: { requests: number; dataTransfer: number; estimatedCost: number };
+}

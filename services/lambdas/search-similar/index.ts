@@ -169,6 +169,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
           path: url.pathname,
           method: 'POST',
           headers: {
+            'Host': url.host,
             'Content-Type': 'application/json',
             'Content-Length': Buffer.byteLength(body).toString(),
           },

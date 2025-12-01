@@ -35,7 +35,13 @@ export const handler = async (
     s3Key: event.s3Key,
   });
 
-  console.log(`Marengo embedding complete for ${event.videoId}, dimension: ${embedding.dim}`);
+  // Log Bedrock usage for tracking
+  console.log(`Marengo embedding complete for ${event.videoId}`, {
+    dimension: embedding.dim,
+    bedrockModelId: twelvelabsMarengoModelId,
+    bedrockInvocation: true,
+    // Note: Input/output tokens would be available from Bedrock response if exposed by client
+  });
 
   return {
     ...event,
