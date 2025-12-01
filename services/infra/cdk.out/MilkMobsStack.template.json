@@ -2388,7 +2388,7 @@
    "Properties": {
     "Code": {
      "ImageUri": {
-      "Fn::Sub": "679729599398.dkr.ecr.us-east-1.${AWS::URLSuffix}/cdk-hnb659fds-container-assets-679729599398-us-east-1:5f847786c9b1212ae75e62ca384d7758607a2af4fb74bc6a193b30a177eecbb6"
+      "Fn::Sub": "679729599398.dkr.ecr.us-east-1.${AWS::URLSuffix}/cdk-hnb659fds-container-assets-679729599398-us-east-1:5bfbb3a5588f6595b9a1f34cc4f3e4eab19a7134773dbe9d00290f378def3cba"
      }
     },
     "Environment": {
@@ -2441,7 +2441,7 @@
    ],
    "Metadata": {
     "aws:cdk:path": "MilkMobsStack/GenerateThumbnailFn/Resource",
-    "aws:asset:path": "asset.5f847786c9b1212ae75e62ca384d7758607a2af4fb74bc6a193b30a177eecbb6",
+    "aws:asset:path": "asset.5bfbb3a5588f6595b9a1f34cc4f3e4eab19a7134773dbe9d00290f378def3cba",
     "aws:asset:dockerfile-path": "Dockerfile",
     "aws:asset:property": "Code.ImageUri"
    }
