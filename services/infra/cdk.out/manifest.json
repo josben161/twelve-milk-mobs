@@ -24,7 +24,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::679729599398:role/cdk-hnb659fds-deploy-role-679729599398-us-east-1",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::679729599398:role/cdk-hnb659fds-cfn-exec-role-679729599398-us-east-1",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-679729599398-us-east-1/d479b92ecf385ffd106b461f02273c880b30539942e8a9e4e3a18cd2aa748044.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-679729599398-us-east-1/82a7331d60345aab00dd9d077c542f2bfa1507355951315c00b3038855388ca5.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -343,6 +343,24 @@
             "data": "StartAnalysisFn88339548"
           }
         ],
+        "/MilkMobsStack/GenerateThumbnailFn/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GenerateThumbnailFnServiceRole622C0FEF"
+          }
+        ],
+        "/MilkMobsStack/GenerateThumbnailFn/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GenerateThumbnailFnServiceRoleDefaultPolicy1DD53BBA"
+          }
+        ],
+        "/MilkMobsStack/GenerateThumbnailFn/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GenerateThumbnailFn2BBD94BA"
+          }
+        ],
         "/MilkMobsStack/ClusterVideoFn/ServiceRole/Resource": [
           {
             "type": "aws:cdk:logicalId",
@@ -511,6 +529,24 @@
             "data": "VideoAnalysisStateMachineA7892CAE"
           }
         ],
+        "/MilkMobsStack/GetExecutionHistoryFn/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GetExecutionHistoryFnServiceRole9F5657C6"
+          }
+        ],
+        "/MilkMobsStack/GetExecutionHistoryFn/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GetExecutionHistoryFnServiceRoleDefaultPolicyCB3A8B2B"
+          }
+        ],
+        "/MilkMobsStack/GetExecutionHistoryFn/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "GetExecutionHistoryFnE73EB475"
+          }
+        ],
         "/MilkMobsStack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/Resource": [
           {
             "type": "aws:cdk:logicalId",
@@ -580,7 +616,7 @@
         "/MilkMobsStack/MilkMobsApi/Deployment/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "MilkMobsApiDeployment87A47DF9285b8bb2ae9fe6845e87bed948375c10"
+            "data": "MilkMobsApiDeployment87A47DF9f9bb7d060fa63f96654c2bd4f38632c9"
           }
         ],
         "/MilkMobsStack/MilkMobsApi/DeploymentStage.prod/Resource": [
@@ -1025,6 +1061,36 @@
           {
             "type": "aws:cdk:logicalId",
             "data": "MilkMobsApivalidatevideoIdGET05A96543"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/execution-history/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApiexecutionhistory5F21AD6E"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/execution-history/OPTIONS/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApiexecutionhistoryOPTIONSA631B4D5"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/execution-history/GET/ApiPermission.MilkMobsStackMilkMobsApi1ED7FB9D.GET..execution-history": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApiexecutionhistoryGETApiPermissionMilkMobsStackMilkMobsApi1ED7FB9DGETexecutionhistory0B6C3325"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/execution-history/GET/ApiPermission.Test.MilkMobsStackMilkMobsApi1ED7FB9D.GET..execution-history": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApiexecutionhistoryGETApiPermissionTestMilkMobsStackMilkMobsApi1ED7FB9DGETexecutionhistoryCA7A6252"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/execution-history/GET/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApiexecutionhistoryGET1758C3BD"
           }
         ],
         "/MilkMobsStack/SearchSimilarFn/ServiceRole/Resource": [

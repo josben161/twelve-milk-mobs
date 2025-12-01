@@ -33,3 +33,32 @@ export async function getUsageStats(timeRange: string): Promise<any> {
   return res.json();
 }
 
+export interface ExecutionStep {
+  id: string;
+  name: string;
+  type: string;
+  status: 'succeeded' | 'failed' | 'in_progress' | 'not_started';
+  startTime?: string;
+  endTime?: string;
+  error?: string;
+}
+
+export interface ExecutionGraph {
+  executionArn: string;
+  status: string;
+  startDate: string;
+  stopDate?: string;
+  steps: ExecutionStep[];
+}
+
+export async function getExecutionHistory(videoId: string): Promise<{ execution: ExecutionGraph | null }> {
+  const apiBase = getApiBase();
+  const res = await fetch(`${apiBase}/execution-history?videoId=${encodeURIComponent(videoId)}`);
+
+  if (!res.ok) {
+    throw new Error(`Failed to fetch execution history (${res.status})`);
+  }
+
+  return res.json();
+}
+

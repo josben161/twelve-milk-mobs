@@ -291,6 +291,32 @@ export class MilkMobsStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(30),
     });
 
+    // Thumbnail generation Lambda
+    // Note: This Lambda requires FFmpeg. Options:
+    // 1. Use a public FFmpeg Lambda Layer (e.g., serverlessrepo:ffmpeg-layer)
+    // 2. Create your own Lambda Layer with FFmpeg
+    // 3. Use Lambda Container Image with FFmpeg pre-installed
+    // 
+    // To add an FFmpeg layer, uncomment and set the layer ARN:
+    // const ffmpegLayer = lambda.LayerVersion.fromLayerVersionArn(
+    //   this,
+    //   'FFmpegLayer',
+    //   'arn:aws:lambda:us-east-1:123456789012:layer:ffmpeg:1'
+    // );
+    const generateThumbnailFn = new lambdaNodejs.NodejsFunction(this, 'GenerateThumbnailFn', {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'handler',
+      entry: path.join(__dirname, '../../lambdas/generate-thumbnail/index.ts'),
+      environment: {
+        UPLOADS_BUCKET_NAME: uploadsBucket.bucketName,
+        VIDEOS_TABLE_NAME: videosTable.tableName,
+        CLOUDFRONT_DISTRIBUTION_DOMAIN: distribution.distributionDomainName,
+      },
+      timeout: cdk.Duration.minutes(5), // Thumbnail generation may take time
+      memorySize: 1024, // More memory for video processing
+      // layers: [ffmpegLayer], // Uncomment when layer is configured
+    });
+
     // 5b) Lambda function to cluster videos into mobs
     const clusterVideoFn = new lambdaNodejs.NodejsFunction(this, 'ClusterVideoFn', {
       runtime: lambda.Runtime.NODEJS_20_X,
@@ -393,6 +419,7 @@ export class MilkMobsStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(10),
     });
 
+
     // EventBridge custom bus for video analysis events
     const eventBus = new events.EventBus(this, 'MilkMobsEventBus', {
       eventBusName: 'milk-mobs-bus',
@@ -488,11 +515,37 @@ export class MilkMobsStack extends cdk.Stack {
     videoAnalysisStateMachine.grantStartExecution(startAnalysisFn);
     startAnalysisFn.addEnvironment('STATE_MACHINE_ARN', videoAnalysisStateMachine.stateMachineArn);
 
+    // Execution history Lambda (defined after state machine so we can reference it)
+    const getExecutionHistoryFn = new lambdaNodejs.NodejsFunction(this, 'GetExecutionHistoryFn', {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'handler',
+      entry: path.join(__dirname, '../../lambdas/get-execution-history/index.ts'),
+      environment: {
+        STATE_MACHINE_ARN: videoAnalysisStateMachine.stateMachineArn,
+      },
+      timeout: cdk.Duration.seconds(30),
+    });
+
+    // Grant Step Functions read permissions
+    getExecutionHistoryFn.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: [
+          'states:ListExecutions',
+          'states:DescribeExecution',
+          'states:GetExecutionHistory',
+        ],
+        resources: [videoAnalysisStateMachine.stateMachineArn],
+      })
+    );
+
     // Grant permissions
     uploadsBucket.grantPut(createUploadFn);
     uploadsBucket.grantRead(startAnalysisFn);
+    uploadsBucket.grantReadWrite(generateThumbnailFn); // Read videos, write thumbnails
     videosTable.grantWriteData(createUploadFn);
     videosTable.grantReadData(startAnalysisFn);
+    videosTable.grantReadWriteData(generateThumbnailFn);
     videosTable.grantReadWriteData(analysisMarkProcessingFn);
     videosTable.grantReadWriteData(analysisWriteResultFn);
     videosTable.grantReadData(listUserVideosFn);
@@ -516,6 +569,10 @@ export class MilkMobsStack extends cdk.Stack {
         filters: [{ prefix: 'vid_', suffix: '.mp4' }],
       })
     );
+
+    // Grant start-analysis Lambda permission to invoke thumbnail generation
+    generateThumbnailFn.grantInvoke(startAnalysisFn);
+    startAnalysisFn.addEnvironment('GENERATE_THUMBNAIL_FUNCTION_NAME', generateThumbnailFn.functionName);
 
     // Batch clustering Lambda (runs on schedule)
     const clusterEmbeddingsFn = new lambdaNodejs.NodejsFunction(this, 'ClusterEmbeddingsFn', {
@@ -649,6 +706,12 @@ export class MilkMobsStack extends cdk.Stack {
     // Also support GET /validate/{videoId}
     const validateVideoId = validate.addResource('{videoId}');
     validateVideoId.addMethod('GET', new apigw.LambdaIntegration(validateVideoFn), {
+      methodResponses: [{ statusCode: '200' }],
+    });
+
+    // GET /execution-history?videoId={videoId}
+    const executionHistory = api.root.addResource('execution-history');
+    executionHistory.addMethod('GET', new apigw.LambdaIntegration(getExecutionHistoryFn), {
       methodResponses: [{ statusCode: '200' }],
     });
 

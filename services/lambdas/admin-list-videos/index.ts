@@ -26,9 +26,10 @@ export const handler: APIGatewayProxyHandlerV2 = async () => {
     const videos: VideoSummary[] =
       result.Items?.map((item) => {
         const s3Key = item.s3Key?.S || '';
-        const thumbnailUrl = s3Key && cloudfrontDomain
-          ? `https://${cloudfrontDomain}/${s3Key}`
-          : null;
+        // Use thumbnailUrl from DynamoDB if available, otherwise construct from CloudFront
+        const thumbnailUrl = item.thumbnailUrl?.S || (s3Key && cloudfrontDomain
+          ? `https://${cloudfrontDomain}/thumbnails/${item.videoId?.S || ''}.jpg`
+          : null);
 
         return {
           id: item.videoId?.S || '',

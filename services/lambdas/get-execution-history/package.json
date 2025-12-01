@@ -1,0 +1,17 @@
+{
+  "name": "get-execution-history",
+  "version": "1.0.0",
+  "description": "Lambda function to fetch Step Functions execution history for a video",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@aws-sdk/client-sfn": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}
+

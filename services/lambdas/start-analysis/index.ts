@@ -1,12 +1,15 @@
 import type { S3Event } from 'aws-lambda';
 import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb';
 import { SFNClient, StartExecutionCommand } from '@aws-sdk/client-sfn';
+import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 
 const tableName = process.env.VIDEOS_TABLE_NAME!;
 const stateMachineArn = process.env.STATE_MACHINE_ARN!;
+const generateThumbnailFunctionName = process.env.GENERATE_THUMBNAIL_FUNCTION_NAME;
 
 const ddb = new DynamoDBClient({});
 const sfn = new SFNClient({});
+const lambda = new LambdaClient({});
 
 export const handler = async (event: S3Event): Promise<void> => {
   console.log('Processing S3 event for analysis pipeline:', JSON.stringify(event, null, 2));
@@ -51,6 +54,7 @@ export const handler = async (event: S3Event): Promise<void> => {
         hashtags,
       };
 
+      // Start Step Functions execution
       await sfn.send(
         new StartExecutionCommand({
           stateMachineArn,
@@ -59,6 +63,36 @@ export const handler = async (event: S3Event): Promise<void> => {
       );
 
       console.log(`Started Step Functions execution for video ${videoId}`);
+
+      // Trigger thumbnail generation asynchronously (don't wait for it)
+      if (generateThumbnailFunctionName) {
+        try {
+          // Create a synthetic S3 event for the thumbnail Lambda
+          const thumbnailEvent = {
+            Records: [
+              {
+                s3: {
+                  bucket: { name: bucket },
+                  object: { key: key },
+                },
+              },
+            ],
+          };
+
+          await lambda.send(
+            new InvokeCommand({
+              FunctionName: generateThumbnailFunctionName,
+              InvocationType: 'Event', // Async invocation
+              Payload: JSON.stringify(thumbnailEvent),
+            })
+          );
+
+          console.log(`Triggered thumbnail generation for video ${videoId}`);
+        } catch (thumbnailErr) {
+          // Log but don't fail - thumbnail generation is optional
+          console.warn(`Failed to trigger thumbnail generation for ${videoId}:`, thumbnailErr);
+        }
+      }
     } catch (err) {
       console.error(`Error starting analysis for ${record.s3.object.key}:`, err);
       // Continue processing other records

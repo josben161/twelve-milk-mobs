@@ -7,4 +7,5 @@ export { EmptyState } from './EmptyState';
 export { NoDataState } from './NoDataState';
 export { ValidationFunnelChart } from './ValidationFunnelChart';
 export { QualityMetricsChart } from './QualityMetricsChart';
+export { ExecutionGraph } from './ExecutionGraph';
 

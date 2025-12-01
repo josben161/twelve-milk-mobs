@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { use } from 'react';
-import { Panel } from '@/components/ui';
+import { Panel, ExecutionGraph } from '@/components/ui';
 import { StatusPill } from '@/components/ui';
 import type { VideoDetail } from '@twelve/core-types';
+import { getExecutionHistory, type ExecutionGraph as ExecutionGraphType } from '@/lib/api';
 
 export default function VideoDetailPage({
   params,
@@ -13,6 +14,7 @@ export default function VideoDetailPage({
 }) {
   const { videoId } = use(params);
   const [video, setVideo] = useState<VideoDetail | null>(null);
+  const [executionGraph, setExecutionGraph] = useState<ExecutionGraphType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,6 +33,17 @@ export default function VideoDetailPage({
         }
         const data = await res.json();
         setVideo(data);
+
+        // Fetch execution history
+        try {
+          const executionData = await getExecutionHistory(videoId);
+          if (executionData.execution) {
+            setExecutionGraph(executionData.execution);
+          }
+        } catch (execErr) {
+          console.warn('Failed to fetch execution history:', execErr);
+          // Don't fail the page if execution history is unavailable
+        }
       } catch (err) {
         console.error('Error fetching video:', err);
         setError(err instanceof Error ? err.message : 'Failed to load video.');
@@ -215,6 +228,18 @@ export default function VideoDetailPage({
           </Panel>
         </div>
       </section>
+
+      {/* Execution Graph Panel */}
+      {executionGraph && (
+        <section>
+          <Panel
+            title="Analysis Pipeline Execution"
+            description="Step Functions state machine execution graph showing the processing flow for this video."
+          >
+            <ExecutionGraph steps={executionGraph.steps} executionStatus={executionGraph.status} />
+          </Panel>
+        </section>
+      )}
     </div>
   );
 }

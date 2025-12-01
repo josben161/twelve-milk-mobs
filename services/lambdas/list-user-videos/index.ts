@@ -41,9 +41,14 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       result.Items?.map((item) => {
         const videoId = item.videoId?.S || '';
         const s3Key = item.s3Key?.S || '';
+        const thumbnailUrl = item.thumbnailUrl?.S || '';
 
+        // Use thumbnailUrl from DynamoDB if available, otherwise fallback to video URL
         let thumb = '';
-        if (cloudfrontDomain && s3Key) {
+        if (thumbnailUrl) {
+          thumb = thumbnailUrl;
+        } else if (cloudfrontDomain && s3Key) {
+          // Fallback: use video URL (browsers can't use this as image, but we'll handle in UI)
           thumb = `https://${cloudfrontDomain}/${s3Key}`;
         }
 
