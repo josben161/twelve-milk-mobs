@@ -17,7 +17,6 @@ import * as opensearch from 'aws-cdk-lib/aws-opensearchservice';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as customResources from 'aws-cdk-lib/custom-resources';
-import * as ecrAssets from 'aws-cdk-lib/aws-ecr-assets';
 import * as path from 'path';
 
 export class MilkMobsStack extends cdk.Stack {
@@ -294,15 +293,13 @@ export class MilkMobsStack extends cdk.Stack {
 
     // Thumbnail generation Lambda using container image with FFmpeg pre-installed
     // The Dockerfile builds TypeScript and includes FFmpeg in the container
-    const thumbnailDockerImage = new ecrAssets.DockerImageAsset(this, 'ThumbnailDockerImage', {
-      directory: path.join(__dirname, '../../lambdas/generate-thumbnail'),
-      file: 'Dockerfile',
-    });
-
     const generateThumbnailFn = new lambda.DockerImageFunction(this, 'GenerateThumbnailFn', {
-      code: lambda.DockerImageCode.fromEcrImage(thumbnailDockerImage.repository, {
-        tagOrDigest: thumbnailDockerImage.imageTag,
-      }),
+      code: lambda.DockerImageCode.fromImageAsset(
+        path.join(__dirname, '../../lambdas/generate-thumbnail'),
+        {
+          file: 'Dockerfile',
+        }
+      ),
       environment: {
         UPLOADS_BUCKET_NAME: uploadsBucket.bucketName,
         VIDEOS_TABLE_NAME: videosTable.tableName,

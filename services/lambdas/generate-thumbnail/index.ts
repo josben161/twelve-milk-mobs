@@ -16,9 +16,11 @@ const cloudfrontDomain = process.env.CLOUDFRONT_DISTRIBUTION_DOMAIN;
 const s3 = new S3Client({});
 const ddb = new DynamoDBClient({});
 
-// FFmpeg is installed in the container image at /usr/bin/ffmpeg
-// Check common locations: container image (/usr/bin), Lambda layer (/opt/bin), or system PATH
-const FFMPEG_PATH = existsSync('/usr/bin/ffmpeg')
+// FFmpeg is installed in the container image at /usr/local/bin/ffmpeg (static binary)
+// Check common locations: static binary (/usr/local/bin), system (/usr/bin), Lambda layer (/opt/bin), or system PATH
+const FFMPEG_PATH = existsSync('/usr/local/bin/ffmpeg')
+  ? '/usr/local/bin/ffmpeg'
+  : existsSync('/usr/bin/ffmpeg')
   ? '/usr/bin/ffmpeg'
   : existsSync('/opt/bin/ffmpeg')
   ? '/opt/bin/ffmpeg'

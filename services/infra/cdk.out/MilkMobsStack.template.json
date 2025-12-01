@@ -2387,8 +2387,9 @@
    "Type": "AWS::Lambda::Function",
    "Properties": {
     "Code": {
-     "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
-     "S3Key": "fa04bdc8f83b1aced641b007589d08dfc4b494072d73e9fd8c44cb3e934672f9.zip"
+     "ImageUri": {
+      "Fn::Sub": "679729599398.dkr.ecr.us-east-1.${AWS::URLSuffix}/cdk-hnb659fds-container-assets-679729599398-us-east-1:5f847786c9b1212ae75e62ca384d7758607a2af4fb74bc6a193b30a177eecbb6"
+     }
     },
     "Environment": {
      "Variables": {
@@ -2406,15 +2407,14 @@
       }
      }
     },
-    "Handler": "index.handler",
     "MemorySize": 1024,
+    "PackageType": "Image",
     "Role": {
      "Fn::GetAtt": [
       "GenerateThumbnailFnServiceRole622C0FEF",
       "Arn"
      ]
     },
-    "Runtime": "nodejs20.x",
     "Tags": [
      {
       "Key": "Application",
@@ -2441,9 +2441,9 @@
    ],
    "Metadata": {
     "aws:cdk:path": "MilkMobsStack/GenerateThumbnailFn/Resource",
-    "aws:asset:path": "asset.fa04bdc8f83b1aced641b007589d08dfc4b494072d73e9fd8c44cb3e934672f9",
-    "aws:asset:is-bundled": true,
-    "aws:asset:property": "Code"
+    "aws:asset:path": "asset.5f847786c9b1212ae75e62ca384d7758607a2af4fb74bc6a193b30a177eecbb6",
+    "aws:asset:dockerfile-path": "Dockerfile",
+    "aws:asset:property": "Code.ImageUri"
    }
   },
   "ClusterVideoFnServiceRoleC7038455": {
@@ -8102,7 +8102,7 @@
   "CDKMetadata": {
    "Type": "AWS::CDK::Metadata",
    "Properties": {
-    "Analytics": "v2:deflate64:H4sIAAAAAAAA/21S247aMBD9ln33uhT6AwG60kq73Qj6jibOEAyOHXnGIGT53ys74aJVn845cznjy8zlfDGTsxe40KtqT69GNzJuGdRJwIV2kRYyLoM6IYvV3k5shNoZra6P8KRHsQTCJAz0TQsyrva2Rt9rIu2s2GrbGWRn34JVnCN3strfg0ko40K7986yjF9ed9pWSiHRe4uWNZfRq1zzlmv+W7HWxF434Wb+rJNorxZ61zYy/oXGYC4oJAk3oCUErw6E/qwVyrh2PejRpLAkNPQyPl5hYhs3OmVMghY7IEImWWWYXmRnXYtHkn8K3G+PZ7RMMv7OuAyUbe58EybfUHwZh/3URzsGOpGMH8X83Z7dCcXY6HXbYR24KPrWJ2MNHoxBI2ogElsGxk9QB23LqGedBAy6A8YLXGXcIHE16HKeB62UcsGyWONg3LVHW5bmSW0Zuptzh2KD5IJXmJdFfCIfXJuTE7tlpyGFT0txAVYHGddAh8aBL10PURnwfTlPJik9GzxcVSB2/c5PmmSsLrQqwXtN7d1Zt+iT+JYon5kvoW2X7b8CD4GTyP8qj/TjPJ/Jn7/k7OVIWr/6YFn3KDcj/gO7uKMJdAMAAA=="
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/21S247iMAz9lnkPWRb2BwrsSEgzO1XZd+SmpoS2SRU7IBT131dJC0WjffI5vhw7jldytV7K5RvcaKGqZtHqUoYDg2oE3OgYaC3DxqsGWWxPZkKjyW2r1X12T3wkGyAcRAtdWYEM25PJ0XWaSFsjDtrULbI1794ojp4n2J5m586qBt2+gxofvkGo1vrq5KxhGb6crrXJlEKifYWGNadxtjHnPeb8N2OniZ0u/aPhKx9EdTfQ2aqU4S+ULcaEBAZhezSE4NSZ0F21Qhl2tgM9iiQ0CA2dDPNmJlTYUSnaQdD6CETIJLNopi0dja3wQvJPMs8toHKP7JeFjIWonCywt6TZuntcucArGiYZfke78RS7PnHhpzF8GoOxP01t6MhADcnwkWbZm6ttUIyFTlc15p4To291MuTgoG2xFTkQiQMD4yeoszap1SsfBPS6BsYb3GUokDjrdZpnhplS1hsWO+xbe+/QpLt7YQeG+qFcoyiQrHcK0+M/kc+2isEJPaJTk4SnG7oBq7MMO6BzacGlqplkLbguzRPBMLwKzKrKE9vu6CZOMmQ32ibnMyd39qordIP4FkhfGB+hTR3lvzz3ngcRz0Be6Md1tZQ/f8nl24W0XjhvWHcoi9H+A4FlpEG3AwAA"
    },
    "Metadata": {
     "aws:cdk:path": "MilkMobsStack/CDKMetadata/Default"
