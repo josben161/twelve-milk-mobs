@@ -520,6 +520,12 @@ export class MilkMobsStack extends cdk.Stack {
 
     // Grant Step Functions read permissions
     // Note: DescribeExecution and GetExecutionHistory require permission on execution ARNs, not just the state machine ARN
+    // Execution ARNs format: arn:aws:states:region:account:execution:stateMachineName:executionName
+    // State Machine ARNs format: arn:aws:states:region:account:stateMachine:name
+    const stateMachineArn = videoAnalysisStateMachine.stateMachineArn;
+    // Replace "stateMachine" with "execution" and add wildcard for all executions
+    const executionArnPattern = stateMachineArn.replace(':stateMachine:', ':execution:') + ':*';
+
     getExecutionHistoryFn.addToRolePolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
@@ -529,8 +535,8 @@ export class MilkMobsStack extends cdk.Stack {
           'states:GetExecutionHistory',
         ],
         resources: [
-          videoAnalysisStateMachine.stateMachineArn,
-          `${videoAnalysisStateMachine.stateMachineArn}:*`, // Allow access to all executions under this state machine
+          stateMachineArn, // For ListExecutions
+          executionArnPattern, // For DescribeExecution and GetExecutionHistory on individual executions
         ],
       })
     );
