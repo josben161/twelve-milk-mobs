@@ -26,8 +26,26 @@ COPY index.ts tsconfig.json ${LAMBDA_TASK_ROOT}/
 # Build TypeScript
 RUN npm run build
 
+# Verify the build output exists
+RUN echo "=== Verifying TypeScript build ===" && \
+    ls -la dist/ && \
+    test -f dist/index.js || (echo "ERROR: dist/index.js not found after build" && exit 1) && \
+    echo "✓ dist/index.js exists"
+
+# Move the compiled handler to the root (Lambda expects handler at root level)
+RUN echo "=== Moving handler to root ===" && \
+    mv dist/index.js ${LAMBDA_TASK_ROOT}/index.js && \
+    ls -la ${LAMBDA_TASK_ROOT}/index.js && \
+    test -f ${LAMBDA_TASK_ROOT}/index.js || (echo "ERROR: index.js not found after move" && exit 1) && \
+    echo "✓ index.js moved to ${LAMBDA_TASK_ROOT}"
+
+# Verify handler export exists and is a function
+RUN echo "=== Verifying handler export ===" && \
+    node -e "const m = require('./index.js'); console.log('Handler type:', typeof m.handler); if (typeof m.handler !== 'function') { console.error('ERROR: handler is not a function'); process.exit(1); } console.log('✓ Handler export is valid');" && \
+    echo "✓ Handler verification complete"
+
 # Remove dev dependencies to reduce image size
 RUN npm prune --production
 
-# Set the CMD to your handler (use compiled JS file)
-CMD [ "dist/index.handler" ]
+# Set the CMD to your handler (Lambda container images expect format: "filename.exportName")
+CMD [ "index.handler" ]

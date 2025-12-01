@@ -53,12 +53,84 @@ export interface ExecutionGraph {
 
 export async function getExecutionHistory(videoId: string): Promise<{ execution: ExecutionGraph | null }> {
   const apiBase = getApiBase();
-  const res = await fetch(`${apiBase}/execution-history?videoId=${encodeURIComponent(videoId)}`);
+  const url = `${apiBase}/execution-history?videoId=${encodeURIComponent(videoId)}`;
+  
+  console.log('[getExecutionHistory] ===== START REQUEST =====');
+  console.log('[getExecutionHistory] videoId:', videoId);
+  console.log('[getExecutionHistory] API Base:', apiBase);
+  console.log('[getExecutionHistory] Full URL:', url);
+  console.log('[getExecutionHistory] Timestamp:', new Date().toISOString());
+  
+  try {
+    const startTime = Date.now();
+    const res = await fetch(url);
+    const duration = Date.now() - startTime;
 
-  if (!res.ok) {
-    throw new Error(`Failed to fetch execution history (${res.status})`);
+    console.log('[getExecutionHistory] Response received:', {
+      status: res.status,
+      statusText: res.statusText,
+      duration: `${duration}ms`,
+      headers: Object.fromEntries(res.headers.entries()),
+    });
+
+    // Always read the response body (even on errors) for debugging
+    const responseText = await res.text();
+    console.log('[getExecutionHistory] Response body (raw):', responseText.substring(0, 500));
+
+    if (!res.ok) {
+      let errorData: any;
+      try {
+        errorData = JSON.parse(responseText);
+      } catch {
+        errorData = responseText;
+      }
+      
+      console.error('[getExecutionHistory] ===== ERROR RESPONSE =====');
+      console.error('[getExecutionHistory] Status:', res.status);
+      console.error('[getExecutionHistory] Error data:', errorData);
+      console.error('[getExecutionHistory] Full response text:', responseText);
+      
+      const error = new Error(`Failed to fetch execution history (${res.status}): ${typeof errorData === 'string' ? errorData : JSON.stringify(errorData)}`);
+      (error as any).status = res.status;
+      (error as any).responseData = errorData;
+      throw error;
+    }
+
+    let data: any;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseErr) {
+      console.error('[getExecutionHistory] Failed to parse JSON response:', parseErr);
+      console.error('[getExecutionHistory] Response text:', responseText);
+      throw new Error(`Invalid JSON response: ${responseText.substring(0, 200)}`);
+    }
+
+    console.log('[getExecutionHistory] ===== SUCCESS RESPONSE =====');
+    console.log('[getExecutionHistory] Parsed data structure:', {
+      hasExecution: !!data.execution,
+      executionArn: data.execution?.executionArn,
+      executionStatus: data.execution?.status,
+      stepsCount: data.execution?.steps?.length || 0,
+      stepIds: data.execution?.steps?.map((s: any) => s.id) || [],
+      message: data.message,
+    });
+    console.log('[getExecutionHistory] Full response data:', JSON.stringify(data, null, 2));
+    console.log('[getExecutionHistory] ===== END REQUEST =====');
+
+    return data;
+  } catch (err) {
+    console.error('[getExecutionHistory] ===== FETCH ERROR =====');
+    console.error('[getExecutionHistory] Error type:', err instanceof Error ? err.constructor.name : typeof err);
+    console.error('[getExecutionHistory] Error message:', err instanceof Error ? err.message : String(err));
+    console.error('[getExecutionHistory] Error stack:', err instanceof Error ? err.stack : 'No stack trace');
+    if (err instanceof Error && 'status' in err) {
+      console.error('[getExecutionHistory] HTTP Status:', (err as any).status);
+    }
+    if (err instanceof Error && 'responseData' in err) {
+      console.error('[getExecutionHistory] Response data:', (err as any).responseData);
+    }
+    console.error('[getExecutionHistory] ===== END ERROR =====');
+    throw err;
   }
-
-  return res.json();
 }
 

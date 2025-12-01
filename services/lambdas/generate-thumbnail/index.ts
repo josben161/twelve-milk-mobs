@@ -26,6 +26,16 @@ const FFMPEG_PATH = existsSync('/usr/local/bin/ffmpeg')
   ? '/opt/bin/ffmpeg'
   : 'ffmpeg';
 
+// Module-level initialization logging (runs when Lambda container loads)
+console.log('=== Thumbnail Lambda Module Loading ===');
+console.log('Environment variables:', {
+  UPLOADS_BUCKET_NAME: bucketName || 'NOT SET',
+  VIDEOS_TABLE_NAME: tableName || 'NOT SET',
+  CLOUDFRONT_DISTRIBUTION_DOMAIN: cloudfrontDomain || 'NOT SET',
+});
+console.log('FFmpeg path:', FFMPEG_PATH);
+console.log('=== Module Loaded Successfully ===');
+
 // Check if FFmpeg is available
 async function checkFFmpegAvailable(): Promise<boolean> {
   try {
@@ -43,19 +53,22 @@ async function checkFFmpegAvailable(): Promise<boolean> {
 
 // Handler can accept either S3Event (from S3 trigger) or a synthetic event (from Lambda invocation)
 export const handler = async (event: S3Event | { Records: Array<{ s3: { bucket: { name: string }; object: { key: string } } }> }): Promise<void> => {
-  console.log('Processing event for thumbnail generation:', JSON.stringify(event, null, 2));
+  console.log('=== Thumbnail Lambda Handler Invoked ===');
+  console.log('Event received:', JSON.stringify(event, null, 2));
+  console.log('Processing event for thumbnail generation');
+  
+  try {
+    // Check FFmpeg availability at the start
+    const ffmpegAvailable = await checkFFmpegAvailable();
+    if (!ffmpegAvailable) {
+      console.error('FFmpeg is not available. Thumbnail generation will fail. Please configure an FFmpeg Lambda Layer.');
+      // Continue anyway - individual records will handle the error
+    }
 
-  // Check FFmpeg availability at the start
-  const ffmpegAvailable = await checkFFmpegAvailable();
-  if (!ffmpegAvailable) {
-    console.error('FFmpeg is not available. Thumbnail generation will fail. Please configure an FFmpeg Lambda Layer.');
-    // Continue anyway - individual records will handle the error
-  }
-
-  for (const record of event.Records) {
-    let tempVideoPath: string | null = null;
-    let tempThumbnailPath: string | null = null;
-    let videoId: string | null = null;
+    for (const record of event.Records) {
+      let tempVideoPath: string | null = null;
+      let tempThumbnailPath: string | null = null;
+      let videoId: string | null = null;
 
     try {
       const bucket = record.s3.bucket.name;
@@ -189,12 +202,14 @@ export const handler = async (event: S3Event | { Records: Array<{ s3: { bucket: 
       const key = record.s3?.object?.key ? decodeURIComponent(record.s3.object.key.replace(/\+/g, ' ')) : 'unknown';
       const extractedVideoId = videoId || (key.match(/^vid_[a-f0-9-]+\.mp4$/) ? key.replace(/\.mp4$/, '') : 'unknown');
       
-      console.error(`Error generating thumbnail for video ${extractedVideoId}:`, {
+      console.error(`=== ERROR generating thumbnail for video ${extractedVideoId} ===`);
+      console.error('Error details:', {
         error: errorMessage,
         stack: err instanceof Error ? err.stack : undefined,
         videoId: extractedVideoId,
         bucket: record.s3?.bucket?.name,
         key: key,
+        errorType: err instanceof Error ? err.constructor.name : typeof err,
       });
       
       // Log to CloudWatch for monitoring
@@ -224,6 +239,16 @@ export const handler = async (event: S3Event | { Records: Array<{ s3: { bucket: 
         }
       }
     }
+    }
+    console.log('=== Thumbnail Lambda Handler Completed ===');
+  } catch (outerErr) {
+    console.error('=== FATAL ERROR in thumbnail Lambda handler ===');
+    console.error('Outer error:', {
+      message: outerErr instanceof Error ? outerErr.message : String(outerErr),
+      stack: outerErr instanceof Error ? outerErr.stack : undefined,
+      type: outerErr instanceof Error ? outerErr.constructor.name : typeof outerErr,
+    });
+    throw outerErr;
   }
 };
 

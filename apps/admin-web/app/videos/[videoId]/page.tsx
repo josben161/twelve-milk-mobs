@@ -17,6 +17,15 @@ export default function VideoDetailPage({
   const [executionGraph, setExecutionGraph] = useState<ExecutionGraphType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [executionLoading, setExecutionLoading] = useState(false);
+  const [executionError, setExecutionError] = useState<string | null>(null);
+  const [debugInfo, setDebugInfo] = useState<{
+    show: boolean;
+    requestUrl?: string;
+    requestStatus?: number;
+    responseData?: any;
+    error?: string;
+  }>({ show: false });
 
   useEffect(() => {
     const fetchVideo = async () => {
@@ -32,14 +41,52 @@ export default function VideoDetailPage({
         setVideo(data);
 
         // Fetch execution history
+        setExecutionLoading(true);
+        setExecutionError(null);
         try {
+          const apiBase = getApiBase();
+          const requestUrl = `${apiBase}/execution-history?videoId=${encodeURIComponent(videoId)}`;
+          
+          console.log('[VideoDetailPage] Fetching execution history for videoId:', videoId);
+          console.log('[VideoDetailPage] Request URL:', requestUrl);
+          
+          setDebugInfo({
+            show: true,
+            requestUrl,
+            requestStatus: undefined,
+            responseData: undefined,
+            error: undefined,
+          });
+          
           const executionData = await getExecutionHistory(videoId);
+          console.log('[VideoDetailPage] Execution data received:', executionData);
+          
+          setDebugInfo(prev => ({
+            ...prev,
+            requestStatus: 200,
+            responseData: executionData,
+          }));
+          
           if (executionData.execution) {
+            console.log('[VideoDetailPage] Setting execution graph with', executionData.execution.steps.length, 'steps');
             setExecutionGraph(executionData.execution);
+          } else {
+            console.warn('[VideoDetailPage] No execution found for video:', videoId);
+            setExecutionError('No Step Functions execution found for this video. The video may not have been processed yet.');
           }
         } catch (execErr) {
-          console.warn('Failed to fetch execution history:', execErr);
+          console.error('[VideoDetailPage] Failed to fetch execution history:', execErr);
+          const errorMessage = execErr instanceof Error ? execErr.message : 'Failed to load execution history';
+          setExecutionError(errorMessage);
+          
+          setDebugInfo(prev => ({
+            ...prev,
+            requestStatus: execErr instanceof Error && 'status' in execErr ? (execErr as any).status : undefined,
+            error: errorMessage,
+          }));
           // Don't fail the page if execution history is unavailable
+        } finally {
+          setExecutionLoading(false);
         }
       } catch (err) {
         console.error('Error fetching video:', err);
@@ -227,16 +274,103 @@ export default function VideoDetailPage({
       </section>
 
       {/* Execution Graph Panel */}
-      {executionGraph && (
-        <section>
-          <Panel
-            title="Analysis Pipeline Execution"
-            description="Step Functions state machine execution graph showing the processing flow for this video."
-          >
+      <section>
+        <Panel
+          title="Analysis Pipeline Execution"
+          description="Step Functions state machine execution graph showing the processing flow for this video."
+        >
+          {executionLoading ? (
+            <div className="flex items-center justify-center h-64 border border-[var(--border-subtle)] rounded-lg bg-[var(--bg-soft)]">
+              <p className="text-sm text-[var(--text-muted)]">Loading execution history...</p>
+            </div>
+          ) : executionError ? (
+            <div className="flex flex-col items-center justify-center h-64 border border-[var(--border-subtle)] rounded-lg bg-[var(--bg-soft)] p-6">
+              <p className="text-sm font-medium text-[var(--text)] mb-2">Unable to load execution graph</p>
+              <p className="text-xs text-[var(--text-muted)] text-center max-w-md">{executionError}</p>
+              <p className="text-xs text-[var(--text-muted)] mt-4">
+                Check the browser console for detailed error information.
+              </p>
+            </div>
+          ) : executionGraph ? (
             <ExecutionGraph steps={executionGraph.steps} executionStatus={executionGraph.status} />
-          </Panel>
-        </section>
-      )}
+          ) : (
+            <div className="flex items-center justify-center h-64 border border-[var(--border-subtle)] rounded-lg bg-[var(--bg-soft)]">
+              <p className="text-sm text-[var(--text-muted)]">No execution data available</p>
+            </div>
+          )}
+        </Panel>
+      </section>
+
+      {/* Debug Panel */}
+      <section>
+        <Panel
+          title={
+            <div className="flex items-center justify-between w-full">
+              <span>Debug Information</span>
+              <button
+                onClick={() => setDebugInfo(prev => ({ ...prev, show: !prev.show }))}
+                className="text-xs px-3 py-1 rounded border transition-colors"
+                style={{
+                  borderColor: 'var(--border-subtle)',
+                  color: 'var(--text-muted)',
+                  backgroundColor: 'var(--bg-soft)',
+                }}
+              >
+                {debugInfo.show ? 'Hide' : 'Show'} Debug
+              </button>
+            </div>
+          }
+          description="API request and response details for troubleshooting."
+        >
+          {debugInfo.show && (
+            <div className="space-y-4 text-xs font-mono">
+              {debugInfo.requestUrl && (
+                <div>
+                  <p className="font-semibold text-[var(--text)] mb-1">Request URL:</p>
+                  <p className="text-[var(--text-muted)] break-all p-2 rounded bg-[var(--bg-soft)] border border-[var(--border-subtle)]">
+                    {debugInfo.requestUrl}
+                  </p>
+                </div>
+              )}
+              {debugInfo.requestStatus !== undefined && (
+                <div>
+                  <p className="font-semibold text-[var(--text)] mb-1">Response Status:</p>
+                  <p className="text-[var(--text-muted)]">
+                    <span className={`px-2 py-1 rounded ${
+                      debugInfo.requestStatus >= 200 && debugInfo.requestStatus < 300
+                        ? 'bg-emerald-500/10 text-emerald-600'
+                        : debugInfo.requestStatus >= 400
+                        ? 'bg-rose-500/10 text-rose-600'
+                        : 'bg-gray-500/10 text-gray-600'
+                    }`}>
+                      {debugInfo.requestStatus}
+                    </span>
+                  </p>
+                </div>
+              )}
+              {debugInfo.error && (
+                <div>
+                  <p className="font-semibold text-[var(--text)] mb-1">Error:</p>
+                  <p className="text-rose-600 p-2 rounded bg-rose-500/10 border border-rose-500/20 break-all">
+                    {debugInfo.error}
+                  </p>
+                </div>
+              )}
+              {debugInfo.responseData && (
+                <div>
+                  <p className="font-semibold text-[var(--text)] mb-1">Response Data:</p>
+                  <pre className="text-[var(--text-muted)] p-3 rounded bg-[var(--bg-soft)] border border-[var(--border-subtle)] overflow-auto max-h-96">
+                    {JSON.stringify(debugInfo.responseData, null, 2)}
+                  </pre>
+                </div>
+              )}
+              {!debugInfo.requestUrl && !debugInfo.error && (
+                <p className="text-[var(--text-muted)]">No debug information available yet. Try loading the page again.</p>
+              )}
+            </div>
+          )}
+        </Panel>
+      </section>
     </div>
   );
 }
