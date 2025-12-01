@@ -16,11 +16,25 @@ import * as cloudfrontOrigins from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as opensearch from 'aws-cdk-lib/aws-opensearchservice';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import * as customResources from 'aws-cdk-lib/custom-resources';
 import * as path from 'path';
 
 export class MilkMobsStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+
+    // Define common tags for all resources
+    const tags = {
+      Application: 'MilkMobs',
+      Environment: 'prod',
+      ManagedBy: 'CDK',
+      CostCenter: 'Marketing',
+    };
+
+    // Apply tags to stack
+    Object.entries(tags).forEach(([key, value]) => {
+      cdk.Tags.of(this).add(key, value);
+    });
 
     // 1) S3 bucket for raw uploads
     const uploadsBucket = new s3.Bucket(this, 'UploadsBucket', {
@@ -86,12 +100,18 @@ export class MilkMobsStack extends cdk.Stack {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.RETAIN,
     });
+    Object.entries(tags).forEach(([key, value]) => {
+      cdk.Tags.of(videosTable).add(key, value);
+    });
 
     // 2b) DynamoDB table for mobs
     const mobsTable = new dynamodb.Table(this, 'MobsTable', {
       partitionKey: { name: 'mobId', type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
+    Object.entries(tags).forEach(([key, value]) => {
+      cdk.Tags.of(mobsTable).add(key, value);
     });
 
     // 2c) OpenSearch domain for vector search
@@ -123,6 +143,33 @@ export class MilkMobsStack extends cdk.Stack {
         }),
       ],
       removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
+
+    // 2d) Custom resource to create OpenSearch index on stack deployment
+    const createIndexFn = new lambdaNodejs.NodejsFunction(this, 'CreateOpenSearchIndexFn', {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'handler',
+      entry: path.join(__dirname, '../../lambdas/create-opensearch-index/index.ts'),
+      environment: {
+        OPENSEARCH_ENDPOINT: opensearchDomain.domainEndpoint,
+        OPENSEARCH_INDEX_NAME: 'videos',
+        // AWS_REGION is automatically set by Lambda runtime, don't set it manually
+      },
+      timeout: cdk.Duration.minutes(2),
+    });
+
+    // Grant OpenSearch access to custom resource Lambda
+    opensearchDomain.grantIndexWrite('videos', createIndexFn);
+
+    const indexProvider = new customResources.Provider(this, 'OpenSearchIndexProvider', {
+      onEventHandler: createIndexFn,
+    });
+
+    new cdk.CustomResource(this, 'OpenSearchIndex', {
+      serviceToken: indexProvider.serviceToken,
+      properties: {
+        IndexName: 'videos',
+      },
     });
 
     // 3) Lambda function to create upload (presigned URL + metadata)
@@ -220,6 +267,18 @@ export class MilkMobsStack extends cdk.Stack {
     // Grant OpenSearch access to analysis-write-result Lambda
     opensearchDomain.grantIndexWrite('videos', analysisWriteResultFn);
 
+    // Validation Lambda function
+    const validateVideoFn = new lambdaNodejs.NodejsFunction(this, 'ValidateVideoFn', {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'handler',
+      entry: path.join(__dirname, '../../lambdas/validate-video/index.ts'),
+      environment: {
+        VIDEOS_TABLE_NAME: videosTable.tableName,
+        VALIDATION_THRESHOLD: '0.7',
+      },
+      timeout: cdk.Duration.seconds(30),
+    });
+
     // Start-analysis Lambda (replaces process-video for S3 trigger)
     const startAnalysisFn = new lambdaNodejs.NodejsFunction(this, 'StartAnalysisFn', {
       runtime: lambda.Runtime.NODEJS_20_X,
@@ -269,6 +328,36 @@ export class MilkMobsStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(10),
     });
 
+    const adminGetStatsFn = new lambdaNodejs.NodejsFunction(this, 'AdminGetStatsFn', {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'handler',
+      entry: path.join(__dirname, '../../lambdas/admin-get-stats/index.ts'),
+      environment: {
+        VIDEOS_TABLE_NAME: videosTable.tableName,
+        MOBS_TABLE_NAME: mobsTable.tableName,
+      },
+      timeout: cdk.Duration.seconds(30), // May need more time for scanning
+    });
+
+    const adminGetUsageStatsFn = new lambdaNodejs.NodejsFunction(this, 'AdminGetUsageStatsFn', {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'handler',
+      entry: path.join(__dirname, '../../lambdas/admin-get-usage-stats/index.ts'),
+      environment: {
+        STACK_NAME: this.stackName,
+      },
+      timeout: cdk.Duration.seconds(30),
+    });
+
+    // Grant CloudWatch read permissions
+    adminGetUsageStatsFn.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['cloudwatch:GetMetricData', 'cloudwatch:ListMetrics'],
+        resources: ['*'],
+      })
+    );
+
     const listMobsFn = new lambdaNodejs.NodejsFunction(this, 'ListMobsFn', {
       runtime: lambda.Runtime.NODEJS_20_X,
       handler: 'handler',
@@ -286,6 +375,18 @@ export class MilkMobsStack extends cdk.Stack {
       environment: {
         MOBS_TABLE_NAME: mobsTable.tableName,
         VIDEOS_TABLE_NAME: videosTable.tableName,
+      },
+      timeout: cdk.Duration.seconds(10),
+    });
+
+    const getFeedFn = new lambdaNodejs.NodejsFunction(this, 'GetFeedFn', {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'handler',
+      entry: path.join(__dirname, '../../lambdas/get-feed/index.ts'),
+      environment: {
+        VIDEOS_TABLE_NAME: videosTable.tableName,
+        MOBS_TABLE_NAME: mobsTable.tableName,
+        CLOUDFRONT_DISTRIBUTION_DOMAIN: distribution.distributionDomainName,
       },
       timeout: cdk.Duration.seconds(10),
     });
@@ -335,6 +436,18 @@ export class MilkMobsStack extends cdk.Stack {
       outputPath: '$.Payload',
     });
 
+    // Validation task
+    const validateTask = new sfnTasks.LambdaInvoke(this, 'ValidateTask', {
+      lambdaFunction: validateVideoFn,
+      outputPath: '$.Payload',
+    });
+
+    // Clustering task
+    const clusterTask = new sfnTasks.LambdaInvoke(this, 'ClusterTask', {
+      lambdaFunction: clusterVideoFn,
+      outputPath: '$.Payload',
+    });
+
     // Emit EventBridge event
     const emitEventTask = new sfnTasks.EventBridgePutEvents(this, 'EmitVideoAnalyzedEvent', {
       entries: [
@@ -343,6 +456,7 @@ export class MilkMobsStack extends cdk.Stack {
             videoId: sfn.JsonPath.stringAt('$.videoId'),
             status: sfn.JsonPath.stringAt('$.status'),
             participationScore: sfn.JsonPath.numberAt('$.participationScore'),
+            validationScore: sfn.JsonPath.numberAt('$.validationScore'),
             mobId: sfn.JsonPath.stringAt('$.mobId'),
           }),
           detailType: 'VideoAnalyzed',
@@ -352,11 +466,13 @@ export class MilkMobsStack extends cdk.Stack {
       ],
     });
 
-    // Define state machine
+    // Define state machine: markProcessing -> parallelAnalysis -> mergeResults -> writeResult -> validate -> cluster -> emitEvent
     const definition = markProcessingTask
       .next(parallelAnalysis)
       .next(mergeResults)
       .next(writeResultTask)
+      .next(validateTask)
+      .next(clusterTask)
       .next(emitEventTask);
 
     const videoAnalysisStateMachine = new sfn.StateMachine(this, 'VideoAnalysisStateMachine', {
@@ -378,12 +494,17 @@ export class MilkMobsStack extends cdk.Stack {
     videosTable.grantReadWriteData(analysisWriteResultFn);
     videosTable.grantReadData(listUserVideosFn);
     videosTable.grantReadWriteData(clusterVideoFn);
+    videosTable.grantReadWriteData(validateVideoFn);
     videosTable.grantReadData(getVideoDetailFn);
     videosTable.grantReadData(adminListVideosFn);
+    videosTable.grantReadData(adminGetStatsFn);
     videosTable.grantReadData(getMobFn);
+    videosTable.grantReadData(getFeedFn);
     mobsTable.grantReadWriteData(clusterVideoFn);
     mobsTable.grantReadData(listMobsFn);
     mobsTable.grantReadData(getMobFn);
+    mobsTable.grantReadData(getFeedFn);
+    mobsTable.grantReadData(adminGetStatsFn);
 
     // Add S3 event source to trigger start-analysis Lambda
     startAnalysisFn.addEventSource(
@@ -449,10 +570,33 @@ export class MilkMobsStack extends cdk.Stack {
       methodResponses: [{ statusCode: '200' }],
     });
 
+    // GET /feed or GET /videos/feed
+    const feed = videos.addResource('feed');
+    feed.addMethod('GET', new apigw.LambdaIntegration(getFeedFn), {
+      methodResponses: [{ statusCode: '200' }],
+    });
+    // Also support GET /feed at root level
+    const rootFeed = api.root.addResource('feed');
+    rootFeed.addMethod('GET', new apigw.LambdaIntegration(getFeedFn), {
+      methodResponses: [{ statusCode: '200' }],
+    });
+
     // GET /admin/videos
     const admin = api.root.addResource('admin');
     const adminVideos = admin.addResource('videos');
     adminVideos.addMethod('GET', new apigw.LambdaIntegration(adminListVideosFn), {
+      methodResponses: [{ statusCode: '200' }],
+    });
+
+    // GET /admin/stats
+    const adminStats = admin.addResource('stats');
+    adminStats.addMethod('GET', new apigw.LambdaIntegration(adminGetStatsFn), {
+      methodResponses: [{ statusCode: '200' }],
+    });
+
+    // GET /admin/usage-stats
+    const adminUsageStats = admin.addResource('usage-stats');
+    adminUsageStats.addMethod('GET', new apigw.LambdaIntegration(adminGetUsageStatsFn), {
       methodResponses: [{ statusCode: '200' }],
     });
 
@@ -494,18 +638,6 @@ export class MilkMobsStack extends cdk.Stack {
     });
 
     // POST /validate (or GET /validate/{videoId})
-    const validateVideoFn = new lambdaNodejs.NodejsFunction(this, 'ValidateVideoFn', {
-      runtime: lambda.Runtime.NODEJS_20_X,
-      handler: 'handler',
-      entry: path.join(__dirname, '../../lambdas/validate-video/index.ts'),
-      environment: {
-        VIDEOS_TABLE_NAME: videosTable.tableName,
-      },
-      timeout: cdk.Duration.seconds(10),
-    });
-
-    videosTable.grantReadData(validateVideoFn);
-
     const validate = api.root.addResource('validate');
     validate.addMethod('POST', new apigw.LambdaIntegration(validateVideoFn), {
       methodResponses: [{ statusCode: '200' }],
@@ -604,6 +736,13 @@ export class MilkMobsStack extends cdk.Stack {
         width: 24,
       }),
       new cloudwatch.GraphWidget({
+        title: 'Lambda Duration (ms)',
+        left: analysisLambdas.map((fn) =>
+          fn.metricDuration({ statistic: 'Average', label: fn.functionName })
+        ),
+        width: 24,
+      }),
+      new cloudwatch.GraphWidget({
         title: 'Step Functions Executions',
         left: [
           new cloudwatch.Metric({
@@ -623,6 +762,30 @@ export class MilkMobsStack extends cdk.Stack {
             },
             statistic: 'Sum',
             label: 'Failed',
+          }),
+          new cloudwatch.Metric({
+            namespace: 'AWS/States',
+            metricName: 'ExecutionsSucceeded',
+            dimensionsMap: {
+              StateMachineArn: videoAnalysisStateMachine.stateMachineArn,
+            },
+            statistic: 'Sum',
+            label: 'Succeeded',
+          }),
+        ],
+        width: 24,
+      }),
+      new cloudwatch.GraphWidget({
+        title: 'Step Functions Execution Time',
+        left: [
+          new cloudwatch.Metric({
+            namespace: 'AWS/States',
+            metricName: 'ExecutionTime',
+            dimensionsMap: {
+              StateMachineArn: videoAnalysisStateMachine.stateMachineArn,
+            },
+            statistic: 'Average',
+            label: 'Avg Execution Time',
           }),
         ],
         width: 24,
@@ -652,8 +815,121 @@ export class MilkMobsStack extends cdk.Stack {
           }),
         ],
         width: 24,
+      }),
+      new cloudwatch.GraphWidget({
+        title: 'API Gateway Requests',
+        left: [
+          new cloudwatch.Metric({
+            namespace: 'AWS/ApiGateway',
+            metricName: 'Count',
+            dimensionsMap: {
+              ApiName: api.restApiName,
+            },
+            statistic: 'Sum',
+            label: 'Total Requests',
+          }),
+          new cloudwatch.Metric({
+            namespace: 'AWS/ApiGateway',
+            metricName: '4XXError',
+            dimensionsMap: {
+              ApiName: api.restApiName,
+            },
+            statistic: 'Sum',
+            label: '4XX Errors',
+          }),
+          new cloudwatch.Metric({
+            namespace: 'AWS/ApiGateway',
+            metricName: '5XXError',
+            dimensionsMap: {
+              ApiName: api.restApiName,
+            },
+            statistic: 'Sum',
+            label: '5XX Errors',
+          }),
+        ],
+        width: 24,
       })
     );
+
+    // CloudWatch Alarms for critical failures
+    // Step Functions failure rate alarm
+    const stepFunctionsFailureRate = new cloudwatch.MathExpression({
+      expression: '(failed / started) * 100',
+      usingMetrics: {
+        failed: new cloudwatch.Metric({
+          namespace: 'AWS/States',
+          metricName: 'ExecutionsFailed',
+          dimensionsMap: {
+            StateMachineArn: videoAnalysisStateMachine.stateMachineArn,
+          },
+          statistic: 'Sum',
+          period: cdk.Duration.minutes(5),
+        }),
+        started: new cloudwatch.Metric({
+          namespace: 'AWS/States',
+          metricName: 'ExecutionsStarted',
+          dimensionsMap: {
+            StateMachineArn: videoAnalysisStateMachine.stateMachineArn,
+          },
+          statistic: 'Sum',
+          period: cdk.Duration.minutes(5),
+        }),
+      },
+      period: cdk.Duration.minutes(5),
+    });
+
+    new cloudwatch.Alarm(this, 'StepFunctionsHighFailureRate', {
+      metric: stepFunctionsFailureRate,
+      threshold: 5,
+      evaluationPeriods: 1,
+      alarmDescription: 'Step Functions failure rate exceeds 5%',
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+    });
+
+    // Lambda error rate alarm (aggregate)
+    const lambdaErrorRate = new cloudwatch.MathExpression({
+      expression: '(errors / invocations) * 100',
+      usingMetrics: {
+        errors: new cloudwatch.Metric({
+          namespace: 'AWS/Lambda',
+          metricName: 'Errors',
+          statistic: 'Sum',
+          period: cdk.Duration.minutes(5),
+        }),
+        invocations: new cloudwatch.Metric({
+          namespace: 'AWS/Lambda',
+          metricName: 'Invocations',
+          statistic: 'Sum',
+          period: cdk.Duration.minutes(5),
+        }),
+      },
+      period: cdk.Duration.minutes(5),
+    });
+
+    new cloudwatch.Alarm(this, 'LambdaHighErrorRate', {
+      metric: lambdaErrorRate,
+      threshold: 10,
+      evaluationPeriods: 1,
+      alarmDescription: 'Lambda error rate exceeds 10%',
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+    });
+
+    // Individual Lambda error alarms for critical functions
+    new cloudwatch.Alarm(this, 'AnalysisPegasusErrors', {
+      metric: analysisPegasusFn.metricErrors({ statistic: 'Sum' }),
+      threshold: 3,
+      evaluationPeriods: 1,
+      alarmDescription: 'Analysis Pegasus Lambda has errors',
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+    });
+
+    new cloudwatch.Alarm(this, 'AnalysisMarengoErrors', {
+      metric: analysisMarengoFn.metricErrors({ statistic: 'Sum' }),
+      threshold: 3,
+      evaluationPeriods: 1,
+      alarmDescription: 'Analysis Marengo Lambda has errors',
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+    });
 
     new cdk.CfnOutput(this, 'DashboardUrl', {
       value: `https://${cdk.Aws.REGION}.console.aws.amazon.com/cloudwatch/home?region=${cdk.Aws.REGION}#dashboards:name=${dashboard.dashboardName}`,
