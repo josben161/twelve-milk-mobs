@@ -293,17 +293,22 @@ export class MilkMobsStack extends cdk.Stack {
 
     // Thumbnail generation Lambda using container image with FFmpeg pre-installed
     // The Dockerfile builds TypeScript and includes FFmpeg in the container
+    // Using buildArgs to force image rebuild on each deployment
     const generateThumbnailFn = new lambda.DockerImageFunction(this, 'GenerateThumbnailFn', {
       code: lambda.DockerImageCode.fromImageAsset(
         path.join(__dirname, '../../lambdas/generate-thumbnail'),
         {
           file: 'Dockerfile',
+          buildArgs: {
+            BUILD_TIMESTAMP: new Date().toISOString(),
+          },
         }
       ),
       environment: {
         UPLOADS_BUCKET_NAME: uploadsBucket.bucketName,
         VIDEOS_TABLE_NAME: videosTable.tableName,
         CLOUDFRONT_DISTRIBUTION_DOMAIN: distribution.distributionDomainName,
+        BUILD_TIMESTAMP: new Date().toISOString(), // Pass build timestamp to runtime
       },
       timeout: cdk.Duration.minutes(5), // Thumbnail generation may take time
       memorySize: 1024, // More memory for video processing

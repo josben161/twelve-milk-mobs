@@ -2388,7 +2388,7 @@
    "Properties": {
     "Code": {
      "ImageUri": {
-      "Fn::Sub": "679729599398.dkr.ecr.us-east-1.${AWS::URLSuffix}/cdk-hnb659fds-container-assets-679729599398-us-east-1:bcc6fdba685cd10996393b1e472046556754fc2bc753dc245be59e4f37e46f4c"
+      "Fn::Sub": "679729599398.dkr.ecr.us-east-1.${AWS::URLSuffix}/cdk-hnb659fds-container-assets-679729599398-us-east-1:4ace1437da704b99680ce1a76161ffccf292655215496296b5fdd60b97774fff"
      }
     },
     "Environment": {
@@ -2404,7 +2404,8 @@
         "VideoDistribution93465BBB",
         "DomainName"
        ]
-      }
+      },
+      "BUILD_TIMESTAMP": "2025-12-01T23:24:30.147Z"
      }
     },
     "MemorySize": 1024,
@@ -2441,8 +2442,11 @@
    ],
    "Metadata": {
     "aws:cdk:path": "MilkMobsStack/GenerateThumbnailFn/Resource",
-    "aws:asset:path": "asset.bcc6fdba685cd10996393b1e472046556754fc2bc753dc245be59e4f37e46f4c",
+    "aws:asset:path": "asset.4ace1437da704b99680ce1a76161ffccf292655215496296b5fdd60b97774fff",
     "aws:asset:dockerfile-path": "Dockerfile",
+    "aws:asset:docker-build-args": {
+     "BUILD_TIMESTAMP": "2025-12-01T23:24:30.147Z"
+    },
     "aws:asset:property": "Code.ImageUri"
    }
   },
@@ -4197,7 +4201,7 @@
    "Properties": {
     "Code": {
      "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
-     "S3Key": "4a506f71cb1cfef032580059eb58640c66110e6fb0740c4d8c87b4f86f0eee75.zip"
+     "S3Key": "1a778bb7b95edaebc1bf6cad84662e82aeff675ac43ec3ead52c52d120a9c55c.zip"
     },
     "Environment": {
      "Variables": {
@@ -4240,7 +4244,7 @@
    ],
    "Metadata": {
     "aws:cdk:path": "MilkMobsStack/GetExecutionHistoryFn/Resource",
-    "aws:asset:path": "asset.4a506f71cb1cfef032580059eb58640c66110e6fb0740c4d8c87b4f86f0eee75",
+    "aws:asset:path": "asset.1a778bb7b95edaebc1bf6cad84662e82aeff675ac43ec3ead52c52d120a9c55c",
     "aws:asset:is-bundled": true,
     "aws:asset:property": "Code"
    }
