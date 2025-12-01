@@ -2388,7 +2388,7 @@
    "Properties": {
     "Code": {
      "ImageUri": {
-      "Fn::Sub": "679729599398.dkr.ecr.us-east-1.${AWS::URLSuffix}/cdk-hnb659fds-container-assets-679729599398-us-east-1:8d42a4fa9b530fd4641c574ee96626cb84e6378da7b9e7474bd07006d304fb24"
+      "Fn::Sub": "679729599398.dkr.ecr.us-east-1.${AWS::URLSuffix}/cdk-hnb659fds-container-assets-679729599398-us-east-1:bcc6fdba685cd10996393b1e472046556754fc2bc753dc245be59e4f37e46f4c"
      }
     },
     "Environment": {
@@ -2441,7 +2441,7 @@
    ],
    "Metadata": {
     "aws:cdk:path": "MilkMobsStack/GenerateThumbnailFn/Resource",
-    "aws:asset:path": "asset.8d42a4fa9b530fd4641c574ee96626cb84e6378da7b9e7474bd07006d304fb24",
+    "aws:asset:path": "asset.bcc6fdba685cd10996393b1e472046556754fc2bc753dc245be59e4f37e46f4c",
     "aws:asset:dockerfile-path": "Dockerfile",
     "aws:asset:property": "Code.ImageUri"
    }
@@ -4161,9 +4161,22 @@
         "states:GetExecutionHistory"
        ],
        "Effect": "Allow",
-       "Resource": {
-        "Ref": "VideoAnalysisStateMachineA7892CAE"
-       }
+       "Resource": [
+        {
+         "Ref": "VideoAnalysisStateMachineA7892CAE"
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Ref": "VideoAnalysisStateMachineA7892CAE"
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
       }
      ],
      "Version": "2012-10-17"

@@ -47,5 +47,11 @@ RUN echo "=== Verifying handler export ===" && \
 # Remove dev dependencies to reduce image size
 RUN npm prune --production
 
+# Final verification after pruning (ensure handler still exists and is valid)
+RUN echo "=== Final handler verification after prune ===" && \
+    test -f ${LAMBDA_TASK_ROOT}/index.js || (echo "ERROR: index.js missing after prune" && exit 1) && \
+    node -e "const m = require('./index.js'); if (typeof m.handler !== 'function') { console.error('ERROR: handler missing after prune'); process.exit(1); } console.log('✓ Handler valid after prune');" && \
+    echo "✓ Final verification complete"
+
 # Set the CMD to your handler (Lambda container images expect format: "filename.exportName")
 CMD [ "index.handler" ]
