@@ -213,6 +213,64 @@ export default function AdminHomePage() {
               </div>
             </Panel>
           </section>
+
+          {/* State Machine Visualization Panel */}
+          <section>
+            <Panel 
+              title="Video Analysis Pipeline" 
+              description="Step Functions state machine that processes each video upload through Pegasus and Marengo analysis."
+            >
+              <div className="space-y-4">
+                <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-soft)] p-4">
+                  <p className="text-sm text-[var(--text-muted)] mb-3">
+                    The video analysis pipeline runs automatically when a new video is uploaded. Each execution processes the video through:
+                  </p>
+                  <ol className="space-y-2 text-sm text-[var(--text)]">
+                    <li className="flex items-start gap-2">
+                      <span className="font-semibold text-[var(--accent)]">1.</span>
+                      <span>Mark video as processing</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="font-semibold text-[var(--accent)]">2.</span>
+                      <span>Run Pegasus (participation analysis) and Marengo (embedding) in parallel</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="font-semibold text-[var(--accent)]">3.</span>
+                      <span>Merge results and write to DynamoDB</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="font-semibold text-[var(--accent)]">4.</span>
+                      <span>Validate video against participation threshold</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="font-semibold text-[var(--accent)]">5.</span>
+                      <span>Cluster video into appropriate Mob</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="font-semibold text-[var(--accent)]">6.</span>
+                      <span>Emit EventBridge event for downstream processing</span>
+                    </li>
+                  </ol>
+                </div>
+                <div className="flex items-center justify-between pt-2">
+                  <p className="text-xs text-[var(--text-muted)]">
+                    View execution graph and details in AWS Step Functions console
+                  </p>
+                  <a
+                    href={`https://${process.env.NEXT_PUBLIC_AWS_REGION || 'us-east-1'}.console.aws.amazon.com/states/home?region=${process.env.NEXT_PUBLIC_AWS_REGION || 'us-east-1'}#/statemachines`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--border-subtle)] hover:bg-[var(--accent-soft)]/80 transition-colors"
+                  >
+                    Open Step Functions Console
+                    <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </Panel>
+          </section>
         </>
       )}
     </div>

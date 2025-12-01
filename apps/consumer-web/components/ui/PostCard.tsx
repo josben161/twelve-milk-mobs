@@ -62,7 +62,9 @@ export function PostCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="border-b border-[var(--border-subtle)] bg-[var(--bg)] transition-colors duration-300"
+      className={`border-b border-[var(--border-subtle)] bg-[var(--bg)] transition-colors duration-300 ${
+        status === 'rejected' ? 'bg-rose-500/10' : ''
+      }`}
     >
       {/* Header */}
       <header className="flex items-center justify-between px-4 h-12">

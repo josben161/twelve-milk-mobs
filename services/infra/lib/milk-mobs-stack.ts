@@ -325,6 +325,7 @@ export class MilkMobsStack extends cdk.Stack {
       entry: path.join(__dirname, '../../lambdas/admin-list-videos/index.ts'),
       environment: {
         VIDEOS_TABLE_NAME: videosTable.tableName,
+        CLOUDFRONT_DISTRIBUTION_DOMAIN: distribution.distributionDomainName,
       },
       timeout: cdk.Duration.seconds(10),
     });
@@ -421,12 +422,13 @@ export class MilkMobsStack extends cdk.Stack {
     parallelAnalysis.branch(marengoTask);
 
     // Merge results from parallel tasks
+    // Note: Parallel state outputs an array, so we need to read from array indices
     const mergeResults = new sfn.Pass(this, 'MergeResults', {
       parameters: {
-        'videoId.$': '$.videoId',
-        's3Bucket.$': '$.s3Bucket',
-        's3Key.$': '$.s3Key',
-        'hashtags.$': '$.hashtags',
+        'videoId.$': '$[0].videoId',
+        's3Bucket.$': '$[0].s3Bucket',
+        's3Key.$': '$[0].s3Key',
+        'hashtags.$': '$[0].hashtags',
         'participation.$': '$[0].participation',
         'embedding.$': '$[1].embedding',
       },

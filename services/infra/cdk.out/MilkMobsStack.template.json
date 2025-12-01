@@ -2673,12 +2673,18 @@
    "Properties": {
     "Code": {
      "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
-     "S3Key": "fd65fff01be4dadc31863e173b2d5e896aa09c6e6ccac517e9e6171dc5c341d5.zip"
+     "S3Key": "020042ecf07a6a2c012ec0770a734530606989e1441f1463b4ef0611a9b1acba.zip"
     },
     "Environment": {
      "Variables": {
       "VIDEOS_TABLE_NAME": {
        "Ref": "VideosTable19B3D0C4"
+      },
+      "CLOUDFRONT_DISTRIBUTION_DOMAIN": {
+       "Fn::GetAtt": [
+        "VideoDistribution93465BBB",
+        "DomainName"
+       ]
       }
      }
     },
@@ -2716,7 +2722,7 @@
    ],
    "Metadata": {
     "aws:cdk:path": "MilkMobsStack/AdminListVideosFn/Resource",
-    "aws:asset:path": "asset.fd65fff01be4dadc31863e173b2d5e896aa09c6e6ccac517e9e6171dc5c341d5",
+    "aws:asset:path": "asset.020042ecf07a6a2c012ec0770a734530606989e1441f1463b4ef0611a9b1acba",
     "aws:asset:is-bundled": true,
     "aws:asset:property": "Code"
    }
@@ -3785,7 +3791,7 @@
          "Arn"
         ]
        },
-       "\",\"Payload.$\":\"$\"}}}}]},\"MergeResults\":{\"Type\":\"Pass\",\"Parameters\":{\"videoId.$\":\"$.videoId\",\"s3Bucket.$\":\"$.s3Bucket\",\"s3Key.$\":\"$.s3Key\",\"hashtags.$\":\"$.hashtags\",\"participation.$\":\"$[0].participation\",\"embedding.$\":\"$[1].embedding\"},\"Next\":\"WriteResultTask\"},\"WriteResultTask\":{\"Next\":\"ValidateTask\",\"Retry\":[{\"ErrorEquals\":[\"Lambda.ClientExecutionTimeoutException\",\"Lambda.ServiceException\",\"Lambda.AWSLambdaException\",\"Lambda.SdkClientException\"],\"IntervalSeconds\":2,\"MaxAttempts\":6,\"BackoffRate\":2}],\"Type\":\"Task\",\"OutputPath\":\"$.Payload\",\"Resource\":\"arn:",
+       "\",\"Payload.$\":\"$\"}}}}]},\"MergeResults\":{\"Type\":\"Pass\",\"Parameters\":{\"videoId.$\":\"$[0].videoId\",\"s3Bucket.$\":\"$[0].s3Bucket\",\"s3Key.$\":\"$[0].s3Key\",\"hashtags.$\":\"$[0].hashtags\",\"participation.$\":\"$[0].participation\",\"embedding.$\":\"$[1].embedding\"},\"Next\":\"WriteResultTask\"},\"WriteResultTask\":{\"Next\":\"ValidateTask\",\"Retry\":[{\"ErrorEquals\":[\"Lambda.ClientExecutionTimeoutException\",\"Lambda.ServiceException\",\"Lambda.AWSLambdaException\",\"Lambda.SdkClientException\"],\"IntervalSeconds\":2,\"MaxAttempts\":6,\"BackoffRate\":2}],\"Type\":\"Task\",\"OutputPath\":\"$.Payload\",\"Resource\":\"arn:",
        {
         "Ref": "AWS::Partition"
        },

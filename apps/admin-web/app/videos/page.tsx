@@ -93,7 +93,14 @@ export default function VideosPage() {
                   >
                     <td className="px-8 py-5">
                       <div className="flex items-center gap-3">
-                        <div className="h-12 w-16 rounded-lg bg-gradient-to-br from-[var(--bg-subtle)] to-[var(--bg)] border border-[var(--border-subtle)] flex-shrink-0" />
+                        {v.thumbnailUrl ? (
+                          <div
+                            className="h-12 w-16 rounded-lg border border-[var(--border-subtle)] flex-shrink-0 bg-cover bg-center"
+                            style={{ backgroundImage: `url(${v.thumbnailUrl})` }}
+                          />
+                        ) : (
+                          <div className="h-12 w-16 rounded-lg bg-gradient-to-br from-[var(--bg-subtle)] to-[var(--bg)] border border-[var(--border-subtle)] flex-shrink-0" />
+                        )}
                         <div className="flex flex-col min-w-0">
                           <span className="text-sm font-semibold text-[var(--text)] truncate">
                             @{v.userHandle}

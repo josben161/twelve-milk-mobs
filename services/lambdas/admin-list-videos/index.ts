@@ -3,6 +3,7 @@ import { DynamoDBClient, ScanCommand } from '@aws-sdk/client-dynamodb';
 import type { VideoSummary } from '@twelve/core-types';
 
 const tableName = process.env.VIDEOS_TABLE_NAME!;
+const cloudfrontDomain = process.env.CLOUDFRONT_DISTRIBUTION_DOMAIN;
 
 const ddb = new DynamoDBClient({});
 
@@ -23,21 +24,28 @@ export const handler: APIGatewayProxyHandlerV2 = async () => {
 
     // Map DynamoDB items to VideoSummary array
     const videos: VideoSummary[] =
-      result.Items?.map((item) => ({
-        id: item.videoId?.S || '',
-        userHandle: item.userHandle?.S || item.userId?.S || 'unknown',
-        mobId: item.mobId?.S || null,
-        status: (item.status?.S as any) || 'uploaded',
-        createdAt: item.createdAt?.S || '',
-        caption: item.hashtags?.SS?.[0] || '', // Use first hashtag as caption
-        hashtags: item.hashtags?.SS || [],
-        thumbnailUrl: null,
-        validationScore: item.participationScore?.N
-          ? parseFloat(item.participationScore.N)
-          : item.validationScore?.N
-          ? parseFloat(item.validationScore.N)
-          : undefined,
-      })) || [];
+      result.Items?.map((item) => {
+        const s3Key = item.s3Key?.S || '';
+        const thumbnailUrl = s3Key && cloudfrontDomain
+          ? `https://${cloudfrontDomain}/${s3Key}`
+          : null;
+
+        return {
+          id: item.videoId?.S || '',
+          userHandle: item.userHandle?.S || item.userId?.S || 'unknown',
+          mobId: item.mobId?.S || null,
+          status: (item.status?.S as any) || 'uploaded',
+          createdAt: item.createdAt?.S || '',
+          caption: item.hashtags?.SS?.[0] || '', // Use first hashtag as caption
+          hashtags: item.hashtags?.SS || [],
+          thumbnailUrl,
+          validationScore: item.participationScore?.N
+            ? parseFloat(item.participationScore.N)
+            : item.validationScore?.N
+            ? parseFloat(item.validationScore.N)
+            : undefined,
+        };
+      }) || [];
 
     // Sort by createdAt descending (newest first)
     videos.sort((a, b) => {
