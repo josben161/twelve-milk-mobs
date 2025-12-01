@@ -304,24 +304,22 @@ export default function VideoDetailPage({
       {/* Debug Panel */}
       <section>
         <Panel
-          title={
-            <div className="flex items-center justify-between w-full">
-              <span>Debug Information</span>
-              <button
-                onClick={() => setDebugInfo(prev => ({ ...prev, show: !prev.show }))}
-                className="text-xs px-3 py-1 rounded border transition-colors"
-                style={{
-                  borderColor: 'var(--border-subtle)',
-                  color: 'var(--text-muted)',
-                  backgroundColor: 'var(--bg-soft)',
-                }}
-              >
-                {debugInfo.show ? 'Hide' : 'Show'} Debug
-              </button>
-            </div>
-          }
+          title="Debug Information"
           description="API request and response details for troubleshooting."
         >
+          <div className="mb-4 flex items-center justify-end">
+            <button
+              onClick={() => setDebugInfo(prev => ({ ...prev, show: !prev.show }))}
+              className="text-xs px-3 py-1 rounded border transition-colors"
+              style={{
+                borderColor: 'var(--border-subtle)',
+                color: 'var(--text-muted)',
+                backgroundColor: 'var(--bg-soft)',
+              }}
+            >
+              {debugInfo.show ? 'Hide' : 'Show'} Debug
+            </button>
+          </div>
           {debugInfo.show && (
             <div className="space-y-4 text-xs font-mono">
               {debugInfo.requestUrl && (
