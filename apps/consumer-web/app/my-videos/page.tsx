@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '@/components/auth/UserProvider';
 import { ProfileHeader, EmptyState } from '@/components/ui';
 import { StatusPill } from '@/components/ui';
+import { getApiBase } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,34 +28,22 @@ export default function MyVideosPage() {
     const fetchVideos = async () => {
       setLoading(true);
       try {
-        const apiBase = process.env.NEXT_PUBLIC_API_BASE;
-        if (apiBase) {
+        try {
+          const apiBase = getApiBase();
           const res = await fetch(
-            `${apiBase.replace(/\/$/, '')}/videos/user?userId=${currentUser.id}`
+            `${apiBase}/videos/user?userId=${currentUser.id}`
           );
           if (res.ok) {
             const data = await res.json();
             setMyVideos(data.videos || []);
-          } else {
-            // Fallback to mock data if API not available
-            setMyVideos([
-              { id: 'vid_1', thumb: '', status: 'validated' },
-              { id: 'vid_2', thumb: '', status: 'processing' },
-              { id: 'vid_3', thumb: '', status: 'rejected' },
-              { id: 'vid_4', thumb: '', status: 'validated' },
-            ]);
+            return;
           }
-        } else {
-          // Fallback to mock data if API not configured
-          setMyVideos([
-            { id: 'vid_1', thumb: '', status: 'validated' },
-            { id: 'vid_2', thumb: '', status: 'processing' },
-            { id: 'vid_3', thumb: '', status: 'rejected' },
-            { id: 'vid_4', thumb: '', status: 'validated' },
-          ]);
+          console.warn('Failed to fetch videos, status:', res.status);
+        } catch (err) {
+          console.warn('Error fetching videos, falling back to mock data', err);
         }
-      } catch (err) {
-        // Fallback to mock data on error
+
+        // Fallback to mock data if API not configured or request failed
         setMyVideos([
           { id: 'vid_1', thumb: '', status: 'validated' },
           { id: 'vid_2', thumb: '', status: 'processing' },
@@ -161,15 +150,25 @@ export default function MyVideosPage() {
               href={`/video/${v.id}`}
               className="relative aspect-square transition-all duration-200 hover:scale-105 rounded-sm overflow-hidden"
               style={{
-                background: 'linear-gradient(to bottom right, var(--bg-soft), var(--bg))',
+                background: v.thumb
+                  ? `center / cover no-repeat url(${v.thumb})`
+                  : 'linear-gradient(to bottom right, var(--bg-soft), var(--bg))',
               }}
             >
-              <span
-                className="absolute inset-0 flex items-center justify-center text-[10px] transition-colors duration-300"
-                style={{ color: 'var(--text-subtle)' }}
-              >
-                Video
-              </span>
+              {!v.thumb && (
+                <span
+                  className="absolute inset-0 flex items-center justify-center text-[10px] transition-colors duration-300"
+                  style={{ color: 'var(--text-subtle)' }}
+                >
+                  Video
+                </span>
+              )}
+              {v.thumb && (
+                <div
+                  className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"
+                  aria-hidden="true"
+                />
+              )}
               {v.status && (
                 <div className="absolute top-1 right-1">
                   <StatusPill status={v.status as any} />

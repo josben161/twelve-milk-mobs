@@ -1242,12 +1242,18 @@
    "Properties": {
     "Code": {
      "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
-     "S3Key": "18ff8563a9fb2aa1821d4a035ff8260368b2b4164205ce8ba7fd14ebc10a513d.zip"
+     "S3Key": "6e4c4ba2e3e42a18d844dd3f8890186f4f9fe997d8a7ccaad776a78465dd5896.zip"
     },
     "Environment": {
      "Variables": {
       "VIDEOS_TABLE_NAME": {
        "Ref": "VideosTable19B3D0C4"
+      },
+      "CLOUDFRONT_DISTRIBUTION_DOMAIN": {
+       "Fn::GetAtt": [
+        "VideoDistribution93465BBB",
+        "DomainName"
+       ]
       }
      }
     },
@@ -1285,7 +1291,7 @@
    ],
    "Metadata": {
     "aws:cdk:path": "MilkMobsStack/ListUserVideosFn/Resource",
-    "aws:asset:path": "asset.18ff8563a9fb2aa1821d4a035ff8260368b2b4164205ce8ba7fd14ebc10a513d",
+    "aws:asset:path": "asset.6e4c4ba2e3e42a18d844dd3f8890186f4f9fe997d8a7ccaad776a78465dd5896",
     "aws:asset:is-bundled": true,
     "aws:asset:property": "Code"
    }
@@ -3432,7 +3438,7 @@
    "Properties": {
     "Code": {
      "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
-     "S3Key": "0fb560b47bc1d4b4dd29c0a56e32998f2a405a61b934c9a0850a7cdc1722fa56.zip"
+     "S3Key": "901456330d2753f08a41f6d0bc95241b9fe473785db150777592e6cd1cbaaca1.zip"
     },
     "Environment": {
      "Variables": {
@@ -3484,7 +3490,7 @@
    ],
    "Metadata": {
     "aws:cdk:path": "MilkMobsStack/GetFeedFn/Resource",
-    "aws:asset:path": "asset.0fb560b47bc1d4b4dd29c0a56e32998f2a405a61b934c9a0850a7cdc1722fa56",
+    "aws:asset:path": "asset.901456330d2753f08a41f6d0bc95241b9fe473785db150777592e6cd1cbaaca1",
     "aws:asset:is-bundled": true,
     "aws:asset:property": "Code"
    }

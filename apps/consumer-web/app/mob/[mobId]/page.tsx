@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { use, useEffect, useState } from 'react';
 import type { MobSummary, VideoSummary } from '@twelve/core-types';
 import { StatusPill } from '@/components/ui';
+import { getApiBase } from '@/lib/api';
 
 export default function MobFeedPage({
   params,
@@ -21,11 +22,8 @@ export default function MobFeedPage({
       setLoading(true);
       setError(null);
       try {
-        const apiBase = process.env.NEXT_PUBLIC_API_BASE;
-        if (!apiBase) {
-          throw new Error('API base URL is not configured');
-        }
-        const res = await fetch(`${apiBase.replace(/\/$/, '')}/mobs/${mobId}`);
+        const apiBase = getApiBase();
+        const res = await fetch(`${apiBase}/mobs/${mobId}`);
         if (!res.ok) {
           throw new Error(`Failed to fetch mob (${res.status})`);
         }

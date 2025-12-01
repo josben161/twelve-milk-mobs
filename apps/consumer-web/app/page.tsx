@@ -70,6 +70,7 @@ export default function HomePage() {
           timestamp={post.createdAt}
           mobName={post.mobName || undefined}
           location={post.location || undefined}
+          status={post.status}
         />
       ))}
     </div>

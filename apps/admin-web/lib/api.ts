@@ -1,9 +1,12 @@
 import type { AdminStats } from '@twelve/core-types';
 
-const getApiBase = () => {
+export const getApiBase = () => {
   const apiBase = process.env.NEXT_PUBLIC_API_BASE;
   if (!apiBase) {
-    throw new Error('API base URL is not configured');
+    // Clear message for both users and developers on how to fix this.
+    throw new Error(
+      'API base URL is not configured. Set NEXT_PUBLIC_API_BASE to the MilkMobs API Gateway base URL (see CloudFormation output ApiBaseUrl).'
+    );
   }
   return apiBase.replace(/\/$/, '');
 };

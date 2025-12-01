@@ -41,16 +41,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const limit = parseInt(event.queryStringParameters?.limit || '20', 10);
     const lastKey = event.queryStringParameters?.lastKey;
 
-    // Scan videos table and filter for validated videos only
+    // Scan videos table for all videos (any status)
     const scanParams: any = {
       TableName: videosTableName,
-      FilterExpression: '#status = :status',
-      ExpressionAttributeNames: {
-        '#status': 'status',
-      },
-      ExpressionAttributeValues: {
-        ':status': { S: 'validated' },
-      },
       Limit: limit + 1, // Fetch one extra to determine if there's more
     };
 
@@ -120,6 +113,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
         const hashtags = item.hashtags?.SS || [];
         const caption = hashtags.length > 0 ? hashtags.join(' ') : '';
         const createdAt = item.createdAt?.S || new Date().toISOString();
+        const status = item.status?.S || 'uploaded';
 
         // Generate video URL
         const videoUrl = s3Key && cloudfrontDomain
@@ -136,7 +130,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
           location: null, // Location can be added later from metadata
           tags: hashtags,
           caption,
-          status: 'validated',
+          status,
           createdAt: formatRelativeTime(createdAt),
           video: {
             id: videoId,

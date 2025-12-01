@@ -2,6 +2,7 @@ import type { APIGatewayProxyHandlerV2 } from 'aws-lambda';
 import { DynamoDBClient, ScanCommand } from '@aws-sdk/client-dynamodb';
 
 const tableName = process.env.VIDEOS_TABLE_NAME!;
+const cloudfrontDomain = process.env.CLOUDFRONT_DISTRIBUTION_DOMAIN;
 
 const ddb = new DynamoDBClient({});
 
@@ -37,17 +38,27 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
     // Transform DynamoDB items to video objects
     const videos =
-      result.Items?.map((item) => ({
-        id: item.videoId?.S || '',
-        videoId: item.videoId?.S || '',
-        userId: item.userId?.S || '',
-        userHandle: item.userHandle?.S || '',
-        s3Key: item.s3Key?.S || '',
-        status: item.status?.S || 'uploaded',
-        createdAt: item.createdAt?.S || '',
-        hashtags: item.hashtags?.SS || [],
-        thumb: '', // Placeholder - can be generated from S3 key later
-      })) || [];
+      result.Items?.map((item) => {
+        const videoId = item.videoId?.S || '';
+        const s3Key = item.s3Key?.S || '';
+
+        let thumb = '';
+        if (cloudfrontDomain && s3Key) {
+          thumb = `https://${cloudfrontDomain}/${s3Key}`;
+        }
+
+        return {
+          id: videoId,
+          videoId,
+          userId: item.userId?.S || '',
+          userHandle: item.userHandle?.S || '',
+          s3Key,
+          status: item.status?.S || 'uploaded',
+          createdAt: item.createdAt?.S || '',
+          hashtags: item.hashtags?.SS || [],
+          thumb,
+        };
+      }) || [];
 
     // Sort by createdAt descending (newest first)
     videos.sort((a, b) => {

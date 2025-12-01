@@ -193,6 +193,7 @@ export class MilkMobsStack extends cdk.Stack {
       entry: path.join(__dirname, '../../lambdas/list-user-videos/index.ts'),
       environment: {
         VIDEOS_TABLE_NAME: videosTable.tableName,
+        CLOUDFRONT_DISTRIBUTION_DOMAIN: distribution.distributionDomainName,
       },
       timeout: cdk.Duration.seconds(10),
     });

@@ -1,7 +1,10 @@
-const getApiBase = () => {
+export const getApiBase = () => {
   const apiBase = process.env.NEXT_PUBLIC_API_BASE;
   if (!apiBase) {
-    throw new Error('API base URL is not configured');
+    // Clear guidance for developers while keeping the UI message terse.
+    throw new Error(
+      'API base URL is not configured. Set NEXT_PUBLIC_API_BASE to the MilkMobs API Gateway base URL (see CloudFormation output ApiBaseUrl).'
+    );
   }
   return apiBase.replace(/\/$/, '');
 };

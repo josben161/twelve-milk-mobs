@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import type { VideoStatus } from '@twelve/core-types';
 import { HeartIcon, CommentIcon, ShareIcon, BookmarkIcon, MoreIcon } from './Icons';
 import { VideoPlayer } from './VideoPlayer';
+import { StatusPill } from './StatusPill';
 
 interface PostCardProps {
   video: {
@@ -22,9 +24,19 @@ interface PostCardProps {
   timestamp: string;
   mobName?: string;
   location?: string;
+   status?: VideoStatus | string;
 }
 
-export function PostCard({ video, user, caption, hashtags, timestamp, mobName, location }: PostCardProps) {
+export function PostCard({
+  video,
+  user,
+  caption,
+  hashtags,
+  timestamp,
+  mobName,
+  location,
+  status,
+}: PostCardProps) {
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -73,12 +85,19 @@ export function PostCard({ video, user, caption, hashtags, timestamp, mobName, l
             )}
           </div>
         </div>
-        <button
-          className="p-2 rounded-full hover:bg-[var(--bg-hover)] transition-colors duration-200 flex-shrink-0"
-          aria-label="More options"
-        >
-          <MoreIcon className="h-6 w-6 text-[var(--text)]" />
-        </button>
+        <div className="flex items-center gap-2">
+          {status && (
+            <div className="hidden sm:block">
+              <StatusPill status={status as VideoStatus} />
+            </div>
+          )}
+          <button
+            className="p-2 rounded-full hover:bg-[var(--bg-hover)] transition-colors duration-200 flex-shrink-0"
+            aria-label="More options"
+          >
+            <MoreIcon className="h-6 w-6 text-[var(--text)]" />
+          </button>
+        </div>
       </header>
 
       {/* Video Player */}
@@ -147,10 +166,17 @@ export function PostCard({ video, user, caption, hashtags, timestamp, mobName, l
           </p>
         )}
         <div className="flex items-center justify-between">
-          <p className="text-[10px] uppercase tracking-wider font-medium text-[var(--text-subtle)]">
-            {mobName && `${mobName} · `}
-            {timestamp} ago
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="text-[10px] uppercase tracking-wider font-medium text-[var(--text-subtle)]">
+              {mobName && `${mobName} · `}
+              {timestamp} ago
+            </p>
+            {status && (
+              <span className="sm:hidden">
+                <StatusPill status={status as VideoStatus} />
+              </span>
+            )}
+          </div>
           <Link
             href={`/video/${video.id}`}
             className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-medium text-[var(--accent)] bg-[var(--accent-soft)] hover:bg-[var(--accent-soft)]/80 transition-colors duration-200"

@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import type { SubmitVideoResponse } from '@twelve/core-types';
 import { Card, PrimaryButton, PageShell } from '@/components/ui';
+import { getApiBase } from '@/lib/api';
 import { useAuth } from '@/components/auth/UserProvider';
 
 export const dynamic = 'force-dynamic';
@@ -65,17 +66,13 @@ export default function UploadPage() {
     setResult(null);
 
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_BASE;
-      if (!apiBase) {
-        throw new Error('API base URL is not configured');
-      }
-
+      const apiBase = getApiBase();
       if (!currentUser) {
         throw new Error('Please log in as a demo user to upload videos');
       }
 
       // 1) Ask backend for videoId + presigned upload URL
-      const res = await fetch(`${apiBase.replace(/\/$/, '')}/videos/submit`, {
+      const res = await fetch(`${apiBase}/videos/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -287,20 +284,29 @@ export default function UploadPage() {
           <Card
             className="mt-4 space-y-4 p-6 transition-colors duration-300"
             style={{
-              borderColor: 'rgba(34, 197, 94, 0.5)',
-              backgroundColor: 'rgba(34, 197, 94, 0.1)',
+              borderColor: 'var(--border-subtle)',
+              backgroundColor: 'var(--bg-soft)',
             }}
           >
             <div className="flex items-center gap-3">
-              <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500">
+              <div
+                className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full"
+                style={{ backgroundColor: 'var(--accent)' }}
+              >
                 <span className="text-xs text-white">✓</span>
               </div>
               <div>
-                <h2 className="text-sm font-semibold" style={{ color: 'rgb(209, 250, 229)' }}>
-                  Your post is being processed
+                <h2
+                  className="text-sm font-semibold"
+                  style={{ color: 'var(--text)' }}
+                >
+                  Your post was created
                 </h2>
-                <p className="text-xs" style={{ color: 'rgb(167, 243, 208)' }}>
-                  Your Milk Mob post is ready to be processed.
+                <p
+                  className="text-xs"
+                  style={{ color: 'var(--text-muted)' }}
+                >
+                  We&apos;ll analyze it for Milk Mob participation and update its status shortly.
                 </p>
               </div>
             </div>
@@ -308,13 +314,13 @@ export default function UploadPage() {
             <div className="space-y-1 text-[11px]">
               <div>
                 <span style={{ color: 'var(--text-muted)' }}>Video ID:</span>{' '}
-                <span className="font-mono" style={{ color: 'rgb(167, 243, 208)' }}>
+                <span className="font-mono" style={{ color: 'var(--text)' }}>
                   {result.videoId}
                 </span>
               </div>
               <div className="break-all">
                 <span style={{ color: 'var(--text-muted)' }}>Upload URL:</span>{' '}
-                <span className="font-mono text-[10px]" style={{ color: 'rgb(167, 243, 208)' }}>
+                <span className="font-mono text-[10px]" style={{ color: 'var(--text-muted)' }}>
                   {result.uploadUrl}
                 </span>
               </div>
@@ -328,7 +334,7 @@ export default function UploadPage() {
               }}
               className="w-full rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 hover:opacity-80 active:scale-95"
               style={{
-                backgroundColor: 'var(--bg-soft)',
+                backgroundColor: 'var(--accent-soft)',
                 color: 'var(--text)',
                 border: '1px solid var(--border-subtle)',
               }}

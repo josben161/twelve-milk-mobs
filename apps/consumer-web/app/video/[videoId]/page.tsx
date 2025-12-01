@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { use, useEffect, useState } from 'react';
 import type { VideoDetail } from '@twelve/core-types';
 import { StatusPill, VideoPlayer } from '@/components/ui';
+import { getApiBase } from '@/lib/api';
 
 interface SimilarVideo {
   videoId: string;
@@ -36,11 +37,7 @@ export default function VideoDetailPage({
       setLoading(true);
       setError(null);
       try {
-        const apiBase = process.env.NEXT_PUBLIC_API_BASE;
-        if (!apiBase) {
-          throw new Error('API base URL is not configured');
-        }
-        const baseUrl = apiBase.replace(/\/$/, '');
+        const baseUrl = getApiBase();
 
         // Fetch video detail
         const videoRes = await fetch(`${baseUrl}/videos/${videoId}`);
@@ -206,6 +203,11 @@ export default function VideoDetailPage({
                 {validation.pass ? 'Pass' : 'Fail'}
               </span>
             </div>
+            <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>
+              {validation.pass
+                ? 'This video met the campaign participation threshold for Got Milk?'
+                : 'This video did not meet the campaign participation threshold. Details below:'}
+            </p>
             <ul className="space-y-1 text-xs" style={{ color: 'var(--text-muted)' }}>
               {validation.reasons.map((reason, idx) => (
                 <li key={idx} className="flex items-start gap-2">
