@@ -9,9 +9,12 @@ import { Readable } from 'stream';
 
 const execAsync = promisify(exec);
 
-const bucketName = process.env.UPLOADS_BUCKET_NAME!;
-const tableName = process.env.VIDEOS_TABLE_NAME!;
-const cloudfrontDomain = process.env.CLOUDFRONT_DISTRIBUTION_DOMAIN;
+// Don't validate env vars at module load - they're not available during Docker build
+// We'll validate them in the handler instead
+let bucketName: string | undefined;
+let tableName: string | undefined;
+let cloudfrontDomain: string | undefined;
+let buildTimestamp: string | undefined;
 
 const s3 = new S3Client({});
 const ddb = new DynamoDBClient({});
@@ -27,32 +30,82 @@ const FFMPEG_PATH = existsSync('/usr/local/bin/ffmpeg')
   : 'ffmpeg';
 
 // Module-level initialization logging (runs when Lambda container loads)
+// Only log, don't validate - validation happens in handler
 console.log('=== Thumbnail Lambda Module Loading ===');
-console.log('Environment variables:', {
-  UPLOADS_BUCKET_NAME: bucketName || 'NOT SET',
-  VIDEOS_TABLE_NAME: tableName || 'NOT SET',
-  CLOUDFRONT_DISTRIBUTION_DOMAIN: cloudfrontDomain || 'NOT SET',
-});
 console.log('FFmpeg path:', FFMPEG_PATH);
+console.log('FFmpeg file exists:', existsSync(FFMPEG_PATH));
 console.log('=== Module Loaded Successfully ===');
 
-// Check if FFmpeg is available
+// Validate environment variables (called from handler)
+function validateEnvironment(): void {
+  bucketName = process.env.UPLOADS_BUCKET_NAME;
+  tableName = process.env.VIDEOS_TABLE_NAME;
+  cloudfrontDomain = process.env.CLOUDFRONT_DISTRIBUTION_DOMAIN;
+  buildTimestamp = process.env.BUILD_TIMESTAMP;
+
+  if (!bucketName) {
+    throw new Error('UPLOADS_BUCKET_NAME environment variable is required but not set');
+  }
+  if (!tableName) {
+    throw new Error('VIDEOS_TABLE_NAME environment variable is required but not set');
+  }
+
+  console.log('Build timestamp:', buildTimestamp || 'NOT SET (image may be outdated)');
+  console.log('Environment variables:', {
+    UPLOADS_BUCKET_NAME: bucketName ? 'SET' : 'NOT SET',
+    VIDEOS_TABLE_NAME: tableName ? 'SET' : 'NOT SET',
+    CLOUDFRONT_DISTRIBUTION_DOMAIN: cloudfrontDomain ? 'SET' : 'NOT SET',
+  });
+}
+
+// Check if FFmpeg is available with detailed verification
 async function checkFFmpegAvailable(): Promise<boolean> {
   try {
     const { exec } = await import('child_process');
     const { promisify } = await import('util');
     const execAsync = promisify(exec);
-    await execAsync(`${FFMPEG_PATH} -version`);
-    console.log(`FFmpeg is available at: ${FFMPEG_PATH}`);
+    
+    // First check if file exists
+    if (!existsSync(FFMPEG_PATH)) {
+      console.error(`FFmpeg binary not found at path: ${FFMPEG_PATH}`);
+      console.error('Checking alternative locations...');
+      const altPaths = ['/usr/local/bin/ffmpeg', '/usr/bin/ffmpeg', '/opt/bin/ffmpeg'];
+      for (const altPath of altPaths) {
+        if (existsSync(altPath)) {
+          console.log(`Found FFmpeg at alternative location: ${altPath}`);
+        }
+      }
+      return false;
+    }
+    
+    // Try to get version info
+    const { stdout, stderr } = await execAsync(`${FFMPEG_PATH} -version`);
+    const versionMatch = stdout.match(/ffmpeg version (\S+)/);
+    const version = versionMatch ? versionMatch[1] : 'unknown';
+    
+    console.log(`✓ FFmpeg is available at: ${FFMPEG_PATH}`);
+    console.log(`✓ FFmpeg version: ${version}`);
+    if (stderr) {
+      console.log(`FFmpeg version stderr: ${stderr.substring(0, 200)}`);
+    }
     return true;
-  } catch (err) {
-    console.error(`FFmpeg is not available at ${FFMPEG_PATH}:`, err);
+  } catch (err: any) {
+    console.error(`✗ FFmpeg is not available at ${FFMPEG_PATH}`);
+    console.error('Error details:', {
+      message: err?.message,
+      code: err?.code,
+      stderr: err?.stderr?.substring(0, 500),
+      stdout: err?.stdout?.substring(0, 500),
+    });
     return false;
   }
 }
 
 // Handler can accept either S3Event (from S3 trigger) or a synthetic event (from Lambda invocation)
 export const handler = async (event: S3Event | { Records: Array<{ s3: { bucket: { name: string }; object: { key: string } } }> }): Promise<void> => {
+  // Validate environment variables at handler invocation (not at module load)
+  validateEnvironment();
+  
   console.log('=== Thumbnail Lambda Handler Invoked ===');
   console.log('Event received:', JSON.stringify(event, null, 2));
   console.log('Processing event for thumbnail generation');
@@ -185,7 +238,7 @@ export const handler = async (event: S3Event | { Records: Array<{ s3: { bucket: 
 
       await ddb.send(
         new UpdateItemCommand({
-          TableName: tableName,
+          TableName: tableName!, // Non-null assertion safe after validateEnvironment()
           Key: {
             videoId: { S: videoId },
           },

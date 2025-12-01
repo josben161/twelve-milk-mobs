@@ -140,16 +140,25 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const stepMap = new Map<string, ExecutionStep>();
 
     // Define the expected state machine structure - map CDK construct IDs to display names
+    // Note: Step Functions uses the construct ID as the state name
+    // For parallel states, branches are nested and may have different naming
     const stateNameMap: Record<string, { name: string; type: string }> = {
       'MarkProcessingTask': { name: 'Mark Processing', type: 'Lambda' },
       'ParallelAnalysis': { name: 'Parallel Analysis', type: 'Parallel' },
-      'PegasusTask': { name: 'Pegasus Analysis', type: 'Lambda' },
-      'MarengoTask': { name: 'Marengo Embedding', type: 'Lambda' },
+      'PegasusTask': { name: 'Pegasus', type: 'Lambda' },
+      'MarengoTask': { name: 'Marengo', type: 'Lambda' },
       'MergeResults': { name: 'Merge Results', type: 'Pass' },
       'WriteResultTask': { name: 'Write Results', type: 'Lambda' },
-      'ValidateTask': { name: 'Validate Video', type: 'Lambda' },
-      'ClusterTask': { name: 'Cluster Video', type: 'Lambda' },
+      'ValidateTask': { name: 'Validate', type: 'Lambda' },
+      'ClusterTask': { name: 'Cluster', type: 'Lambda' },
       'EmitVideoAnalyzedEvent': { name: 'Emit Event', type: 'EventBridge' },
+    };
+    
+    // Map for parallel branch states (these may appear with different names in execution history)
+    // Parallel branches in Step Functions may be named differently or nested
+    const parallelBranchMap: Record<string, string> = {
+      // If parallel branches have different names, map them here
+      // Format: 'actualStateName': 'canonicalStateId'
     };
 
     // Process history events - Step Functions emits StateEntered/StateExited for all states
@@ -157,26 +166,57 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     let eventCount = 0;
     let stateEnteredCount = 0;
     let stateExitedCount = 0;
+    let taskSucceededCount = 0;
     let taskFailedCount = 0;
+    const unmappedStates = new Set<string>();
+    const allEventTypes = new Map<string, number>();
+    
+    // Log all event types for debugging
+    for (const event of historyResponse.events || []) {
+      const eventType = event.type || 'Unknown';
+      allEventTypes.set(eventType, (allEventTypes.get(eventType) || 0) + 1);
+    }
+    console.log('[get-execution-history] Event type summary:', Object.fromEntries(allEventTypes));
     
     for (const event of historyResponse.events || []) {
       eventCount++;
       const eventType = event.type;
       const stateEnteredEvent = event.stateEnteredEventDetails;
       const stateExitedEvent = event.stateExitedEventDetails;
+      const taskSucceededEvent = event.taskSucceededEventDetails;
       const taskFailedEvent = event.taskFailedEventDetails;
       const executionFailedEvent = event.executionFailedEventDetails;
       
-      if (eventCount <= 5 || eventCount % 50 === 0) {
-        console.log(`[get-execution-history] Event ${eventCount}: type=${eventType}, id=${event.id}`);
+      // Log first 10 events and every 50th event for debugging
+      if (eventCount <= 10 || eventCount % 50 === 0) {
+        console.log(`[get-execution-history] Event ${eventCount}: type=${eventType}, id=${event.id}, timestamp=${event.timestamp}`);
+        if (stateEnteredEvent) {
+          console.log(`  -> StateEntered: name=${stateEnteredEvent.name}`);
+        }
+        if (stateExitedEvent) {
+          console.log(`  -> StateExited: name=${stateExitedEvent.name}`);
+        }
+        if (taskSucceededEvent) {
+          console.log(`  -> TaskSucceeded: resource=${taskSucceededEvent.resource}`);
+        }
+        if (taskFailedEvent) {
+          console.log(`  -> TaskFailed: resource=${taskFailedEvent.resource}, error=${taskFailedEvent.error}`);
+        }
       }
 
       // Handle state entered events
       if (stateEnteredEvent) {
         stateEnteredCount++;
         const stateName = stateEnteredEvent.name || 'Unknown';
-        const stepId = stateName;
-        console.log(`[get-execution-history] StateEntered: ${stepId}`);
+        // Check if this is a mapped parallel branch state
+        const canonicalStateId = parallelBranchMap[stateName] || stateName;
+        const stepId = canonicalStateId;
+        
+        // Track unmapped states for debugging
+        if (!stateNameMap[stepId] && !parallelBranchMap[stateName]) {
+          unmappedStates.add(stateName);
+          console.log(`[get-execution-history] ⚠ Unmapped state entered: ${stateName} (using as stepId: ${stepId})`);
+        }
 
         if (!stepMap.has(stepId)) {
           const stepInfo = stateNameMap[stepId] || { name: stateName, type: 'Unknown' };
@@ -186,15 +226,27 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
             type: stepInfo.type,
             status: 'in_progress',
             startTime: new Date(event.timestamp).toISOString(),
-            input: stateEnteredEvent.input ? JSON.parse(stateEnteredEvent.input) : undefined,
+            input: stateEnteredEvent.input ? (() => {
+              try {
+                return JSON.parse(stateEnteredEvent.input!);
+              } catch {
+                return undefined;
+              }
+            })() : undefined,
           });
-          console.log(`[get-execution-history] Created new step: ${stepId} (${stepInfo.name})`);
+          console.log(`[get-execution-history] Created new step: ${stepId} (${stepInfo.name}) from state: ${stateName}`);
         } else {
           // Update existing step if it doesn't have a start time
           const step = stepMap.get(stepId)!;
           if (!step.startTime) {
             step.startTime = new Date(event.timestamp).toISOString();
-            step.input = stateEnteredEvent.input ? JSON.parse(stateEnteredEvent.input) : undefined;
+            step.input = stateEnteredEvent.input ? (() => {
+              try {
+                return JSON.parse(stateEnteredEvent.input!);
+              } catch {
+                return undefined;
+              }
+            })() : undefined;
           }
         }
       }
@@ -203,15 +255,22 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       if (stateExitedEvent) {
         stateExitedCount++;
         const stateName = stateExitedEvent.name || 'Unknown';
-        const stepId = stateName;
-        console.log(`[get-execution-history] StateExited: ${stepId}`);
+        // Check if this is a mapped parallel branch state
+        const canonicalStateId = parallelBranchMap[stateName] || stateName;
+        const stepId = canonicalStateId;
 
         if (stepMap.has(stepId)) {
           const step = stepMap.get(stepId)!;
           step.status = 'succeeded';
           step.endTime = new Date(event.timestamp).toISOString();
-          step.output = stateExitedEvent.output ? JSON.parse(stateExitedEvent.output) : undefined;
-          console.log(`[get-execution-history] Updated step ${stepId} to succeeded`);
+          step.output = stateExitedEvent.output ? (() => {
+            try {
+              return JSON.parse(stateExitedEvent.output!);
+            } catch {
+              return undefined;
+            }
+          })() : undefined;
+          console.log(`[get-execution-history] Updated step ${stepId} to succeeded (from state: ${stateName})`);
         } else {
           // Create step if it wasn't tracked (shouldn't happen, but handle gracefully)
           const stepInfo = stateNameMap[stepId] || { name: stateName, type: 'Unknown' };
@@ -221,9 +280,51 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
             type: stepInfo.type,
             status: 'succeeded',
             endTime: new Date(event.timestamp).toISOString(),
-            output: stateExitedEvent.output ? JSON.parse(stateExitedEvent.output) : undefined,
+            output: stateExitedEvent.output ? (() => {
+              try {
+                return JSON.parse(stateExitedEvent.output!);
+              } catch {
+                return undefined;
+              }
+            })() : undefined,
           });
-          console.log(`[get-execution-history] Created step ${stepId} as succeeded (wasn't tracked before)`);
+          console.log(`[get-execution-history] Created step ${stepId} as succeeded (wasn't tracked before, from state: ${stateName})`);
+        }
+      }
+
+      // Handle task succeeded events (additional confirmation for Lambda tasks)
+      if (taskSucceededEvent) {
+        taskSucceededCount++;
+        const resource = taskSucceededEvent.resource || '';
+        // Try to match resource to a state
+        // Resource format: arn:aws:states:::lambda:invoke or arn:aws:lambda:...
+        // We need to extract the function name and match it to a state
+        let matchedStepId: string | null = null;
+        
+        // Extract function name from resource ARN if it's a Lambda
+        if (resource.includes('lambda')) {
+          const resourceParts = resource.split(':');
+          const functionName = resourceParts[resourceParts.length - 1] || resourceParts[resourceParts.length - 2];
+          
+          // Try to match function name to state
+          for (const [stateId, stepInfo] of Object.entries(stateNameMap)) {
+            // Check if function name contains state identifier
+            const stateIdentifier = stateId.toLowerCase().replace('task', '').replace('fn', '');
+            if (functionName.toLowerCase().includes(stateIdentifier)) {
+              matchedStepId = stateId;
+              break;
+            }
+          }
+        }
+        
+        if (matchedStepId && stepMap.has(matchedStepId)) {
+          const step = stepMap.get(matchedStepId)!;
+          // Only update if still in progress (StateExited should have already marked it succeeded)
+          if (step.status === 'in_progress') {
+            step.status = 'succeeded';
+            step.endTime = new Date(event.timestamp).toISOString();
+            console.log(`[get-execution-history] Updated step ${matchedStepId} to succeeded via TaskSucceeded event`);
+          }
         }
       }
 
@@ -298,9 +399,14 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       }
     }
 
-    console.log(`[get-execution-history] Event processing summary: total=${eventCount}, StateEntered=${stateEnteredCount}, StateExited=${stateExitedCount}, TaskFailed=${taskFailedCount}`);
+    console.log(`[get-execution-history] Event processing summary: total=${eventCount}, StateEntered=${stateEnteredCount}, StateExited=${stateExitedCount}, TaskSucceeded=${taskSucceededCount}, TaskFailed=${taskFailedCount}`);
     console.log(`[get-execution-history] Steps found: ${stepMap.size}`);
     console.log(`[get-execution-history] Step IDs:`, Array.from(stepMap.keys()));
+    
+    if (unmappedStates.size > 0) {
+      console.warn(`[get-execution-history] ⚠ Found ${unmappedStates.size} unmapped states:`, Array.from(unmappedStates));
+      console.warn('[get-execution-history] These states may need to be added to stateNameMap');
+    }
 
     // Convert map to array and sort by start time
     const stepsArray = Array.from(stepMap.values()).sort((a, b) => {

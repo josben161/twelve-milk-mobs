@@ -86,6 +86,13 @@ export function ExecutionGraph({ steps, executionStatus }: ExecutionGraphProps) 
       stepStatusMap.set(step.id, step);
     });
 
+    // Log missing steps for debugging
+    const missingSteps = pipelineStructure.filter(stepDef => !stepStatusMap.has(stepDef.id));
+    if (missingSteps.length > 0) {
+      console.warn('[ExecutionGraph] Missing steps in execution data:', missingSteps.map(s => s.id));
+      console.log('[ExecutionGraph] Available step IDs:', Array.from(stepStatusMap.keys()));
+    }
+
     // Create nodes
     let x = 0;
     let y = 0;
@@ -95,6 +102,26 @@ export function ExecutionGraph({ steps, executionStatus }: ExecutionGraphProps) 
       const status = step?.status || 'not_started';
       const isParallel = stepDef.parent === 'ParallelAnalysis';
 
+      // Create node label with status indicator
+      const nodeLabel = (
+        <div className="text-center">
+          <div className="font-semibold text-sm">{stepDef.name}</div>
+          <div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+            {stepDef.type}
+          </div>
+          {step?.error && (
+            <div className="text-xs mt-1 text-rose-400" title={step.error}>
+              Error
+            </div>
+          )}
+          {status === 'not_started' && (
+            <div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+              Not started
+            </div>
+          )}
+        </div>
+      );
+
       if (stepDef.id === 'ParallelAnalysis') {
         // Parallel node spans both branches
         nodes.push({
@@ -102,14 +129,7 @@ export function ExecutionGraph({ steps, executionStatus }: ExecutionGraphProps) 
           type: 'default',
           position: { x: x * horizontalSpacing, y: y * verticalSpacing },
           data: {
-            label: (
-              <div className="text-center">
-                <div className="font-semibold text-sm">{stepDef.name}</div>
-                <div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-                  {stepDef.type}
-                </div>
-              </div>
-            ),
+            label: nodeLabel,
           },
           style: {
             width: nodeWidth,
@@ -129,14 +149,7 @@ export function ExecutionGraph({ steps, executionStatus }: ExecutionGraphProps) 
           type: 'default',
           position: { x: branchX, y: branchY },
           data: {
-            label: (
-              <div className="text-center">
-                <div className="font-semibold text-sm">{stepDef.name}</div>
-                <div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-                  {stepDef.type}
-                </div>
-              </div>
-            ),
+            label: nodeLabel,
           },
           style: {
             width: nodeWidth,
@@ -153,17 +166,7 @@ export function ExecutionGraph({ steps, executionStatus }: ExecutionGraphProps) 
           type: 'default',
           position: { x: x * horizontalSpacing, y: y * verticalSpacing },
           data: {
-            label: (
-              <div className="text-center">
-                <div className="font-semibold text-sm">{stepDef.name}</div>
-                <div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-                  {stepDef.type}
-                </div>
-                {step?.error && (
-                  <div className="text-xs mt-1 text-rose-400">Error</div>
-                )}
-              </div>
-            ),
+            label: nodeLabel,
           },
           style: {
             width: nodeWidth,
@@ -194,6 +197,15 @@ export function ExecutionGraph({ steps, executionStatus }: ExecutionGraphProps) 
       const fromStep = stepStatusMap.get(conn.from);
       const toStep = stepStatusMap.get(conn.to);
       const edgeStatus = fromStep?.status === 'failed' ? 'failed' : 'default';
+      
+      // Only create edge if both nodes exist
+      const fromNodeExists = nodes.some(n => n.id === conn.from);
+      const toNodeExists = nodes.some(n => n.id === conn.to);
+      
+      if (!fromNodeExists || !toNodeExists) {
+        console.warn(`[ExecutionGraph] Skipping edge ${conn.from} -> ${conn.to}: nodes missing`);
+        return;
+      }
 
       edges.push({
         id: `${conn.from}-${conn.to}`,

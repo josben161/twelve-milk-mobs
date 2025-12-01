@@ -5,14 +5,19 @@ RUN microdnf install -y tar gzip xz && microdnf clean all
 
 # Install FFmpeg static binary (not available in default Amazon Linux 2023 repos)
 # Using static binary to avoid dependency issues
-RUN curl -L https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz -o /tmp/ffmpeg.tar.xz && \
+RUN echo "=== Installing FFmpeg ===" && \
+    curl -L https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz -o /tmp/ffmpeg.tar.xz && \
     cd /tmp && \
     tar -xJf ffmpeg.tar.xz && \
     mv ffmpeg-*-amd64-static/ffmpeg /usr/local/bin/ && \
     mv ffmpeg-*-amd64-static/ffprobe /usr/local/bin/ && \
     chmod +x /usr/local/bin/ffmpeg /usr/local/bin/ffprobe && \
     rm -rf /tmp/ffmpeg* && \
-    ffmpeg -version
+    echo "=== Verifying FFmpeg installation ===" && \
+    /usr/local/bin/ffmpeg -version && \
+    test -f /usr/local/bin/ffmpeg || (echo "ERROR: FFmpeg binary not found at /usr/local/bin/ffmpeg" && exit 1) && \
+    test -x /usr/local/bin/ffmpeg || (echo "ERROR: FFmpeg binary is not executable" && exit 1) && \
+    echo "✓ FFmpeg installed and verified at /usr/local/bin/ffmpeg"
 
 # Copy package files
 COPY package*.json ${LAMBDA_TASK_ROOT}/
@@ -52,6 +57,14 @@ RUN echo "=== Final handler verification after prune ===" && \
     test -f ${LAMBDA_TASK_ROOT}/index.js || (echo "ERROR: index.js missing after prune" && exit 1) && \
     node -e "const m = require('./index.js'); if (typeof m.handler !== 'function') { console.error('ERROR: handler missing after prune'); process.exit(1); } console.log('✓ Handler valid after prune');" && \
     echo "✓ Final verification complete"
+
+# Add build timestamp for deployment verification
+ARG BUILD_TIMESTAMP
+ENV BUILD_TIMESTAMP=${BUILD_TIMESTAMP}
+RUN echo "=== Docker Image Build Information ===" && \
+    echo "Build timestamp: ${BUILD_TIMESTAMP}" && \
+    echo "Image created: $(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo 'unknown')" && \
+    echo "✓ Build information recorded"
 
 # Set the CMD to your handler (Lambda container images expect format: "filename.exportName")
 CMD [ "index.handler" ]
