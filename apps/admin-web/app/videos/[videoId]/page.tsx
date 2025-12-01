@@ -5,7 +5,7 @@ import { use } from 'react';
 import { Panel, ExecutionGraph } from '@/components/ui';
 import { StatusPill } from '@/components/ui';
 import type { VideoDetail } from '@twelve/core-types';
-import { getExecutionHistory, type ExecutionGraph as ExecutionGraphType } from '@/lib/api';
+import { getApiBase, getExecutionHistory, type ExecutionGraph as ExecutionGraphType } from '@/lib/api';
 
 export default function VideoDetailPage({
   params,
@@ -23,11 +23,8 @@ export default function VideoDetailPage({
       setLoading(true);
       setError(null);
       try {
-        const apiBase = process.env.NEXT_PUBLIC_API_BASE;
-        if (!apiBase) {
-          throw new Error('API base URL is not configured');
-        }
-        const res = await fetch(`${apiBase.replace(/\/$/, '')}/videos/${videoId}`);
+        const apiBase = getApiBase();
+        const res = await fetch(`${apiBase}/videos/${videoId}`);
         if (!res.ok) {
           throw new Error(`Failed to fetch video (${res.status})`);
         }

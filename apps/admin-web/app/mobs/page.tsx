@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Panel, EmptyState } from '@/components/ui';
+import { getApiBase } from '@/lib/api';
 import type { MobSummary } from '@twelve/core-types';
 
 export default function MobsPage() {
@@ -15,11 +16,8 @@ export default function MobsPage() {
       setLoading(true);
       setError(null);
       try {
-        const apiBase = process.env.NEXT_PUBLIC_API_BASE;
-        if (!apiBase) {
-          throw new Error('API base URL is not configured');
-        }
-        const res = await fetch(`${apiBase.replace(/\/$/, '')}/mobs`);
+        const apiBase = getApiBase();
+        const res = await fetch(`${apiBase}/mobs`);
         if (!res.ok) {
           throw new Error(`Failed to fetch mobs (${res.status})`);
         }

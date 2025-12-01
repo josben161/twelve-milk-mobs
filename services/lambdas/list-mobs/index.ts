@@ -40,7 +40,7 @@ export const handler: APIGatewayProxyHandlerV2 = async () => {
         ...corsHeaders,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(mobs),
+      body: JSON.stringify({ mobs }),
     };
   } catch (err) {
     console.error('Error in list-mobs', err);

@@ -120,6 +120,12 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
           ? `https://${cloudfrontDomain}/${s3Key}`
           : undefined;
 
+        // Get thumbnail URL from DynamoDB, or fallback to constructed URL
+        const thumbnailUrlFromDb = item.thumbnailUrl?.S || '';
+        const thumbnailUrl = thumbnailUrlFromDb || (s3Key && cloudfrontDomain
+          ? `https://${cloudfrontDomain}/thumbnails/${videoId}.jpg`
+          : videoUrl);
+
         return {
           id: videoId,
           user: {
@@ -135,7 +141,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
           video: {
             id: videoId,
             videoUrl,
-            thumbnailUrl: videoUrl, // Placeholder - can be enhanced later
+            thumbnailUrl: thumbnailUrl || videoUrl,
           },
         };
       })

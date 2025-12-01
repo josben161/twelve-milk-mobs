@@ -110,50 +110,54 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const steps: ExecutionStep[] = [];
     const stepMap = new Map<string, ExecutionStep>();
 
-    // Define the expected state machine structure
-    const stateMachineSteps = [
-      { id: 'MarkProcessingTask', name: 'Mark Processing', type: 'Lambda' },
-      { id: 'ParallelAnalysis', name: 'Parallel Analysis', type: 'Parallel' },
-      { id: 'PegasusTask', name: 'Pegasus Analysis', type: 'Lambda' },
-      { id: 'MarengoTask', name: 'Marengo Embedding', type: 'Lambda' },
-      { id: 'MergeResults', name: 'Merge Results', type: 'Pass' },
-      { id: 'WriteResultTask', name: 'Write Results', type: 'Lambda' },
-      { id: 'ValidateTask', name: 'Validate Video', type: 'Lambda' },
-      { id: 'ClusterTask', name: 'Cluster Video', type: 'Lambda' },
-      { id: 'EmitVideoAnalyzedEvent', name: 'Emit Event', type: 'EventBridge' },
-    ];
+    // Define the expected state machine structure - map CDK construct IDs to display names
+    const stateNameMap: Record<string, { name: string; type: string }> = {
+      'MarkProcessingTask': { name: 'Mark Processing', type: 'Lambda' },
+      'ParallelAnalysis': { name: 'Parallel Analysis', type: 'Parallel' },
+      'PegasusTask': { name: 'Pegasus Analysis', type: 'Lambda' },
+      'MarengoTask': { name: 'Marengo Embedding', type: 'Lambda' },
+      'MergeResults': { name: 'Merge Results', type: 'Pass' },
+      'WriteResultTask': { name: 'Write Results', type: 'Lambda' },
+      'ValidateTask': { name: 'Validate Video', type: 'Lambda' },
+      'ClusterTask': { name: 'Cluster Video', type: 'Lambda' },
+      'EmitVideoAnalyzedEvent': { name: 'Emit Event', type: 'EventBridge' },
+    };
 
-    // Process history events
+    // Process history events - Step Functions emits StateEntered/StateExited for all states
     for (const event of historyResponse.events || []) {
       const eventType = event.type;
       const stateEnteredEvent = event.stateEnteredEventDetails;
       const stateExitedEvent = event.stateExitedEventDetails;
-      const taskScheduledEvent = event.taskScheduledEventDetails;
-      const taskSucceededEvent = event.taskSucceededEventDetails;
       const taskFailedEvent = event.taskFailedEventDetails;
-      const executionStartedEvent = event.executionStartedEventDetails;
-      const executionSucceededEvent = event.executionSucceededEventDetails;
       const executionFailedEvent = event.executionFailedEventDetails;
 
-      if (eventType === 'ExecutionStarted') {
-        // Execution started
-      } else if (eventType === 'ExecutionSucceeded' || eventType === 'ExecutionFailed') {
-        // Execution completed
-      } else if (stateEnteredEvent) {
+      // Handle state entered events
+      if (stateEnteredEvent) {
         const stateName = stateEnteredEvent.name || 'Unknown';
         const stepId = stateName;
 
         if (!stepMap.has(stepId)) {
+          const stepInfo = stateNameMap[stepId] || { name: stateName, type: 'Unknown' };
           stepMap.set(stepId, {
             id: stepId,
-            name: stateMachineSteps.find((s) => s.id === stepId)?.name || stateName,
-            type: stateMachineSteps.find((s) => s.id === stepId)?.type || 'Unknown',
+            name: stepInfo.name,
+            type: stepInfo.type,
             status: 'in_progress',
             startTime: new Date(event.timestamp).toISOString(),
-            input: stateEnteredEvent.input,
+            input: stateEnteredEvent.input ? JSON.parse(stateEnteredEvent.input) : undefined,
           });
+        } else {
+          // Update existing step if it doesn't have a start time
+          const step = stepMap.get(stepId)!;
+          if (!step.startTime) {
+            step.startTime = new Date(event.timestamp).toISOString();
+            step.input = stateEnteredEvent.input ? JSON.parse(stateEnteredEvent.input) : undefined;
+          }
         }
-      } else if (stateExitedEvent) {
+      }
+
+      // Handle state exited events (successful completion)
+      if (stateExitedEvent) {
         const stateName = stateExitedEvent.name || 'Unknown';
         const stepId = stateName;
 
@@ -161,29 +165,79 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
           const step = stepMap.get(stepId)!;
           step.status = 'succeeded';
           step.endTime = new Date(event.timestamp).toISOString();
-          step.output = stateExitedEvent.output;
+          step.output = stateExitedEvent.output ? JSON.parse(stateExitedEvent.output) : undefined;
+        } else {
+          // Create step if it wasn't tracked (shouldn't happen, but handle gracefully)
+          const stepInfo = stateNameMap[stepId] || { name: stateName, type: 'Unknown' };
+          stepMap.set(stepId, {
+            id: stepId,
+            name: stepInfo.name,
+            type: stepInfo.type,
+            status: 'succeeded',
+            endTime: new Date(event.timestamp).toISOString(),
+            output: stateExitedEvent.output ? JSON.parse(stateExitedEvent.output) : undefined,
+          });
         }
-      } else if (taskFailedEvent) {
-        const resource = taskFailedEvent.resource || '';
-        // Extract step name from resource ARN or error
-        const stepId = taskFailedEvent.resource?.split(':').pop() || 'Unknown';
+      }
 
-        if (stepMap.has(stepId)) {
+      // Handle task failed events
+      if (taskFailedEvent) {
+        // Try to extract state name from the error or resource
+        // The resource ARN might contain the Lambda function name, but we need the state name
+        // Look for the state name in the error message or use a fallback
+        const errorMessage = taskFailedEvent.error || taskFailedEvent.cause || '';
+        let stepId: string | null = null;
+
+        // Try to find state name in error message
+        for (const stateId of Object.keys(stateNameMap)) {
+          if (errorMessage.includes(stateId)) {
+            stepId = stateId;
+            break;
+          }
+        }
+
+        // If not found, try to extract from resource ARN (last resort)
+        if (!stepId && taskFailedEvent.resource) {
+          const resourceParts = taskFailedEvent.resource.split(':');
+          const functionName = resourceParts[resourceParts.length - 1];
+          // Try to match function name to state (this is a heuristic)
+          for (const stateId of Object.keys(stateNameMap)) {
+            if (functionName.toLowerCase().includes(stateId.toLowerCase().replace('Task', ''))) {
+              stepId = stateId;
+              break;
+            }
+          }
+        }
+
+        if (stepId && stepMap.has(stepId)) {
           const step = stepMap.get(stepId)!;
           step.status = 'failed';
           step.endTime = new Date(event.timestamp).toISOString();
           step.error = taskFailedEvent.error || taskFailedEvent.cause || 'Task failed';
-        } else {
+        } else if (stepId) {
           // Create new failed step
+          const stepInfo = stateNameMap[stepId] || { name: stepId, type: 'Lambda' };
           stepMap.set(stepId, {
             id: stepId,
-            name: stepId,
-            type: 'Lambda',
+            name: stepInfo.name,
+            type: stepInfo.type,
             status: 'failed',
             startTime: new Date(event.timestamp).toISOString(),
             endTime: new Date(event.timestamp).toISOString(),
             error: taskFailedEvent.error || taskFailedEvent.cause || 'Task failed',
           });
+        }
+      }
+
+      // Handle execution failed events
+      if (executionFailedEvent) {
+        // Mark all in-progress steps as failed if execution failed
+        for (const [stepId, step] of stepMap.entries()) {
+          if (step.status === 'in_progress') {
+            step.status = 'failed';
+            step.endTime = new Date(event.timestamp).toISOString();
+            step.error = executionFailedEvent.error || executionFailedEvent.cause || 'Execution failed';
+          }
         }
       }
     }

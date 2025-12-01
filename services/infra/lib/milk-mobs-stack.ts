@@ -17,6 +17,7 @@ import * as opensearch from 'aws-cdk-lib/aws-opensearchservice';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as customResources from 'aws-cdk-lib/custom-resources';
+import * as ecrAssets from 'aws-cdk-lib/aws-ecr-assets';
 import * as path from 'path';
 
 export class MilkMobsStack extends cdk.Stack {
@@ -291,22 +292,17 @@ export class MilkMobsStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(30),
     });
 
-    // Thumbnail generation Lambda
-    // Note: This Lambda requires FFmpeg. Options:
-    // 1. Use a public FFmpeg Lambda Layer (e.g., serverlessrepo:ffmpeg-layer)
-    // 2. Create your own Lambda Layer with FFmpeg
-    // 3. Use Lambda Container Image with FFmpeg pre-installed
-    // 
-    // To add an FFmpeg layer, uncomment and set the layer ARN:
-    // const ffmpegLayer = lambda.LayerVersion.fromLayerVersionArn(
-    //   this,
-    //   'FFmpegLayer',
-    //   'arn:aws:lambda:us-east-1:123456789012:layer:ffmpeg:1'
-    // );
-    const generateThumbnailFn = new lambdaNodejs.NodejsFunction(this, 'GenerateThumbnailFn', {
-      runtime: lambda.Runtime.NODEJS_20_X,
-      handler: 'handler',
-      entry: path.join(__dirname, '../../lambdas/generate-thumbnail/index.ts'),
+    // Thumbnail generation Lambda using container image with FFmpeg pre-installed
+    // The Dockerfile builds TypeScript and includes FFmpeg in the container
+    const thumbnailDockerImage = new ecrAssets.DockerImageAsset(this, 'ThumbnailDockerImage', {
+      directory: path.join(__dirname, '../../lambdas/generate-thumbnail'),
+      file: 'Dockerfile',
+    });
+
+    const generateThumbnailFn = new lambda.DockerImageFunction(this, 'GenerateThumbnailFn', {
+      code: lambda.DockerImageCode.fromEcrImage(thumbnailDockerImage.repository, {
+        tagOrDigest: thumbnailDockerImage.imageTag,
+      }),
       environment: {
         UPLOADS_BUCKET_NAME: uploadsBucket.bucketName,
         VIDEOS_TABLE_NAME: videosTable.tableName,
@@ -314,7 +310,6 @@ export class MilkMobsStack extends cdk.Stack {
       },
       timeout: cdk.Duration.minutes(5), // Thumbnail generation may take time
       memorySize: 1024, // More memory for video processing
-      // layers: [ffmpegLayer], // Uncomment when layer is configured
     });
 
     // 5b) Lambda function to cluster videos into mobs

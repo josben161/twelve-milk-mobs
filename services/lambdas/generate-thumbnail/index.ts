@@ -16,17 +16,44 @@ const cloudfrontDomain = process.env.CLOUDFRONT_DISTRIBUTION_DOMAIN;
 const s3 = new S3Client({});
 const ddb = new DynamoDBClient({});
 
-// FFmpeg is available in /opt/bin/ffmpeg when using a Lambda Layer
-// Or we can use the system PATH if FFmpeg is installed
-const FFMPEG_PATH = existsSync('/opt/bin/ffmpeg') ? '/opt/bin/ffmpeg' : 'ffmpeg';
+// FFmpeg is installed in the container image at /usr/bin/ffmpeg
+// Check common locations: container image (/usr/bin), Lambda layer (/opt/bin), or system PATH
+const FFMPEG_PATH = existsSync('/usr/bin/ffmpeg')
+  ? '/usr/bin/ffmpeg'
+  : existsSync('/opt/bin/ffmpeg')
+  ? '/opt/bin/ffmpeg'
+  : 'ffmpeg';
+
+// Check if FFmpeg is available
+async function checkFFmpegAvailable(): Promise<boolean> {
+  try {
+    const { exec } = await import('child_process');
+    const { promisify } = await import('util');
+    const execAsync = promisify(exec);
+    await execAsync(`${FFMPEG_PATH} -version`);
+    console.log(`FFmpeg is available at: ${FFMPEG_PATH}`);
+    return true;
+  } catch (err) {
+    console.error(`FFmpeg is not available at ${FFMPEG_PATH}:`, err);
+    return false;
+  }
+}
 
 // Handler can accept either S3Event (from S3 trigger) or a synthetic event (from Lambda invocation)
 export const handler = async (event: S3Event | { Records: Array<{ s3: { bucket: { name: string }; object: { key: string } } }> }): Promise<void> => {
   console.log('Processing event for thumbnail generation:', JSON.stringify(event, null, 2));
 
+  // Check FFmpeg availability at the start
+  const ffmpegAvailable = await checkFFmpegAvailable();
+  if (!ffmpegAvailable) {
+    console.error('FFmpeg is not available. Thumbnail generation will fail. Please configure an FFmpeg Lambda Layer.');
+    // Continue anyway - individual records will handle the error
+  }
+
   for (const record of event.Records) {
     let tempVideoPath: string | null = null;
     let tempThumbnailPath: string | null = null;
+    let videoId: string | null = null;
 
     try {
       const bucket = record.s3.bucket.name;
@@ -39,7 +66,7 @@ export const handler = async (event: S3Event | { Records: Array<{ s3: { bucket: 
       }
 
       // Extract videoId from key (remove .mp4 extension)
-      const videoId = key.replace(/\.mp4$/, '');
+      videoId = key.replace(/\.mp4$/, '');
       console.log(`Generating thumbnail for video: ${videoId} from bucket: ${bucket}, key: ${key}`);
 
       // Download video from S3 to temporary file
@@ -63,18 +90,57 @@ export const handler = async (event: S3Event | { Records: Array<{ s3: { bucket: 
       tempThumbnailPath = `/tmp/${videoId}_thumb.jpg`;
       const ffmpegCommand = `${FFMPEG_PATH} -i ${tempVideoPath} -ss 00:00:01 -vframes 1 -q:v 2 ${tempThumbnailPath} -y`;
 
+      console.log(`Attempting to generate thumbnail for ${videoId} using command: ${ffmpegCommand}`);
+
       try {
-        await execAsync(ffmpegCommand);
-      } catch (ffmpegError) {
-        console.error(`FFmpeg error for ${videoId}:`, ffmpegError);
+        const { stdout, stderr } = await execAsync(ffmpegCommand);
+        if (stderr) {
+          console.log(`FFmpeg stderr for ${videoId}:`, stderr);
+        }
+        if (stdout) {
+          console.log(`FFmpeg stdout for ${videoId}:`, stdout);
+        }
+        console.log(`FFmpeg command completed successfully for ${videoId}`);
+      } catch (ffmpegError: any) {
+        console.error(`FFmpeg error for ${videoId}:`, {
+          message: ffmpegError?.message,
+          code: ffmpegError?.code,
+          stderr: ffmpegError?.stderr,
+          stdout: ffmpegError?.stdout,
+        });
+        
+        // Check if FFmpeg is not found
+        if (ffmpegError?.code === 'ENOENT' || ffmpegError?.message?.includes('not found')) {
+          throw new Error(`FFmpeg is not available. Please configure an FFmpeg Lambda Layer. Original error: ${ffmpegError.message}`);
+        }
+
         // Fallback: try extracting frame at 0.5 seconds
-        const fallbackCommand = `${FFMPEG_PATH} -i ${tempVideoPath} -ss 00:00:00.5 -vframes 1 -q:v 2 ${tempThumbnailPath} -y`;
-        await execAsync(fallbackCommand);
+        console.log(`Attempting fallback thumbnail generation for ${videoId} at 0.5 seconds`);
+        try {
+          const fallbackCommand = `${FFMPEG_PATH} -i ${tempVideoPath} -ss 00:00:00.5 -vframes 1 -q:v 2 ${tempThumbnailPath} -y`;
+          const { stdout: fallbackStdout, stderr: fallbackStderr } = await execAsync(fallbackCommand);
+          if (fallbackStderr) {
+            console.log(`FFmpeg fallback stderr for ${videoId}:`, fallbackStderr);
+          }
+          console.log(`FFmpeg fallback command completed successfully for ${videoId}`);
+        } catch (fallbackError: any) {
+          console.error(`FFmpeg fallback also failed for ${videoId}:`, {
+            message: fallbackError?.message,
+            code: fallbackError?.code,
+            stderr: fallbackError?.stderr,
+          });
+          throw new Error(`Failed to generate thumbnail: ${fallbackError.message}`);
+        }
       }
 
       if (!existsSync(tempThumbnailPath)) {
-        throw new Error(`Thumbnail file was not created: ${tempThumbnailPath}`);
+        const errorMsg = `Thumbnail file was not created: ${tempThumbnailPath}. FFmpeg may have failed silently.`;
+        console.error(errorMsg);
+        throw new Error(errorMsg);
       }
+
+      const thumbnailSize = (await import('fs')).statSync(tempThumbnailPath).size;
+      console.log(`Thumbnail generated successfully for ${videoId}, size: ${thumbnailSize} bytes`);
 
       // Upload thumbnail to S3
       const thumbnailKey = `thumbnails/${videoId}.jpg`;
@@ -115,10 +181,30 @@ export const handler = async (event: S3Event | { Records: Array<{ s3: { bucket: 
         })
       );
 
-      console.log(`Updated DynamoDB with thumbnail URL for ${videoId}`);
+      console.log(`Successfully completed thumbnail generation for ${videoId}. URL: ${thumbnailUrl}`);
     } catch (err) {
-      console.error('Error generating thumbnail:', err);
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      const key = record.s3?.object?.key ? decodeURIComponent(record.s3.object.key.replace(/\+/g, ' ')) : 'unknown';
+      const extractedVideoId = videoId || (key.match(/^vid_[a-f0-9-]+\.mp4$/) ? key.replace(/\.mp4$/, '') : 'unknown');
+      
+      console.error(`Error generating thumbnail for video ${extractedVideoId}:`, {
+        error: errorMessage,
+        stack: err instanceof Error ? err.stack : undefined,
+        videoId: extractedVideoId,
+        bucket: record.s3?.bucket?.name,
+        key: key,
+      });
+      
+      // Log to CloudWatch for monitoring
+      // Note: In production, you might want to send this to CloudWatch Metrics or SNS
+      console.error('THUMBNAIL_GENERATION_FAILED', {
+        videoId: extractedVideoId,
+        error: errorMessage,
+        timestamp: new Date().toISOString(),
+      });
+      
       // Don't throw - we don't want to fail the entire batch if one thumbnail fails
+      // But we should log it clearly for debugging
     } finally {
       // Clean up temporary files
       if (tempVideoPath && existsSync(tempVideoPath)) {
