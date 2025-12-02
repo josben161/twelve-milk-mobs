@@ -63,28 +63,37 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     // Find the execution(s) for this video
     let executionArn: string | null = null;
     let executionDetails: any = null;
-
+    
     console.log('[get-execution-history] Searching for execution matching videoId:', videoId);
     let checkedCount = 0;
+    let hadAccessDenied = false;
     
     for (const execution of listExecutionsResponse.executions || []) {
       checkedCount++;
       try {
-        console.log(`[get-execution-history] Checking execution ${checkedCount}/${listExecutionsResponse.executions?.length || 0}:`, execution.executionArn);
+        console.log(
+          `[get-execution-history] Checking execution ${checkedCount}/${listExecutionsResponse.executions?.length || 0}:`,
+          execution.executionArn
+        );
         const describeResponse = await sfn.send(
           new DescribeExecutionCommand({
             executionArn: execution.executionArn,
           })
         );
-
+        
         // Parse input to check if it matches our videoId
         if (describeResponse.input) {
           try {
             const input = JSON.parse(describeResponse.input);
-            console.log(`[get-execution-history] Execution input parsed:`, { videoId: input.videoId, status: execution.status });
+            console.log(
+              `[get-execution-history] Execution input parsed:`,
+              { videoId: input.videoId, status: execution.status }
+            );
             
             if (input.videoId === videoId) {
-              console.log(`[get-execution-history] ✓ Found matching execution! ARN: ${execution.executionArn}`);
+              console.log(
+                `[get-execution-history] ✓ Found matching execution! ARN: ${execution.executionArn}`
+              );
               executionArn = execution.executionArn;
               executionDetails = {
                 ...execution,
@@ -93,22 +102,65 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
               };
               break;
             } else {
-              console.log(`[get-execution-history] Execution videoId (${input.videoId}) does not match (${videoId})`);
+              console.log(
+                `[get-execution-history] Execution videoId (${input.videoId}) does not match (${videoId})`
+              );
             }
           } catch (parseErr) {
-            console.warn(`[get-execution-history] Failed to parse input for execution ${execution.executionArn}:`, parseErr);
+            console.warn(
+              `[get-execution-history] Failed to parse input for execution ${execution.executionArn}:`,
+              parseErr
+            );
           }
         } else {
-          console.log(`[get-execution-history] Execution ${execution.executionArn} has no input`);
+          console.log(
+            `[get-execution-history] Execution ${execution.executionArn} has no input`
+          );
         }
-      } catch (err) {
-        console.warn(`[get-execution-history] Failed to describe execution ${execution.executionArn}:`, err);
+      } catch (err: any) {
+        console.warn(
+          `[get-execution-history] Failed to describe execution ${execution.executionArn}:`,
+          err
+        );
+
+        const name = (err && err.name) || '';
+        const type = (err && (err as any).__type) || '';
+        const message = (err && err.message) || '';
+
+        if (
+          name.includes('AccessDenied') ||
+          type.includes('AccessDenied') ||
+          message.includes('AccessDenied')
+        ) {
+          hadAccessDenied = true;
+        }
+
         continue;
       }
     }
     
     console.log(`[get-execution-history] Checked ${checkedCount} executions`);
 
+    if (hadAccessDenied && !executionArn) {
+      console.error(
+        '[get-execution-history] AccessDenied when describing executions. ' +
+          'Check IAM policy for GetExecutionHistoryFn role (states:DescribeExecution, states:GetExecutionHistory).'
+      );
+      return {
+        statusCode: 500,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          error: 'AccessDenied',
+          message:
+            'Execution history cannot be read due to missing IAM permissions. ' +
+            'Check the GetExecutionHistoryFn IAM role for states:DescribeExecution and states:GetExecutionHistory.',
+        }),
+      };
+    }
+    
     if (!executionArn) {
       console.log('[get-execution-history] ✗ No execution found for videoId:', videoId);
       return {

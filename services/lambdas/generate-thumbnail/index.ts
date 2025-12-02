@@ -305,3 +305,6 @@ export const handler = async (event: S3Event | { Records: Array<{ s3: { bucket: 
   }
 };
 
+// Simple confirmation that the handler export is present when the module loads.
+console.log('Thumbnail Lambda: handler export type =', typeof handler);
+
