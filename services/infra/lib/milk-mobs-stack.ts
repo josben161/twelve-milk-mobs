@@ -291,27 +291,31 @@ export class MilkMobsStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(30),
     });
 
-    // Thumbnail generation Lambda using container image with FFmpeg pre-installed
-    // The Dockerfile builds TypeScript and includes FFmpeg in the container
-    // Using buildArgs to force image rebuild on each deployment
-    const generateThumbnailFn = new lambda.DockerImageFunction(this, 'GenerateThumbnailFn', {
-      code: lambda.DockerImageCode.fromImageAsset(
-        path.join(__dirname, '../../lambdas/generate-thumbnail'),
-        {
-          file: 'Dockerfile',
-          buildArgs: {
-            BUILD_TIMESTAMP: new Date().toISOString(),
-          },
-        }
-      ),
+    // Thumbnail generation Lambda using FFmpeg layer (replacing Docker container approach)
+    // FFmpeg layer provides static binary at /opt/bin/ffmpeg
+    // The binary should be built using: cd ffmpeg-layer && ./build-layer.sh
+    // If binary doesn't exist, CDK will fail - run the build script first
+    const ffmpegLayer = new lambda.LayerVersion(this, 'FFmpegLayer', {
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../lambdas/generate-thumbnail/ffmpeg-layer')),
+      description: 'FFmpeg static binary for video thumbnail generation',
+      compatibleRuntimes: [lambda.Runtime.NODEJS_20_X],
+      compatibleArchitectures: [lambda.Architecture.X86_64],
+    });
+
+    // Thumbnail generation Lambda using NodejsFunction with FFmpeg layer
+    const generateThumbnailFn = new lambdaNodejs.NodejsFunction(this, 'GenerateThumbnailFn', {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'handler',
+      entry: path.join(__dirname, '../../lambdas/generate-thumbnail/index.ts'),
       environment: {
         UPLOADS_BUCKET_NAME: uploadsBucket.bucketName,
         VIDEOS_TABLE_NAME: videosTable.tableName,
         CLOUDFRONT_DISTRIBUTION_DOMAIN: distribution.distributionDomainName,
-        BUILD_TIMESTAMP: new Date().toISOString(), // Pass build timestamp to runtime
+        BUILD_TIMESTAMP: new Date().toISOString(),
       },
       timeout: cdk.Duration.minutes(5), // Thumbnail generation may take time
       memorySize: 1024, // More memory for video processing
+      layers: [ffmpegLayer], // Add FFmpeg layer
     });
 
     // 5b) Lambda function to cluster videos into mobs

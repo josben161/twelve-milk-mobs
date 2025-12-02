@@ -19,8 +19,8 @@ let buildTimestamp: string | undefined;
 const s3 = new S3Client({});
 const ddb = new DynamoDBClient({});
 
-// FFmpeg is installed in the container image at /usr/local/bin/ffmpeg (static binary)
-// Check common locations: static binary (/usr/local/bin), system (/usr/bin), Lambda layer (/opt/bin), or system PATH
+// FFmpeg is provided via Lambda layer at /opt/bin/ffmpeg (static binary)
+// Check common locations: Lambda layer (/opt/bin), legacy container (/usr/local/bin), system (/usr/bin), or system PATH
 const FFMPEG_PATH = existsSync('/usr/local/bin/ffmpeg')
   ? '/usr/local/bin/ffmpeg'
   : existsSync('/usr/bin/ffmpeg')

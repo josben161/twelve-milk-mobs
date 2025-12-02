@@ -2252,6 +2252,28 @@
     "aws:asset:property": "Code"
    }
   },
+  "FFmpegLayer65FCD2A8": {
+   "Type": "AWS::Lambda::LayerVersion",
+   "Properties": {
+    "CompatibleArchitectures": [
+     "x86_64"
+    ],
+    "CompatibleRuntimes": [
+     "nodejs20.x"
+    ],
+    "Content": {
+     "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
+     "S3Key": "d6d8fef993a7f71ed7ae4aeb3d86fdf023c8cd50c76f139ca2ee7f6896926103.zip"
+    },
+    "Description": "FFmpeg static binary for video thumbnail generation"
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/FFmpegLayer/Resource",
+    "aws:asset:path": "asset.d6d8fef993a7f71ed7ae4aeb3d86fdf023c8cd50c76f139ca2ee7f6896926103",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Content"
+   }
+  },
   "GenerateThumbnailFnServiceRole622C0FEF": {
    "Type": "AWS::IAM::Role",
    "Properties": {
@@ -2387,9 +2409,8 @@
    "Type": "AWS::Lambda::Function",
    "Properties": {
     "Code": {
-     "ImageUri": {
-      "Fn::Sub": "679729599398.dkr.ecr.us-east-1.${AWS::URLSuffix}/cdk-hnb659fds-container-assets-679729599398-us-east-1:d88457d3856202f1eb113270dd2655667b8306ca622dbe40fb7f6c16500a471c"
-     }
+     "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
+     "S3Key": "88580df72685ef1b90d13d7f7873ca1bafa82cf894dded938384b4f9a6d07af9.zip"
     },
     "Environment": {
      "Variables": {
@@ -2405,17 +2426,23 @@
         "DomainName"
        ]
       },
-      "BUILD_TIMESTAMP": "2025-12-02T00:05:10.650Z"
+      "BUILD_TIMESTAMP": "2025-12-02T02:45:30.411Z"
      }
     },
+    "Handler": "index.handler",
+    "Layers": [
+     {
+      "Ref": "FFmpegLayer65FCD2A8"
+     }
+    ],
     "MemorySize": 1024,
-    "PackageType": "Image",
     "Role": {
      "Fn::GetAtt": [
       "GenerateThumbnailFnServiceRole622C0FEF",
       "Arn"
      ]
     },
+    "Runtime": "nodejs20.x",
     "Tags": [
      {
       "Key": "Application",
@@ -2442,12 +2469,9 @@
    ],
    "Metadata": {
     "aws:cdk:path": "MilkMobsStack/GenerateThumbnailFn/Resource",
-    "aws:asset:path": "asset.d88457d3856202f1eb113270dd2655667b8306ca622dbe40fb7f6c16500a471c",
-    "aws:asset:dockerfile-path": "Dockerfile",
-    "aws:asset:docker-build-args": {
-     "BUILD_TIMESTAMP": "2025-12-02T00:05:10.650Z"
-    },
-    "aws:asset:property": "Code.ImageUri"
+    "aws:asset:path": "asset.88580df72685ef1b90d13d7f7873ca1bafa82cf894dded938384b4f9a6d07af9",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
    }
   },
   "ClusterVideoFnServiceRoleC7038455": {
@@ -8104,7 +8128,7 @@
   "CDKMetadata": {
    "Type": "AWS::CDK::Metadata",
    "Properties": {
-    "Analytics": "v2:deflate64:H4sIAAAAAAAA/21S247iMAz9lnkPWRb2BwrsSEgzO1XZd+SmpoS2SRU7IBT131dJC0WjffI5vhw7jldytV7K5RvcaKGqZtHqUoYDg2oE3OgYaC3DxqsGWWxPZkKjyW2r1X12T3wkGyAcRAtdWYEM25PJ0XWaSFsjDtrULbI1794ojp4n2J5m586qBt2+gxofvkGo1vrq5KxhGb6crrXJlEKifYWGNadxtjHnPeb8N2OniZ0u/aPhKx9EdTfQ2aqU4S+ULcaEBAZhezSE4NSZ0F21Qhl2tgM9iiQ0CA2dDPNmJlTYUSnaQdD6CETIJLNopi0dja3wQvJPMs8toHKP7JeFjIWonCywt6TZuntcucArGiYZfke78RS7PnHhpzF8GoOxP01t6MhADcnwkWbZm6ttUIyFTlc15p4To291MuTgoG2xFTkQiQMD4yeoszap1SsfBPS6BsYb3GUokDjrdZpnhplS1hsWO+xbe+/QpLt7YQeG+qFcoyiQrHcK0+M/kc+2isEJPaJTk4SnG7oBq7MMO6BzacGlqplkLbguzRPBMLwKzKrKE9vu6CZOMmQ32ibnMyd39qordIP4FkhfGB+hTR3lvzz3ngcRz0Be6Md1tZQ/f8nl24W0XjhvWHcoi9H+A4FlpEG3AwAA"
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/21S247iMAz9lnkPWRb2BwrsSCPNpYLVviI3NSXQJlXsgFCUf18lLRSN9snn+HLsOF7IxXIu5y9wpZmqz7NWVzLsGNRZwJX2gZYyrLw6I4v1wYxoMKVttbpN7pEPZAWEUbTQVTXIsD6YEl2nibQ1YqdN0yJb8+qN4uR5gPVhcr7DDd1fdDQGnnkUqrW+PjhrWIYvpxttCqWQ6K1Gw5rzXOuU85py/pux0cROV/7e+ZlHUd8MdLauZPgDVYspIYMobI+GEJw6ErqLVijDxnagB5GMotDQyTCtaERbOyglGwUt90CETLJIZlzX3tgaTyQ/s3msAy9omGT4nezKU5J54K0fdX3WZewPYx3tGehMMrxn8TdzsWcUQ6HTdYOl58zoW50MJThoW2xFCURix8D4AeqoTW71zKOAXjfAeIWbDFskLnqd55lgoZT1hsUG+9beOjT5op7YjqG5KzcotkjWO4XpksQH8tHWKTiie3RskvF4FFdgdZRhA3SsLLhcNZGiBdfleRKI8VlgUlWe2HZ7N3KSobjSOjsfOaWzF12ji+JbIH9meoQ2TZL/8tx7jiL9qzzRj8tiLn/+kvOXE2k9c96w7lBuB/sPpB0/HJEDAAA="
    },
    "Metadata": {
     "aws:cdk:path": "MilkMobsStack/CDKMetadata/Default"

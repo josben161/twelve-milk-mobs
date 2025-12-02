@@ -1,0 +1,3 @@
+# FFmpeg binary (large file, will be downloaded during CDK synthesis)
+bin/ffmpeg
+

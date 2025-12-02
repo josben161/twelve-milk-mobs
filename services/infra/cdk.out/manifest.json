@@ -24,7 +24,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::679729599398:role/cdk-hnb659fds-deploy-role-679729599398-us-east-1",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::679729599398:role/cdk-hnb659fds-cfn-exec-role-679729599398-us-east-1",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-679729599398-us-east-1/6c19aac50e3222c2f751f3fd85dac45cdd5f3dda6c8f1d82e5aa4e4005b9d281.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-679729599398-us-east-1/537405cfa868a2ac9d1ee8439d6c95e5e2f69ea921f3bebf5cc18814a569c1b2.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -341,6 +341,12 @@
           {
             "type": "aws:cdk:logicalId",
             "data": "StartAnalysisFn88339548"
+          }
+        ],
+        "/MilkMobsStack/FFmpegLayer/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "FFmpegLayer65FCD2A8"
           }
         ],
         "/MilkMobsStack/GenerateThumbnailFn/ServiceRole/Resource": [
