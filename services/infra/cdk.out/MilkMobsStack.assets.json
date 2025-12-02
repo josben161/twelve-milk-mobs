@@ -286,16 +286,16 @@
         }
       }
     },
-    "1a778bb7b95edaebc1bf6cad84662e82aeff675ac43ec3ead52c52d120a9c55c": {
+    "56d81845d5f5e9c7bef216350ed240fb64ae73cc0bc577480f51b2f701d7f2b6": {
       "displayName": "GetExecutionHistoryFn/Code",
       "source": {
-        "path": "asset.1a778bb7b95edaebc1bf6cad84662e82aeff675ac43ec3ead52c52d120a9c55c",
+        "path": "asset.56d81845d5f5e9c7bef216350ed240fb64ae73cc0bc577480f51b2f701d7f2b6",
         "packaging": "zip"
       },
       "destinations": {
-        "679729599398-us-east-1-2bd7c07f": {
+        "679729599398-us-east-1-1a143b59": {
           "bucketName": "cdk-hnb659fds-assets-679729599398-us-east-1",
-          "objectKey": "1a778bb7b95edaebc1bf6cad84662e82aeff675ac43ec3ead52c52d120a9c55c.zip",
+          "objectKey": "56d81845d5f5e9c7bef216350ed240fb64ae73cc0bc577480f51b2f701d7f2b6.zip",
           "region": "us-east-1",
           "assumeRoleArn": "arn:${AWS::Partition}:iam::679729599398:role/cdk-hnb659fds-file-publishing-role-679729599398-us-east-1"
         }
@@ -331,16 +331,16 @@
         }
       }
     },
-    "522ad241bb3767c53db347f3ac7c1bf2b6d15f3bd02847d63ea0477ebcf57e70": {
+    "6c19aac50e3222c2f751f3fd85dac45cdd5f3dda6c8f1d82e5aa4e4005b9d281": {
       "displayName": "MilkMobsStack Template",
       "source": {
         "path": "MilkMobsStack.template.json",
         "packaging": "file"
       },
       "destinations": {
-        "679729599398-us-east-1-8b2cb9e7": {
+        "679729599398-us-east-1-6de986a5": {
           "bucketName": "cdk-hnb659fds-assets-679729599398-us-east-1",
-          "objectKey": "522ad241bb3767c53db347f3ac7c1bf2b6d15f3bd02847d63ea0477ebcf57e70.json",
+          "objectKey": "6c19aac50e3222c2f751f3fd85dac45cdd5f3dda6c8f1d82e5aa4e4005b9d281.json",
           "region": "us-east-1",
           "assumeRoleArn": "arn:${AWS::Partition}:iam::679729599398:role/cdk-hnb659fds-file-publishing-role-679729599398-us-east-1"
         }
@@ -348,19 +348,19 @@
     }
   },
   "dockerImages": {
-    "4ace1437da704b99680ce1a76161ffccf292655215496296b5fdd60b97774fff": {
+    "d88457d3856202f1eb113270dd2655667b8306ca622dbe40fb7f6c16500a471c": {
       "displayName": "GenerateThumbnailFn/AssetImage",
       "source": {
-        "directory": "asset.4ace1437da704b99680ce1a76161ffccf292655215496296b5fdd60b97774fff",
+        "directory": "asset.d88457d3856202f1eb113270dd2655667b8306ca622dbe40fb7f6c16500a471c",
         "dockerBuildArgs": {
-          "BUILD_TIMESTAMP": "2025-12-01T23:24:30.147Z"
+          "BUILD_TIMESTAMP": "2025-12-02T00:05:10.650Z"
         },
         "dockerFile": "Dockerfile"
       },
       "destinations": {
-        "679729599398-us-east-1-2179d007": {
+        "679729599398-us-east-1-960e9a7f": {
           "repositoryName": "cdk-hnb659fds-container-assets-679729599398-us-east-1",
-          "imageTag": "4ace1437da704b99680ce1a76161ffccf292655215496296b5fdd60b97774fff",
+          "imageTag": "d88457d3856202f1eb113270dd2655667b8306ca622dbe40fb7f6c16500a471c",
           "region": "us-east-1",
           "assumeRoleArn": "arn:${AWS::Partition}:iam::679729599398:role/cdk-hnb659fds-image-publishing-role-679729599398-us-east-1"
         }

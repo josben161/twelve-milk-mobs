@@ -2388,7 +2388,7 @@
    "Properties": {
     "Code": {
      "ImageUri": {
-      "Fn::Sub": "679729599398.dkr.ecr.us-east-1.${AWS::URLSuffix}/cdk-hnb659fds-container-assets-679729599398-us-east-1:4ace1437da704b99680ce1a76161ffccf292655215496296b5fdd60b97774fff"
+      "Fn::Sub": "679729599398.dkr.ecr.us-east-1.${AWS::URLSuffix}/cdk-hnb659fds-container-assets-679729599398-us-east-1:d88457d3856202f1eb113270dd2655667b8306ca622dbe40fb7f6c16500a471c"
      }
     },
     "Environment": {
@@ -2405,7 +2405,7 @@
         "DomainName"
        ]
       },
-      "BUILD_TIMESTAMP": "2025-12-01T23:24:30.147Z"
+      "BUILD_TIMESTAMP": "2025-12-02T00:05:10.650Z"
      }
     },
     "MemorySize": 1024,
@@ -2442,10 +2442,10 @@
    ],
    "Metadata": {
     "aws:cdk:path": "MilkMobsStack/GenerateThumbnailFn/Resource",
-    "aws:asset:path": "asset.4ace1437da704b99680ce1a76161ffccf292655215496296b5fdd60b97774fff",
+    "aws:asset:path": "asset.d88457d3856202f1eb113270dd2655667b8306ca622dbe40fb7f6c16500a471c",
     "aws:asset:dockerfile-path": "Dockerfile",
     "aws:asset:docker-build-args": {
-     "BUILD_TIMESTAMP": "2025-12-01T23:24:30.147Z"
+     "BUILD_TIMESTAMP": "2025-12-02T00:05:10.650Z"
     },
     "aws:asset:property": "Code.ImageUri"
    }
@@ -4165,22 +4165,7 @@
         "states:GetExecutionHistory"
        ],
        "Effect": "Allow",
-       "Resource": [
-        {
-         "Ref": "VideoAnalysisStateMachineA7892CAE"
-        },
-        {
-         "Fn::Join": [
-          "",
-          [
-           {
-            "Ref": "VideoAnalysisStateMachineA7892CAE"
-           },
-           ":*"
-          ]
-         ]
-        }
-       ]
+       "Resource": "*"
       }
      ],
      "Version": "2012-10-17"
@@ -4201,7 +4186,7 @@
    "Properties": {
     "Code": {
      "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
-     "S3Key": "1a778bb7b95edaebc1bf6cad84662e82aeff675ac43ec3ead52c52d120a9c55c.zip"
+     "S3Key": "56d81845d5f5e9c7bef216350ed240fb64ae73cc0bc577480f51b2f701d7f2b6.zip"
     },
     "Environment": {
      "Variables": {
@@ -4244,7 +4229,7 @@
    ],
    "Metadata": {
     "aws:cdk:path": "MilkMobsStack/GetExecutionHistoryFn/Resource",
-    "aws:asset:path": "asset.1a778bb7b95edaebc1bf6cad84662e82aeff675ac43ec3ead52c52d120a9c55c",
+    "aws:asset:path": "asset.56d81845d5f5e9c7bef216350ed240fb64ae73cc0bc577480f51b2f701d7f2b6",
     "aws:asset:is-bundled": true,
     "aws:asset:property": "Code"
    }
