@@ -3,12 +3,15 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Panel, StatusPill, EmptyState } from '@/components/ui';
+import { deleteVideo } from '@/lib/api';
 import type { VideoSummary } from '@twelve/core-types';
 
 export default function VideosPage() {
   const [videos, setVideos] = useState<VideoSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deletingVideoId, setDeletingVideoId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchVideos = async () => {
@@ -36,6 +39,31 @@ export default function VideosPage() {
     fetchVideos();
   }, []);
 
+  const handleDelete = async (videoId: string) => {
+    if (confirmDeleteId !== videoId) {
+      setConfirmDeleteId(videoId);
+      return;
+    }
+
+    setDeletingVideoId(videoId);
+    setError(null);
+    try {
+      await deleteVideo(videoId);
+      // Remove video from list
+      setVideos(videos.filter(v => v.id !== videoId));
+      setConfirmDeleteId(null);
+    } catch (err) {
+      console.error('Error deleting video:', err);
+      setError(err instanceof Error ? err.message : 'Failed to delete video.');
+    } finally {
+      setDeletingVideoId(null);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setConfirmDeleteId(null);
+  };
+
   return (
     <div className="w-full space-y-10">
       {/* Page Header */}
@@ -45,6 +73,13 @@ export default function VideosPage() {
           All campaign submissions with current validation status and TwelveLabs analysis.
         </p>
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="rounded-lg border border-[var(--error)]/20 bg-[var(--error)]/10 p-4">
+          <p className="text-sm text-[var(--error)]">{error}</p>
+        </div>
+      )}
 
       {/* Videos Table */}
       <Panel>
@@ -95,7 +130,7 @@ export default function VideosPage() {
                       <div className="flex items-center gap-3">
                         {v.thumbnailUrl ? (
                           <div
-                            className="h-12 w-16 rounded-lg border border-[var(--border-subtle)] flex-shrink-0 bg-cover bg-center"
+                            className="h-12 w-16 rounded-lg border border-[var(--border-subtle)] flex-shrink-0 bg-cover bg-center overflow-hidden"
                             style={{ backgroundImage: `url(${v.thumbnailUrl})` }}
                           />
                         ) : (
@@ -105,8 +140,8 @@ export default function VideosPage() {
                           <span className="text-sm font-semibold text-[var(--text)] truncate">
                             @{v.userHandle}
                           </span>
-                          <span className="text-xs text-[var(--text-muted)] truncate mt-1">
-                            {v.caption}
+                          <span className="text-xs text-[var(--text-muted)] truncate mt-0.5 leading-relaxed">
+                            {v.caption || 'No caption'}
                           </span>
                         </div>
                       </div>
@@ -132,12 +167,40 @@ export default function VideosPage() {
                       </span>
                     </td>
                     <td className="px-8 py-5 text-center">
-                      <Link
-                        href={`/videos/${v.id}`}
-                        className="text-sm font-medium text-[var(--accent)] hover:text-[var(--accent)]/80 transition-colors"
-                      >
-                        View
-                      </Link>
+                      <div className="flex items-center justify-center gap-3">
+                        <Link
+                          href={`/videos/${v.id}`}
+                          className="text-sm font-medium text-[var(--accent)] hover:text-[var(--accent)]/80 transition-colors"
+                        >
+                          View
+                        </Link>
+                        {confirmDeleteId === v.id ? (
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleDelete(v.id)}
+                              disabled={deletingVideoId === v.id}
+                              className="text-xs px-2 py-1 rounded text-white bg-[var(--error)] hover:bg-[var(--error)]/80 transition-colors disabled:opacity-50"
+                            >
+                              {deletingVideoId === v.id ? 'Deleting...' : 'Confirm'}
+                            </button>
+                            <button
+                              onClick={handleCancelDelete}
+                              disabled={deletingVideoId === v.id}
+                              className="text-xs px-2 py-1 rounded text-[var(--text-muted)] bg-[var(--bg-subtle)] hover:bg-[var(--bg-subtle)]/80 transition-colors disabled:opacity-50"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => handleDelete(v.id)}
+                            disabled={deletingVideoId === v.id}
+                            className="text-xs px-2 py-1 rounded text-[var(--error)] hover:bg-[var(--error)]/10 transition-colors disabled:opacity-50"
+                          >
+                            {deletingVideoId === v.id ? 'Deleting...' : 'Delete'}
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

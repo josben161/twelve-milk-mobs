@@ -2426,7 +2426,7 @@
         "DomainName"
        ]
       },
-      "BUILD_TIMESTAMP": "2025-12-02T02:45:30.411Z"
+      "BUILD_TIMESTAMP": "2025-12-03T02:41:00.102Z"
      }
     },
     "Handler": "index.handler",
@@ -3269,6 +3269,174 @@
    "Metadata": {
     "aws:cdk:path": "MilkMobsStack/AdminGetUsageStatsFn/Resource",
     "aws:asset:path": "asset.ef01477a7bd687582975597c31700814cbee3c2fc6f0db4e5a098d91f17a21ab",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Code"
+   }
+  },
+  "AdminDeleteVideoFnServiceRole3A09A598": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "MilkMobs"
+     },
+     {
+      "Key": "CostCenter",
+      "Value": "Marketing"
+     },
+     {
+      "Key": "Environment",
+      "Value": "prod"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/AdminDeleteVideoFn/ServiceRole/Resource"
+   }
+  },
+  "AdminDeleteVideoFnServiceRoleDefaultPolicy6B4EC453": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:Query",
+        "dynamodb:GetItem",
+        "dynamodb:Scan",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "VideosTable19B3D0C4",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": "s3:DeleteObject*",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          {
+           "Fn::GetAtt": [
+            "UploadsBucket5E5E9B64",
+            "Arn"
+           ]
+          },
+          "/*"
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "AdminDeleteVideoFnServiceRoleDefaultPolicy6B4EC453",
+    "Roles": [
+     {
+      "Ref": "AdminDeleteVideoFnServiceRole3A09A598"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/AdminDeleteVideoFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "AdminDeleteVideoFn5402F042": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
+     "S3Key": "7a4070ee45b6562cbc9d037ef961478e25987e911cdd177989b26bfc74b352c8.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "VIDEOS_TABLE_NAME": {
+       "Ref": "VideosTable19B3D0C4"
+      },
+      "UPLOADS_BUCKET_NAME": {
+       "Ref": "UploadsBucket5E5E9B64"
+      }
+     }
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "AdminDeleteVideoFnServiceRole3A09A598",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs20.x",
+    "Tags": [
+     {
+      "Key": "Application",
+      "Value": "MilkMobs"
+     },
+     {
+      "Key": "CostCenter",
+      "Value": "Marketing"
+     },
+     {
+      "Key": "Environment",
+      "Value": "prod"
+     },
+     {
+      "Key": "ManagedBy",
+      "Value": "CDK"
+     }
+    ],
+    "Timeout": 30
+   },
+   "DependsOn": [
+    "AdminDeleteVideoFnServiceRoleDefaultPolicy6B4EC453",
+    "AdminDeleteVideoFnServiceRole3A09A598"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/AdminDeleteVideoFn/Resource",
+    "aws:asset:path": "asset.7a4070ee45b6562cbc9d037ef961478e25987e911cdd177989b26bfc74b352c8",
     "aws:asset:is-bundled": true,
     "aws:asset:property": "Code"
    }
@@ -4737,7 +4905,7 @@
     "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Account"
    }
   },
-  "MilkMobsApiDeployment87A47DF9f9bb7d060fa63f96654c2bd4f38632c9": {
+  "MilkMobsApiDeployment87A47DF98562f0ecf6b050eaf5be4376d30f78b1": {
    "Type": "AWS::ApiGateway::Deployment",
    "Properties": {
     "Description": "Automatically created by the RestApi construct",
@@ -4754,6 +4922,9 @@
     "MilkMobsApiadminusagestatsGET17329F38",
     "MilkMobsApiadminusagestatsOPTIONSC5D54522",
     "MilkMobsApiadminusagestatsC2FE397A",
+    "MilkMobsApiadminvideosvideoIdDELETE4162E56D",
+    "MilkMobsApiadminvideosvideoIdOPTIONS24277149",
+    "MilkMobsApiadminvideosvideoId1DBD90EB",
     "MilkMobsApiadminvideosGET0E3A684B",
     "MilkMobsApiadminvideosOPTIONSF02CB596",
     "MilkMobsApiadminvideos77E8CFED",
@@ -4805,7 +4976,7 @@
    "Type": "AWS::ApiGateway::Stage",
    "Properties": {
     "DeploymentId": {
-     "Ref": "MilkMobsApiDeployment87A47DF9f9bb7d060fa63f96654c2bd4f38632c9"
+     "Ref": "MilkMobsApiDeployment87A47DF98562f0ecf6b050eaf5be4376d30f78b1"
     },
     "RestApiId": {
      "Ref": "MilkMobsApiB76DFE80"
@@ -6026,6 +6197,179 @@
    },
    "Metadata": {
     "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/admin/videos/GET/Resource"
+   }
+  },
+  "MilkMobsApiadminvideosvideoId1DBD90EB": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Ref": "MilkMobsApiadminvideos77E8CFED"
+    },
+    "PathPart": "{videoId}",
+    "RestApiId": {
+     "Ref": "MilkMobsApiB76DFE80"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/admin/videos/{videoId}/Resource"
+   }
+  },
+  "MilkMobsApiadminvideosvideoIdOPTIONS24277149": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "ApiKeyRequired": false,
+    "AuthorizationType": "NONE",
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true
+      },
+      "StatusCode": "204"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "MilkMobsApiadminvideosvideoId1DBD90EB"
+    },
+    "RestApiId": {
+     "Ref": "MilkMobsApiB76DFE80"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/admin/videos/{videoId}/OPTIONS/Resource"
+   }
+  },
+  "MilkMobsApiadminvideosvideoIdDELETEApiPermissionMilkMobsStackMilkMobsApi1ED7FB9DDELETEadminvideosvideoId46F8E2DF": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "AdminDeleteVideoFn5402F042",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:679729599398:",
+       {
+        "Ref": "MilkMobsApiB76DFE80"
+       },
+       "/",
+       {
+        "Ref": "MilkMobsApiDeploymentStageprod1C57746E"
+       },
+       "/DELETE/admin/videos/*"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/admin/videos/{videoId}/DELETE/ApiPermission.MilkMobsStackMilkMobsApi1ED7FB9D.DELETE..admin.videos.{videoId}"
+   }
+  },
+  "MilkMobsApiadminvideosvideoIdDELETEApiPermissionTestMilkMobsStackMilkMobsApi1ED7FB9DDELETEadminvideosvideoId60051368": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "AdminDeleteVideoFn5402F042",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:us-east-1:679729599398:",
+       {
+        "Ref": "MilkMobsApiB76DFE80"
+       },
+       "/test-invoke-stage/DELETE/admin/videos/*"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/admin/videos/{videoId}/DELETE/ApiPermission.Test.MilkMobsStackMilkMobsApi1ED7FB9D.DELETE..admin.videos.{videoId}"
+   }
+  },
+  "MilkMobsApiadminvideosvideoIdDELETE4162E56D": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "AuthorizationType": "NONE",
+    "HttpMethod": "DELETE",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:us-east-1:lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "AdminDeleteVideoFn5402F042",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "MethodResponses": [
+     {
+      "StatusCode": "200"
+     },
+     {
+      "StatusCode": "404"
+     }
+    ],
+    "ResourceId": {
+     "Ref": "MilkMobsApiadminvideosvideoId1DBD90EB"
+    },
+    "RestApiId": {
+     "Ref": "MilkMobsApiB76DFE80"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "MilkMobsStack/MilkMobsApi/Default/admin/videos/{videoId}/DELETE/Resource"
    }
   },
   "MilkMobsApiadminstats3C76CDCD": {

@@ -387,6 +387,17 @@ export class MilkMobsStack extends cdk.Stack {
       })
     );
 
+    const adminDeleteVideoFn = new lambdaNodejs.NodejsFunction(this, 'AdminDeleteVideoFn', {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'handler',
+      entry: path.join(__dirname, '../../lambdas/admin-delete-video/index.ts'),
+      environment: {
+        VIDEOS_TABLE_NAME: videosTable.tableName,
+        UPLOADS_BUCKET_NAME: uploadsBucket.bucketName,
+      },
+      timeout: cdk.Duration.seconds(30),
+    });
+
     const listMobsFn = new lambdaNodejs.NodejsFunction(this, 'ListMobsFn', {
       runtime: lambda.Runtime.NODEJS_20_X,
       handler: 'handler',
@@ -558,8 +569,10 @@ export class MilkMobsStack extends cdk.Stack {
     videosTable.grantReadData(getVideoDetailFn);
     videosTable.grantReadData(adminListVideosFn);
     videosTable.grantReadData(adminGetStatsFn);
+    videosTable.grantReadWriteData(adminDeleteVideoFn);
     videosTable.grantReadData(getMobFn);
     videosTable.grantReadData(getFeedFn);
+    uploadsBucket.grantDelete(adminDeleteVideoFn);
     mobsTable.grantReadWriteData(clusterVideoFn);
     mobsTable.grantReadData(listMobsFn);
     mobsTable.grantReadData(getMobFn);
@@ -650,6 +663,12 @@ export class MilkMobsStack extends cdk.Stack {
     const adminVideos = admin.addResource('videos');
     adminVideos.addMethod('GET', new apigw.LambdaIntegration(adminListVideosFn), {
       methodResponses: [{ statusCode: '200' }],
+    });
+
+    // DELETE /admin/videos/{videoId}
+    const adminVideoId = adminVideos.addResource('{videoId}');
+    adminVideoId.addMethod('DELETE', new apigw.LambdaIntegration(adminDeleteVideoFn), {
+      methodResponses: [{ statusCode: '200' }, { statusCode: '404' }],
     });
 
     // GET /admin/stats

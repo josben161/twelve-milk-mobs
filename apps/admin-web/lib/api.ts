@@ -134,3 +134,17 @@ export async function getExecutionHistory(videoId: string): Promise<{ execution:
   }
 }
 
+export async function deleteVideo(videoId: string): Promise<{ success: boolean; message: string; videoId: string }> {
+  const apiBase = getApiBase();
+  const res = await fetch(`${apiBase}/admin/videos/${encodeURIComponent(videoId)}`, {
+    method: 'DELETE',
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ error: 'Failed to delete video' }));
+    throw new Error(errorData.error || `Failed to delete video (${res.status})`);
+  }
+
+  return res.json();
+}
+

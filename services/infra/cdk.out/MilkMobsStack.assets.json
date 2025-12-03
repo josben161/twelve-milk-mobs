@@ -271,6 +271,21 @@
         }
       }
     },
+    "7a4070ee45b6562cbc9d037ef961478e25987e911cdd177989b26bfc74b352c8": {
+      "displayName": "AdminDeleteVideoFn/Code",
+      "source": {
+        "path": "asset.7a4070ee45b6562cbc9d037ef961478e25987e911cdd177989b26bfc74b352c8",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "679729599398-us-east-1-e2406914": {
+          "bucketName": "cdk-hnb659fds-assets-679729599398-us-east-1",
+          "objectKey": "7a4070ee45b6562cbc9d037ef961478e25987e911cdd177989b26bfc74b352c8.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::679729599398:role/cdk-hnb659fds-file-publishing-role-679729599398-us-east-1"
+        }
+      }
+    },
     "f7a4d89b0d4d58266e21857f471c043c1b3171d4128e85fb97c55f626b27e9f2": {
       "displayName": "ListMobsFn/Code",
       "source": {
@@ -361,16 +376,16 @@
         }
       }
     },
-    "537405cfa868a2ac9d1ee8439d6c95e5e2f69ea921f3bebf5cc18814a569c1b2": {
+    "52c70a5ca869f3697bea90822edc6c056b2b4d86644bb6ee01fe38ebc7610416": {
       "displayName": "MilkMobsStack Template",
       "source": {
         "path": "MilkMobsStack.template.json",
         "packaging": "file"
       },
       "destinations": {
-        "679729599398-us-east-1-e33f38ba": {
+        "679729599398-us-east-1-655f55d6": {
           "bucketName": "cdk-hnb659fds-assets-679729599398-us-east-1",
-          "objectKey": "537405cfa868a2ac9d1ee8439d6c95e5e2f69ea921f3bebf5cc18814a569c1b2.json",
+          "objectKey": "52c70a5ca869f3697bea90822edc6c056b2b4d86644bb6ee01fe38ebc7610416.json",
           "region": "us-east-1",
           "assumeRoleArn": "arn:${AWS::Partition}:iam::679729599398:role/cdk-hnb659fds-file-publishing-role-679729599398-us-east-1"
         }

@@ -24,7 +24,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::679729599398:role/cdk-hnb659fds-deploy-role-679729599398-us-east-1",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::679729599398:role/cdk-hnb659fds-cfn-exec-role-679729599398-us-east-1",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-679729599398-us-east-1/537405cfa868a2ac9d1ee8439d6c95e5e2f69ea921f3bebf5cc18814a569c1b2.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-679729599398-us-east-1/52c70a5ca869f3697bea90822edc6c056b2b4d86644bb6ee01fe38ebc7610416.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -457,6 +457,24 @@
             "data": "AdminGetUsageStatsFn60295C0F"
           }
         ],
+        "/MilkMobsStack/AdminDeleteVideoFn/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AdminDeleteVideoFnServiceRole3A09A598"
+          }
+        ],
+        "/MilkMobsStack/AdminDeleteVideoFn/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AdminDeleteVideoFnServiceRoleDefaultPolicy6B4EC453"
+          }
+        ],
+        "/MilkMobsStack/AdminDeleteVideoFn/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AdminDeleteVideoFn5402F042"
+          }
+        ],
         "/MilkMobsStack/ListMobsFn/ServiceRole/Resource": [
           {
             "type": "aws:cdk:logicalId",
@@ -622,7 +640,7 @@
         "/MilkMobsStack/MilkMobsApi/Deployment/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "MilkMobsApiDeployment87A47DF9f9bb7d060fa63f96654c2bd4f38632c9"
+            "data": "MilkMobsApiDeployment87A47DF98562f0ecf6b050eaf5be4376d30f78b1"
           }
         ],
         "/MilkMobsStack/MilkMobsApi/DeploymentStage.prod/Resource": [
@@ -845,6 +863,36 @@
           {
             "type": "aws:cdk:logicalId",
             "data": "MilkMobsApiadminvideosGET0E3A684B"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/admin/videos/{videoId}/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApiadminvideosvideoId1DBD90EB"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/admin/videos/{videoId}/OPTIONS/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApiadminvideosvideoIdOPTIONS24277149"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/admin/videos/{videoId}/DELETE/ApiPermission.MilkMobsStackMilkMobsApi1ED7FB9D.DELETE..admin.videos.{videoId}": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApiadminvideosvideoIdDELETEApiPermissionMilkMobsStackMilkMobsApi1ED7FB9DDELETEadminvideosvideoId46F8E2DF"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/admin/videos/{videoId}/DELETE/ApiPermission.Test.MilkMobsStackMilkMobsApi1ED7FB9D.DELETE..admin.videos.{videoId}": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApiadminvideosvideoIdDELETEApiPermissionTestMilkMobsStackMilkMobsApi1ED7FB9DDELETEadminvideosvideoId60051368"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/admin/videos/{videoId}/DELETE/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApiadminvideosvideoIdDELETE4162E56D"
           }
         ],
         "/MilkMobsStack/MilkMobsApi/Default/admin/stats/Resource": [

@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { use } from 'react';
-import { Panel, ExecutionGraph } from '@/components/ui';
+import { useRouter } from 'next/navigation';
+import { Panel, ExecutionGraph, VideoPlayer } from '@/components/ui';
 import { StatusPill } from '@/components/ui';
 import type { VideoDetail } from '@twelve/core-types';
-import { getApiBase, getExecutionHistory, type ExecutionGraph as ExecutionGraphType } from '@/lib/api';
+import { getApiBase, getExecutionHistory, deleteVideo, type ExecutionGraph as ExecutionGraphType } from '@/lib/api';
 
 export default function VideoDetailPage({
   params,
@@ -13,12 +14,15 @@ export default function VideoDetailPage({
   params: Promise<{ videoId: string }>;
 }) {
   const { videoId } = use(params);
+  const router = useRouter();
   const [video, setVideo] = useState<VideoDetail | null>(null);
   const [executionGraph, setExecutionGraph] = useState<ExecutionGraphType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [executionLoading, setExecutionLoading] = useState(false);
   const [executionError, setExecutionError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [debugInfo, setDebugInfo] = useState<{
     show: boolean;
     requestUrl?: string;
@@ -99,6 +103,27 @@ export default function VideoDetailPage({
     fetchVideo();
   }, [videoId]);
 
+  const handleDelete = async () => {
+    if (!showDeleteConfirm) {
+      setShowDeleteConfirm(true);
+      return;
+    }
+
+    setDeleting(true);
+    setError(null);
+    try {
+      await deleteVideo(videoId);
+      // Redirect to videos list after successful deletion
+      router.push('/videos');
+    } catch (err) {
+      console.error('Error deleting video:', err);
+      setError(err instanceof Error ? err.message : 'Failed to delete video.');
+      setShowDeleteConfirm(false);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   if (loading) {
     return (
       <>
@@ -127,12 +152,49 @@ export default function VideoDetailPage({
   return (
     <div className="w-full space-y-12">
       {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-semibold mb-3 text-[var(--text)]">Video analysis</h1>
-        <p className="text-sm text-[var(--text-muted)] leading-relaxed">
-          @{video.userHandle} · {video.mobId || 'No mob'} · {new Date(video.createdAt).toLocaleDateString()}
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold mb-3 text-[var(--text)]">Video analysis</h1>
+          <p className="text-sm text-[var(--text-muted)] leading-relaxed">
+            @{video.userHandle} · {video.mobId || 'No mob'} · {new Date(video.createdAt).toLocaleDateString()}
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          {showDeleteConfirm ? (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-[var(--error)] hover:bg-[var(--error)]/80 transition-colors disabled:opacity-50"
+              >
+                {deleting ? 'Deleting...' : 'Confirm Delete'}
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleting}
+                className="px-4 py-2 rounded-lg text-sm font-medium text-[var(--text-muted)] bg-[var(--bg-subtle)] hover:bg-[var(--bg-subtle)]/80 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="px-4 py-2 rounded-lg text-sm font-medium text-[var(--error)] hover:bg-[var(--error)]/10 transition-colors disabled:opacity-50"
+            >
+              Delete Video
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="rounded-lg border border-[var(--error)]/20 bg-[var(--error)]/10 p-4">
+          <p className="text-sm text-[var(--error)]">{error}</p>
+        </div>
+      )}
 
       {/* Two Column Layout */}
       <section className="grid gap-6 grid-cols-1 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
@@ -140,9 +202,21 @@ export default function VideoDetailPage({
         <div className="space-y-8">
           {/* Video Preview Panel */}
           <Panel>
-            <div className="aspect-[4/5] rounded-lg bg-gradient-to-br from-[var(--bg-subtle)] to-[var(--bg)] border border-[var(--border-subtle)] mb-6 flex items-center justify-center">
-              <span className="text-sm text-[var(--text-muted)]">Video preview</span>
-            </div>
+            {video.playbackUrl ? (
+              <div className="mb-6">
+                <VideoPlayer 
+                  videoUrl={video.playbackUrl} 
+                  thumbnailUrl={video.thumbnailUrl || undefined}
+                  autoplay={false}
+                  muted={false}
+                  className="w-full"
+                />
+              </div>
+            ) : (
+              <div className="aspect-[4/5] rounded-lg bg-gradient-to-br from-[var(--bg-subtle)] to-[var(--bg)] border border-[var(--border-subtle)] mb-6 flex items-center justify-center">
+                <span className="text-sm text-[var(--text-muted)]">Video preview unavailable</span>
+              </div>
+            )}
             <div className="space-y-6">
               <div>
                 <p className="text-sm font-semibold text-[var(--text)] mb-3">Caption</p>

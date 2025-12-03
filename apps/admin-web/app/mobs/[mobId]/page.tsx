@@ -69,17 +69,17 @@ export default function MobDetailPage({
   }
 
   return (
-    <>
+    <div className="w-full space-y-10">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-semibold text-[var(--text)]">{mob.name}</h1>
-        <p className="mt-1.5 text-sm text-[var(--text-muted)]">
+        <h1 className="text-2xl font-semibold mb-3 text-[var(--text)]">{mob.name}</h1>
+        <p className="text-sm text-[var(--text-muted)] leading-relaxed">
           {mob.description} · {mob.videoCount} videos
         </p>
       </div>
 
       {/* Mob Summary */}
-      <Panel className="p-6 mb-6">
+      <Panel>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <p className="text-xs text-[var(--text-muted)] mb-1">Video Count</p>
@@ -193,6 +193,6 @@ export default function MobDetailPage({
           </div>
         )}
       </Panel>
-    </>
+    </div>
   );
 }
