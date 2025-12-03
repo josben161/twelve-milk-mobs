@@ -111,6 +111,85 @@ export default function MobDetailPage({
         </div>
       </Panel>
 
+      {/* Clustering Analysis Panel */}
+      {(mob.centroidDim !== undefined || mob.clusteringMethod || mob.avgSimilarityScore !== undefined) && (
+        <Panel 
+          title="Clustering Analysis" 
+          description="Segments users into 'Milk Mobs' by activity, location, or vibe using Marengo embeddings."
+        >
+          <div className="space-y-6">
+            {/* Campaign Goal Badge */}
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-1 rounded bg-violet-500/20 text-violet-600">
+                Segment
+              </span>
+              <span className="text-xs font-medium px-2 py-1 rounded bg-indigo-100 text-indigo-700">
+                TwelveLabs Marengo
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Centroid Dimension */}
+              {mob.centroidDim !== undefined && (
+                <div>
+                  <p className="text-sm font-medium text-[var(--text-muted)] mb-1">Centroid Embedding</p>
+                  <p className="text-lg font-semibold text-[var(--text)]">
+                    {mob.centroidDim}-dimensional
+                  </p>
+                  <p className="text-xs text-[var(--text-muted)] mt-1">
+                    Vector representation for similarity search
+                  </p>
+                </div>
+              )}
+
+              {/* Clustering Method */}
+              {mob.clusteringMethod && (
+                <div>
+                  <p className="text-sm font-medium text-[var(--text-muted)] mb-1">Clustering Method</p>
+                  <div className="flex items-center gap-2">
+                    <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium ${
+                      mob.clusteringMethod === 'k-means' || mob.clusteringMethod === 'similarity'
+                        ? 'bg-indigo-100 text-indigo-700 border border-indigo-200'
+                        : 'bg-gray-100 text-gray-700 border border-gray-200'
+                    }`}>
+                      {mob.clusteringMethod === 'k-means' ? 'K-Means Clustering' : 
+                       mob.clusteringMethod === 'similarity' ? 'Similarity-based' : 
+                       'Keyword-based'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-[var(--text-muted)] mt-2">
+                    {mob.clusteringMethod === 'k-means' 
+                      ? 'Videos clustered using k-means on Marengo embeddings'
+                      : mob.clusteringMethod === 'similarity'
+                      ? 'Videos assigned by similarity threshold'
+                      : 'Videos grouped by keyword matching'}
+                  </p>
+                </div>
+              )}
+
+              {/* Average Similarity Score */}
+              {mob.avgSimilarityScore !== undefined && (
+                <div>
+                  <p className="text-sm font-medium text-[var(--text-muted)] mb-1">Avg. Similarity</p>
+                  <p className="text-lg font-semibold text-[var(--text)]">
+                    {Math.round(mob.avgSimilarityScore * 100)}%
+                  </p>
+                  <div className="relative w-full h-2 bg-[var(--bg-subtle)] rounded-full overflow-hidden mt-2">
+                    <div
+                      className="absolute inset-y-0 left-0 bg-gradient-to-r from-violet-500 to-violet-600 rounded-full transition-all duration-300"
+                      style={{ width: `${(mob.avgSimilarityScore * 100).toFixed(0)}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-[var(--text-muted)] mt-1">
+                    Average similarity to centroid
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </Panel>
+      )}
+
       {/* Videos Table */}
       <Panel>
         <div className="p-4 border-b border-[var(--border-subtle)]">

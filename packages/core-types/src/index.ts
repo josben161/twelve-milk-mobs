@@ -71,6 +71,17 @@ export interface VideoDetail extends VideoSummary {
     description: string;
     score?: number; // 0–1 relevance
   }>;
+
+  // TwelveLabs Pegasus participation detection results
+  mentionsMilk?: boolean;         // Pegasus flag: detects spoken mentions of milk
+  showsMilkObject?: boolean;      // Pegasus flag: detects milk containers/objects
+  showsActionAligned?: boolean;  // Pegasus flag: detects drinking milk actions
+  participationRationale?: string; // Pegasus explanation text
+
+  // TwelveLabs Marengo embedding results
+  embeddingDim?: number;          // Dimension of embedding vector (e.g., 256)
+  clusteringMethod?: 'embedding' | 'keyword' | 'unknown'; // How video was assigned to mob
+  similarityScore?: number;       // Similarity score to mob centroid (0-1)
 }
 
 /**
@@ -82,6 +93,10 @@ export interface MobSummary {
   description: string;
   videoCount: number;
   exampleHashtags: string[];
+  // Clustering metadata
+  centroidDim?: number;      // Dimension of centroid embedding vector
+  clusteringMethod?: 'k-means' | 'similarity' | 'keyword'; // How mob was created
+  avgSimilarityScore?: number; // Average similarity of videos to centroid
 }
 
 /** Request from frontend to start a video upload */

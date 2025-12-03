@@ -8,5 +8,6 @@ export { NoDataState } from './NoDataState';
 export { ValidationFunnelChart } from './ValidationFunnelChart';
 export { QualityMetricsChart } from './QualityMetricsChart';
 export { ExecutionGraph } from './ExecutionGraph';
+export { ExecutionMetrics } from './ExecutionMetrics';
 export { VideoPlayer } from './VideoPlayer';
 

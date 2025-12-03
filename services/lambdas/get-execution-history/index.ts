@@ -5,6 +5,87 @@ const stateMachineArn = process.env.STATE_MACHINE_ARN!;
 
 const sfn = new SFNClient({});
 
+/**
+ * Extract TwelveLabs-specific data from Step Functions output
+ */
+function extractTwelveLabsData(stepId: string, output: any): ExecutionStep['twelveLabsData'] {
+  const data: ExecutionStep['twelveLabsData'] = {};
+
+  try {
+    // Pegasus task output structure: { participation: { participationScore, mentionsMilk, ... } }
+    if (stepId === 'PegasusTask' && output.participation) {
+      const participation = output.participation;
+      data.participation = {
+        participationScore: participation.participationScore,
+        mentionsMilk: participation.mentionsMilk,
+        showsMilkObject: participation.showsMilkObject,
+        showsActionAligned: participation.showsActionAligned,
+        rationale: participation.rationale,
+        highlights: participation.highlights?.map((h: any) => ({
+          timestamp: h.timestamp ?? h.t ?? 0,
+          description: h.description ?? h.event ?? '',
+          score: h.score ?? h.relevance,
+        })),
+      };
+    }
+
+    // Marengo task output structure: { embedding: { dim, embedding: [...] } }
+    if (stepId === 'MarengoTask' && output.embedding) {
+      const embedding = output.embedding;
+      data.embedding = {
+        dim: embedding.dim,
+        vectorLength: Array.isArray(embedding.embedding) ? embedding.embedding.length : undefined,
+      };
+    }
+
+    // Validation task output structure: { status, validationScore, validationReasons }
+    if (stepId === 'ValidateTask' && output) {
+      data.validation = {
+        status: output.status,
+        validationScore: output.validationScore,
+        reasons: output.validationReasons || output.reasons || [],
+      };
+    }
+
+    // Cluster task output structure: { mobId, ... }
+    if (stepId === 'ClusterTask' && output) {
+      data.clustering = {
+        mobId: output.mobId,
+        method: output.method || (output.mobId ? 'embedding' : undefined),
+        similarityScore: output.similarityScore,
+      };
+    }
+
+    // Also check for merged results (after MergeResults step)
+    if (output.participation) {
+      const participation = output.participation;
+      if (!data.participation) {
+        data.participation = {
+          participationScore: participation.participationScore,
+          mentionsMilk: participation.mentionsMilk,
+          showsMilkObject: participation.showsMilkObject,
+          showsActionAligned: participation.showsActionAligned,
+          rationale: participation.rationale,
+        };
+      }
+    }
+
+    if (output.embedding) {
+      const embedding = output.embedding;
+      if (!data.embedding) {
+        data.embedding = {
+          dim: embedding.dim,
+          vectorLength: Array.isArray(embedding.embedding) ? embedding.embedding.length : undefined,
+        };
+      }
+    }
+  } catch (err) {
+    console.warn(`[get-execution-history] Failed to extract TwelveLabs data for ${stepId}:`, err);
+  }
+
+  return Object.keys(data).length > 0 ? data : undefined;
+}
+
 // CORS headers for all responses
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -21,6 +102,35 @@ interface ExecutionStep {
   error?: string;
   input?: any;
   output?: any;
+  // TwelveLabs-specific extracted data
+  twelveLabsData?: {
+    // Pegasus data
+    participation?: {
+      participationScore?: number;
+      mentionsMilk?: boolean;
+      showsMilkObject?: boolean;
+      showsActionAligned?: boolean;
+      rationale?: string;
+      highlights?: Array<{ timestamp: number; description: string; score?: number }>;
+    };
+    // Marengo data
+    embedding?: {
+      dim?: number;
+      vectorLength?: number;
+    };
+    // Validation data
+    validation?: {
+      status?: string;
+      validationScore?: number;
+      reasons?: string[];
+    };
+    // Clustering data
+    clustering?: {
+      mobId?: string;
+      method?: 'embedding' | 'keyword';
+      similarityScore?: number;
+    };
+  };
 }
 
 interface ExecutionGraph {
@@ -315,31 +425,47 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
           const step = stepMap.get(stepId)!;
           step.status = 'succeeded';
           step.endTime = new Date(event.timestamp).toISOString();
-          step.output = stateExitedEvent.output ? (() => {
+          const parsedOutput = stateExitedEvent.output ? (() => {
             try {
               return JSON.parse(stateExitedEvent.output!);
             } catch {
               return undefined;
             }
           })() : undefined;
+          step.output = parsedOutput;
+          
+          // Extract TwelveLabs-specific data from output
+          if (parsedOutput && stepId) {
+            step.twelveLabsData = extractTwelveLabsData(stepId, parsedOutput);
+          }
+          
           console.log(`[get-execution-history] Updated step ${stepId} to succeeded (from state: ${stateName})`);
         } else {
           // Create step if it wasn't tracked (shouldn't happen, but handle gracefully)
           const stepInfo = stateNameMap[stepId] || { name: stateName, type: 'Unknown' };
-          stepMap.set(stepId, {
+          const parsedOutput = stateExitedEvent.output ? (() => {
+            try {
+              return JSON.parse(stateExitedEvent.output!);
+            } catch {
+              return undefined;
+            }
+          })() : undefined;
+          
+          const newStep: ExecutionStep = {
             id: stepId,
             name: stepInfo.name,
             type: stepInfo.type,
             status: 'succeeded',
             endTime: new Date(event.timestamp).toISOString(),
-            output: stateExitedEvent.output ? (() => {
-              try {
-                return JSON.parse(stateExitedEvent.output!);
-              } catch {
-                return undefined;
-              }
-            })() : undefined,
-          });
+            output: parsedOutput,
+          };
+          
+          // Extract TwelveLabs-specific data from output
+          if (parsedOutput) {
+            newStep.twelveLabsData = extractTwelveLabsData(stepId, parsedOutput);
+          }
+          
+          stepMap.set(stepId, newStep);
           console.log(`[get-execution-history] Created step ${stepId} as succeeded (wasn't tracked before, from state: ${stateName})`);
         }
       }

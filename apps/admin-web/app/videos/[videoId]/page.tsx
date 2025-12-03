@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { use } from 'react';
 import { useRouter } from 'next/navigation';
-import { Panel, ExecutionGraph, VideoPlayer } from '@/components/ui';
+import { Panel, ExecutionGraph, ExecutionMetrics, VideoPlayer } from '@/components/ui';
 import { StatusPill } from '@/components/ui';
 import type { VideoDetail } from '@twelve/core-types';
 import { getApiBase, getExecutionHistory, deleteVideo, type ExecutionGraph as ExecutionGraphType } from '@/lib/api';
@@ -317,6 +317,176 @@ export default function VideoDetailPage({
             </div>
           </Panel>
 
+          {/* Pegasus Participation Analysis Panel */}
+          {(video.mentionsMilk !== undefined || video.showsMilkObject !== undefined || video.showsActionAligned !== undefined || video.participationRationale) && (
+            <Panel 
+              title="Pegasus Participation Analysis" 
+              description="Validates contents are related to 'Got Milk' campaign using multimodal analysis."
+            >
+              <div className="space-y-6">
+                {/* Campaign Goal Badge */}
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-1 rounded bg-emerald-500/20 text-emerald-600">
+                    Validate
+                  </span>
+                  <span className="text-xs font-medium px-2 py-1 rounded bg-indigo-100 text-indigo-700">
+                    TwelveLabs Pegasus
+                  </span>
+                </div>
+
+                {/* Participation Score */}
+                {video.validationScore !== undefined && (
+                  <div>
+                    <p className="text-sm font-medium text-[var(--text-muted)] mb-2">Participation Score</p>
+                    <div className="relative w-full h-3 bg-[var(--bg-subtle)] rounded-full overflow-hidden">
+                      <div
+                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-full transition-all duration-300"
+                        style={{ width: `${(video.validationScore * 100).toFixed(0)}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-[var(--text-muted)] mt-1">
+                      {Math.round(video.validationScore * 100)}% confidence
+                    </p>
+                  </div>
+                )}
+
+                {/* Multimodal Detection Flags */}
+                <div>
+                  <p className="text-sm font-medium text-[var(--text-muted)] mb-3">Multimodal Detection</p>
+                  <div className="space-y-2">
+                    {video.mentionsMilk !== undefined && (
+                      <div className="flex items-center gap-2">
+                        <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${
+                          video.mentionsMilk 
+                            ? 'bg-emerald-500/20 text-emerald-600' 
+                            : 'bg-gray-500/20 text-gray-500'
+                        }`}>
+                          {video.mentionsMilk ? '✓' : '✗'}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm text-[var(--text)]">Spoken mentions of milk</p>
+                          <p className="text-xs text-[var(--text-muted)]">Audio analysis</p>
+                        </div>
+                      </div>
+                    )}
+                    {video.showsMilkObject !== undefined && (
+                      <div className="flex items-center gap-2">
+                        <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${
+                          video.showsMilkObject 
+                            ? 'bg-emerald-500/20 text-emerald-600' 
+                            : 'bg-gray-500/20 text-gray-500'
+                        }`}>
+                          {video.showsMilkObject ? '✓' : '✗'}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm text-[var(--text)]">Milk containers/objects detected</p>
+                          <p className="text-xs text-[var(--text-muted)]">Visual analysis</p>
+                        </div>
+                      </div>
+                    )}
+                    {video.showsActionAligned !== undefined && (
+                      <div className="flex items-center gap-2">
+                        <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${
+                          video.showsActionAligned 
+                            ? 'bg-emerald-500/20 text-emerald-600' 
+                            : 'bg-gray-500/20 text-gray-500'
+                        }`}>
+                          {video.showsActionAligned ? '✓' : '✗'}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm text-[var(--text)]">Drinking milk actions detected</p>
+                          <p className="text-xs text-[var(--text-muted)]">Visual + Audio analysis</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Participation Rationale */}
+                {video.participationRationale && (
+                  <div>
+                    <p className="text-sm font-medium text-[var(--text-muted)] mb-2">Analysis Rationale</p>
+                    <p className="text-sm text-[var(--text)] leading-relaxed bg-[var(--bg-subtle)] p-3 rounded-lg border border-[var(--border-subtle)]">
+                      {video.participationRationale}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </Panel>
+          )}
+
+          {/* Marengo Embedding Analysis Panel */}
+          {(video.embeddingDim !== undefined || video.clusteringMethod) && (
+            <Panel 
+              title="Marengo Embedding Analysis" 
+              description="Enables video clustering and similarity search by activity, location, or vibe."
+            >
+              <div className="space-y-6">
+                {/* Campaign Goal Badge */}
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-1 rounded bg-violet-500/20 text-violet-600">
+                    Segment
+                  </span>
+                  <span className="text-xs font-medium px-2 py-1 rounded bg-indigo-100 text-indigo-700">
+                    TwelveLabs Marengo
+                  </span>
+                </div>
+
+                {/* Embedding Dimension */}
+                {video.embeddingDim && (
+                  <div>
+                    <p className="text-sm font-medium text-[var(--text-muted)] mb-1">Embedding Vector</p>
+                    <p className="text-lg font-semibold text-[var(--text)]">
+                      {video.embeddingDim}-dimensional
+                    </p>
+                    <p className="text-xs text-[var(--text-muted)] mt-1">
+                      High-dimensional vector representation for similarity search
+                    </p>
+                  </div>
+                )}
+
+                {/* Clustering Method */}
+                {video.clusteringMethod && (
+                  <div>
+                    <p className="text-sm font-medium text-[var(--text-muted)] mb-2">Clustering Method</p>
+                    <div className="flex items-center gap-2">
+                      <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium ${
+                        video.clusteringMethod === 'embedding'
+                          ? 'bg-indigo-100 text-indigo-700 border border-indigo-200'
+                          : 'bg-gray-100 text-gray-700 border border-gray-200'
+                      }`}>
+                        {video.clusteringMethod === 'embedding' ? '✓ Embedding-based' : 
+                         video.clusteringMethod === 'keyword' ? 'Keyword-based (fallback)' : 
+                         'Unknown'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-[var(--text-muted)] mt-2">
+                      {video.clusteringMethod === 'embedding' 
+                        ? 'Video assigned to mob using Marengo embedding similarity'
+                        : 'Video assigned to mob using keyword matching'}
+                    </p>
+                  </div>
+                )}
+
+                {/* Similarity Score */}
+                {video.similarityScore !== undefined && (
+                  <div>
+                    <p className="text-sm font-medium text-[var(--text-muted)] mb-2">Similarity to Mob Centroid</p>
+                    <div className="relative w-full h-3 bg-[var(--bg-subtle)] rounded-full overflow-hidden">
+                      <div
+                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-violet-500 to-violet-600 rounded-full transition-all duration-300"
+                        style={{ width: `${(video.similarityScore * 100).toFixed(0)}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-[var(--text-muted)] mt-1">
+                      {Math.round(video.similarityScore * 100)}% similarity
+                    </p>
+                  </div>
+                )}
+              </div>
+            </Panel>
+          )}
+
           {/* Decision Inputs Panel */}
           <Panel title="Decision inputs" description="Validation score and status determination.">
             <div className="space-y-6">
@@ -347,11 +517,23 @@ export default function VideoDetailPage({
         </div>
       </section>
 
+      {/* Execution Metrics Panel */}
+      {executionGraph && (
+        <section>
+          <Panel
+            title="Execution Metrics"
+            description="Performance metrics and TwelveLabs API usage for this video analysis."
+          >
+            <ExecutionMetrics execution={executionGraph} />
+          </Panel>
+        </section>
+      )}
+
       {/* Execution Graph Panel */}
       <section>
         <Panel
           title="Analysis Pipeline Execution"
-          description="Step Functions state machine execution graph showing the processing flow for this video."
+          description="Step Functions state machine execution graph showing how TwelveLabs APIs enable the Identify → Validate → Segment → Explore workflow for the Got Milk campaign."
         >
           {executionLoading ? (
             <div className="flex items-center justify-center h-64 border border-[var(--border-subtle)] rounded-lg bg-[var(--bg-soft)]">

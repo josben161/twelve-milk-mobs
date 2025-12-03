@@ -41,6 +41,30 @@ export interface ExecutionStep {
   startTime?: string;
   endTime?: string;
   error?: string;
+  twelveLabsData?: {
+    participation?: {
+      participationScore?: number;
+      mentionsMilk?: boolean;
+      showsMilkObject?: boolean;
+      showsActionAligned?: boolean;
+      rationale?: string;
+      highlights?: Array<{ timestamp: number; description: string; score?: number }>;
+    };
+    embedding?: {
+      dim?: number;
+      vectorLength?: number;
+    };
+    validation?: {
+      status?: string;
+      validationScore?: number;
+      reasons?: string[];
+    };
+    clustering?: {
+      mobId?: string;
+      method?: 'embedding' | 'keyword';
+      similarityScore?: number;
+    };
+  };
 }
 
 export interface ExecutionGraph {

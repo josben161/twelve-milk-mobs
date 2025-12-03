@@ -113,6 +113,16 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       actions: result.Item.actions?.SS || [],
       objectsScenes: result.Item.objectsScenes?.SS || [],
       timeline,
+      // TwelveLabs Pegasus data
+      mentionsMilk: result.Item.mentionsMilk?.BOOL,
+      showsMilkObject: result.Item.showsMilkObject?.BOOL,
+      showsActionAligned: result.Item.showsActionAligned?.BOOL,
+      participationRationale: result.Item.participationRationale?.S,
+      // TwelveLabs Marengo data
+      embeddingDim: result.Item.embeddingDim?.N ? parseInt(result.Item.embeddingDim.N) : undefined,
+      // Note: clusteringMethod and similarityScore would need to be stored separately or calculated
+      // For now, we can infer clusteringMethod from whether embedding exists
+      clusteringMethod: result.Item.embedding?.S ? 'embedding' : result.Item.mobId?.S ? 'keyword' : undefined,
     };
 
     return {
