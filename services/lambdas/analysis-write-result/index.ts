@@ -61,7 +61,9 @@ export const handler = async (
             participationRationale = :rationale,
             embedding = :embedding,
             embeddingDim = :embeddingDim,
-            timeline = :timeline
+            timeline = :timeline,
+            detectedText = :detectedText,
+            onScreenText = :onScreenText
       `,
       ExpressionAttributeValues: {
         ':score': { N: participation.participationScore.toString() },
@@ -72,6 +74,12 @@ export const handler = async (
         ':embedding': { S: JSON.stringify(embedding.embedding) }, // Store as JSON string
         ':embeddingDim': { N: embedding.dim.toString() },
         ':timeline': { S: JSON.stringify(participation.highlights || []) }, // Store timeline highlights as JSON string
+        ':detectedText': participation.detectedText && participation.detectedText.length > 0 
+          ? { SS: participation.detectedText } 
+          : { NULL: true },
+        ':onScreenText': participation.onScreenText && participation.onScreenText.length > 0 
+          ? { SS: participation.onScreenText } 
+          : { NULL: true },
       },
     })
   );

@@ -132,6 +132,7 @@ export default function VideoDetailPage({
               autoplay={false}
               muted={false}
               className="w-full"
+              highlights={video.timeline || []}
             />
           </div>
         ) : (
@@ -243,12 +244,15 @@ export default function VideoDetailPage({
           </div>
         )}
 
-        {/* Timeline Highlights */}
+        {/* Timeline Highlights - Now integrated into video player, but show list for reference */}
         {video.timeline && video.timeline.length > 0 && (
           <div>
             <h2 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>
-              Timeline Highlights
+              Key Moments
             </h2>
+            <p className="text-sm text-[var(--text-muted)] mb-4">
+              Click on the timeline markers in the video player above to jump to these moments.
+            </p>
             <div className="space-y-2">
               {video.timeline.map((highlight, idx) => {
                 const minutes = Math.floor(highlight.timestamp / 60);
@@ -256,17 +260,9 @@ export default function VideoDetailPage({
                 const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
                 
                 return (
-                  <button
+                  <div
                     key={idx}
-                    onClick={() => {
-                      // Seek video player to timestamp
-                      const videoElement = document.querySelector('video');
-                      if (videoElement) {
-                        videoElement.currentTime = highlight.timestamp;
-                        videoElement.play();
-                      }
-                    }}
-                    className="w-full text-left rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-soft)]/70 backdrop-blur-sm p-3 transition-all duration-200 hover:border-[var(--accent)]/50 hover:bg-[var(--bg-soft)] active:scale-[0.98]"
+                    className="w-full text-left rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-soft)]/70 backdrop-blur-sm p-3"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1">
@@ -288,7 +284,7 @@ export default function VideoDetailPage({
                                 color: 'var(--text-muted)',
                               }}
                             >
-                              {(highlight.score * 100).toFixed(0)}%
+                              {(highlight.score * 100).toFixed(0)}% relevance
                             </span>
                           )}
                         </div>
@@ -297,7 +293,7 @@ export default function VideoDetailPage({
                         </p>
                       </div>
                     </div>
-                  </button>
+                  </div>
                 );
               })}
             </div>

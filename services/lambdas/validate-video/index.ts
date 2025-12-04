@@ -30,12 +30,121 @@ interface StepFunctionsOutput extends StepFunctionsInput {
   status: string;
   validationScore: number;
   validationReasons: string[];
+  validationBreakdown?: {
+    visual: number;
+    audio: number | null;
+    ocr: number;
+    hashtags: number;
+  };
+}
+
+interface ModalityScores {
+  visual: number;
+  audio: number | null; // null if audio unavailable
+  ocr: number;
+  hashtags: number;
+}
+
+/**
+ * Calculate individual modality scores
+ */
+function calculateModalityScores(
+  showsMilkObject: boolean,
+  showsActionAligned: boolean,
+  mentionsMilk: boolean | undefined,
+  onScreenText: string[] | undefined,
+  detectedText: string[] | undefined,
+  hashtags: string[]
+): ModalityScores {
+  // Visual score: showsMilkObject (0.5) + showsActionAligned (0.5)
+  const visualScore = (showsMilkObject ? 0.5 : 0) + (showsActionAligned ? 0.5 : 0);
+  
+  // Audio score: mentionsMilk (1.0) if audio available, else null
+  // For now, assume audio is available if mentionsMilk is defined
+  // In production, we'd check video metadata for audio track presence/duration
+  const audioScore = mentionsMilk !== undefined ? (mentionsMilk ? 1.0 : 0) : null;
+  
+  // OCR score: presence of milk-related text in onScreenText (0.5) + campaign hashtags in detected text (0.5)
+  let ocrScore = 0;
+  const milkKeywords = ['milk', 'dairy', 'got milk', 'milkmob', 'gotmilk'];
+  
+  if (onScreenText && onScreenText.length > 0) {
+    const onScreenTextLower = onScreenText.join(' ').toLowerCase();
+    const hasMilkText = milkKeywords.some(keyword => onScreenTextLower.includes(keyword));
+    if (hasMilkText) {
+      ocrScore += 0.5;
+    }
+  }
+  
+  if (detectedText && detectedText.length > 0) {
+    const detectedTextLower = detectedText.join(' ').toLowerCase();
+    const hasCampaignHashtags = detectedTextLower.includes('gotmilk') || detectedTextLower.includes('milkmob');
+    if (hasCampaignHashtags) {
+      ocrScore += 0.5;
+    }
+  }
+  
+  // Hashtag score: presence of #gotmilk or #milkmob (1.0)
+  const hashtagText = hashtags.join(' ').toLowerCase();
+  const hasMilkHashtags = hashtagText.includes('gotmilk') || hashtagText.includes('milkmob');
+  const hashtagScore = hasMilkHashtags ? 1.0 : 0;
+  
+  return {
+    visual: visualScore,
+    audio: audioScore,
+    ocr: ocrScore,
+    hashtags: hashtagScore,
+  };
+}
+
+/**
+ * Determine if audio is available (not missing or very short)
+ * For now, we assume audio is available unless explicitly marked otherwise
+ * In production, this would check video metadata
+ */
+function determineAudioAvailability(mentionsMilk: boolean | undefined): boolean {
+  // If mentionsMilk is undefined, we don't have audio data, so assume unavailable
+  // If mentionsMilk is defined (true or false), we have audio data, so assume available
+  // This is a heuristic - in production, check video metadata for audio track
+  return mentionsMilk !== undefined;
+}
+
+/**
+ * Calculate weighted validation score with dynamic weight adjustment
+ */
+function calculateWeightedScore(scores: ModalityScores, audioAvailable: boolean): { score: number; breakdown: ModalityScores } {
+  let weights: [number, number, number, number]; // [visual, audio, ocr, hashtags]
+  
+  if (!audioAvailable) {
+    // Audio unavailable: redistribute weights - Visual 50%, OCR 30%, Hashtags 20%
+    weights = [0.5, 0, 0.3, 0.2];
+  } else {
+    // Audio available: Visual 40%, Audio 30%, OCR 20%, Hashtags 10%
+    weights = [0.4, 0.3, 0.2, 0.1];
+  }
+  
+  // Calculate weighted sum
+  const weightedScore = 
+    scores.visual * weights[0] +
+    (scores.audio !== null ? scores.audio * weights[1] : 0) +
+    scores.ocr * weights[2] +
+    scores.hashtags * weights[3];
+  
+  return {
+    score: Math.min(1.0, weightedScore), // Cap at 1.0
+    breakdown: scores,
+  };
 }
 
 /**
  * Perform validation and update video status
  */
-async function validateVideo(videoId: string, participationScore?: number): Promise<{ status: string; validationScore: number; reasons: string[] }> {
+async function validateVideo(videoId: string, participationScore?: number): Promise<{ 
+  status: string; 
+  validationScore: number; 
+  reasons: string[];
+  breakdown?: ModalityScores;
+}> {
   // Fetch video from DynamoDB
   const result = await ddb.send(
     new GetItemCommand({
@@ -51,12 +160,72 @@ async function validateVideo(videoId: string, participationScore?: number): Prom
   }
 
   const hashtags = result.Item.hashtags?.SS || [];
-  const score = participationScore ?? (result.Item.participationScore?.N ? parseFloat(result.Item.participationScore.N) : 0);
+  const showsMilkObject = result.Item.showsMilkObject?.BOOL ?? false;
+  const showsActionAligned = result.Item.showsActionAligned?.BOOL ?? false;
+  const mentionsMilk = result.Item.mentionsMilk?.BOOL;
+  const onScreenText = result.Item.onScreenText?.SS;
+  const detectedText = result.Item.detectedText?.SS;
+  const rationale = result.Item.participationRationale?.S;
 
-  // Fuse validation signals
+  // Calculate modality scores
+  const modalityScores = calculateModalityScores(
+    showsMilkObject,
+    showsActionAligned,
+    mentionsMilk,
+    onScreenText,
+    detectedText,
+    hashtags
+  );
+
+  // Determine audio availability
+  const audioAvailable = determineAudioAvailability(mentionsMilk);
+
+  // Calculate weighted score
+  const { score: calculatedScore, breakdown } = calculateWeightedScore(modalityScores, audioAvailable);
+
+  // Build validation reasons
   const reasons: string[] = [];
   
-  // Check hashtag coverage
+  // Visual modality
+  if (showsMilkObject) {
+    reasons.push('Shows milk carton or product (visual)');
+  }
+  if (showsActionAligned) {
+    reasons.push('Action aligns with campaign theme (visual)');
+  }
+  reasons.push(`Visual score: ${(modalityScores.visual * 100).toFixed(0)}%`);
+
+  // Audio modality
+  if (audioAvailable) {
+    if (mentionsMilk) {
+      reasons.push('Mentions milk in content (audio)');
+    } else {
+      reasons.push('No milk mentions detected in audio');
+    }
+    reasons.push(`Audio score: ${(modalityScores.audio! * 100).toFixed(0)}%`);
+  } else {
+    reasons.push('Audio unavailable or too short - not penalized');
+  }
+
+  // OCR modality
+  if (onScreenText && onScreenText.length > 0) {
+    const milkKeywords = ['milk', 'dairy', 'got milk', 'milkmob', 'gotmilk'];
+    const onScreenTextLower = onScreenText.join(' ').toLowerCase();
+    const hasMilkText = milkKeywords.some(keyword => onScreenTextLower.includes(keyword));
+    if (hasMilkText) {
+      reasons.push('Milk-related text detected on screen (OCR)');
+    }
+  }
+  if (detectedText && detectedText.length > 0) {
+    const detectedTextLower = detectedText.join(' ').toLowerCase();
+    const hasCampaignHashtags = detectedTextLower.includes('gotmilk') || detectedTextLower.includes('milkmob');
+    if (hasCampaignHashtags) {
+      reasons.push('Campaign hashtags detected in video text (OCR)');
+    }
+  }
+  reasons.push(`OCR score: ${(modalityScores.ocr * 100).toFixed(0)}%`);
+
+  // Hashtag modality
   const hashtagText = hashtags.join(' ').toLowerCase();
   const hasMilkHashtags = hashtagText.includes('gotmilk') || hashtagText.includes('milkmob');
   if (hasMilkHashtags) {
@@ -64,36 +233,11 @@ async function validateVideo(videoId: string, participationScore?: number): Prom
   } else {
     reasons.push('Missing required campaign hashtags');
   }
-
-  // Check Pegasus flags
-  const mentionsMilk = result.Item.mentionsMilk?.BOOL ?? false;
-  const showsMilkObject = result.Item.showsMilkObject?.BOOL ?? false;
-  const showsActionAligned = result.Item.showsActionAligned?.BOOL ?? false;
-
-  if (mentionsMilk) {
-    reasons.push('Mentions milk in content');
-  }
-  if (showsMilkObject) {
-    reasons.push('Shows milk carton or product');
-  }
-  if (showsActionAligned) {
-    reasons.push('Action aligns with campaign theme');
-  }
+  reasons.push(`Hashtag score: ${(modalityScores.hashtags * 100).toFixed(0)}%`);
 
   // Add participation rationale if available
-  const rationale = result.Item.participationRationale?.S;
   if (rationale) {
     reasons.push(`Analysis: ${rationale}`);
-  }
-
-  // Calculate final validation score
-  let calculatedScore = score;
-  if (calculatedScore === 0) {
-    // Fallback calculation if participationScore not set
-    calculatedScore = (hasMilkHashtags ? 0.3 : 0) +
-      (mentionsMilk ? 0.2 : 0) +
-      (showsMilkObject ? 0.3 : 0) +
-      (showsActionAligned ? 0.2 : 0);
   }
 
   // Determine status based on threshold
@@ -101,10 +245,18 @@ async function validateVideo(videoId: string, participationScore?: number): Prom
   const status = pass ? 'validated' : 'rejected';
 
   if (!pass) {
-    reasons.push(`Score ${(calculatedScore * 100).toFixed(1)}% below threshold (${(validationThreshold * 100).toFixed(0)}%)`);
+    reasons.push(`Overall score ${(calculatedScore * 100).toFixed(1)}% below threshold (${(validationThreshold * 100).toFixed(0)}%)`);
   } else {
-    reasons.push(`Score ${(calculatedScore * 100).toFixed(1)}% meets threshold`);
+    reasons.push(`Overall score ${(calculatedScore * 100).toFixed(1)}% meets threshold`);
   }
+
+  // Store validation breakdown as JSON string
+  const breakdownJson = JSON.stringify({
+    visual: breakdown.visual,
+    audio: breakdown.audio,
+    ocr: breakdown.ocr,
+    hashtags: breakdown.hashtags,
+  });
 
   // Update video status and validation results in DynamoDB
   await ddb.send(
@@ -116,7 +268,8 @@ async function validateVideo(videoId: string, participationScore?: number): Prom
       UpdateExpression: `
         SET #status = :status,
             validationScore = :validationScore,
-            validationReasons = :reasons
+            validationReasons = :reasons,
+            validationBreakdown = :breakdown
       `,
       ExpressionAttributeNames: {
         '#status': 'status',
@@ -125,11 +278,12 @@ async function validateVideo(videoId: string, participationScore?: number): Prom
         ':status': { S: status },
         ':validationScore': { N: calculatedScore.toString() },
         ':reasons': { SS: reasons },
+        ':breakdown': { S: breakdownJson },
       },
     })
   );
 
-  return { status, validationScore: calculatedScore, reasons };
+  return { status, validationScore: calculatedScore, reasons, breakdown };
 }
 
 /**
@@ -143,7 +297,7 @@ export const handler = async (
   if ('videoId' in event && typeof event.videoId === 'string') {
     // Step Functions invocation
     const stepInput = event as StepFunctionsInput;
-    const { status, validationScore, reasons } = await validateVideo(
+    const { status, validationScore, reasons, breakdown } = await validateVideo(
       stepInput.videoId,
       stepInput.participationScore
     );
@@ -152,6 +306,7 @@ export const handler = async (
       status,
       validationScore,
       validationReasons: reasons,
+      validationBreakdown: breakdown,
     };
   } else {
     // API Gateway invocation

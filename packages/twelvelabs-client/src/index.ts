@@ -26,11 +26,23 @@ export interface ParticipationResult {
   showsActionAligned: boolean;
   rationale: string; // short explanation string
   highlights?: TimelineHighlight[]; // extracted highlights from video
+  detectedText?: string[]; // All text detected in video (OCR)
+  onScreenText?: string[]; // Text visible on screen (e.g., milk carton labels)
+  // Bedrock usage tracking
+  bedrockUsage?: {
+    inputTokens?: number;
+    outputTokens?: number;
+  };
 }
 
 export interface EmbeddingResult {
   embedding: number[]; // main vector
   dim: number;
+  // Bedrock usage tracking
+  bedrockUsage?: {
+    inputTokens?: number;
+    outputTokens?: number;
+  };
 }
 
 export interface TwelveLabsClient {
@@ -39,6 +51,7 @@ export interface TwelveLabsClient {
     s3Bucket: string;
     s3Key: string;
     hashtags: string[];
+    detectText?: boolean; // Enable OCR/text detection
   }): Promise<ParticipationResult>;
 
   embedVideo(input: {
@@ -67,7 +80,7 @@ export function createTwelveLabsClient(config: TwelveLabsConfig): TwelveLabsClie
 
   return {
     async analyzeParticipation(input): Promise<ParticipationResult> {
-      const { videoId, s3Bucket, s3Key, hashtags } = input;
+      const { videoId, s3Bucket, s3Key, hashtags, detectText = true } = input;
       
       try {
         // Construct S3 URI for video
@@ -80,6 +93,7 @@ export function createTwelveLabsClient(config: TwelveLabsConfig): TwelveLabsClie
           video_id: videoId,
           hashtags: hashtags,
           task: 'participation_analysis',
+          ocr: detectText, // Enable OCR/text detection
           campaign_context: {
             name: 'Got Milk Campaign',
             required_hashtags: ['#gotmilk', '#milkmob'],
@@ -97,6 +111,11 @@ export function createTwelveLabsClient(config: TwelveLabsConfig): TwelveLabsClie
         const response = await bedrockClient.send(command);
         const responseBody = JSON.parse(new TextDecoder().decode(response.body));
 
+        // Extract token usage from Bedrock response metadata
+        // Bedrock includes usage in response metadata if available
+        const inputTokens = responseBody.usage?.inputTokens ?? responseBody.inputTokens ?? undefined;
+        const outputTokens = responseBody.usage?.outputTokens ?? responseBody.outputTokens ?? undefined;
+
         // Parse Bedrock response (adjust based on actual model output format)
         // Expected format: { participationScore, mentionsMilk, showsMilkObject, showsActionAligned, rationale, highlights }
         const highlights: TimelineHighlight[] | undefined = responseBody.highlights
@@ -107,6 +126,10 @@ export function createTwelveLabsClient(config: TwelveLabsConfig): TwelveLabsClie
             }))
           : undefined;
 
+        // Parse OCR results
+        const detectedText: string[] | undefined = responseBody.detectedText ?? responseBody.text_detected;
+        const onScreenText: string[] | undefined = responseBody.onScreenText ?? responseBody.on_screen_text;
+
         return {
           participationScore: responseBody.participationScore ?? responseBody.score ?? 0.7,
           mentionsMilk: responseBody.mentionsMilk ?? responseBody.detected_mentions ?? false,
@@ -114,6 +137,12 @@ export function createTwelveLabsClient(config: TwelveLabsConfig): TwelveLabsClie
           showsActionAligned: responseBody.showsActionAligned ?? responseBody.action_aligned ?? false,
           rationale: responseBody.rationale ?? responseBody.explanation ?? 'Analysis complete',
           highlights,
+          detectedText,
+          onScreenText,
+          bedrockUsage: inputTokens !== undefined || outputTokens !== undefined ? {
+            inputTokens,
+            outputTokens,
+          } : undefined,
         };
       } catch (error) {
         console.error(`Bedrock Pegasus invocation failed for ${videoId}:`, error);
@@ -146,6 +175,10 @@ export function createTwelveLabsClient(config: TwelveLabsConfig): TwelveLabsClie
         const response = await bedrockClient.send(command);
         const responseBody = JSON.parse(new TextDecoder().decode(response.body));
 
+        // Extract token usage from Bedrock response metadata
+        const inputTokens = responseBody.usage?.inputTokens ?? responseBody.inputTokens ?? undefined;
+        const outputTokens = responseBody.usage?.outputTokens ?? responseBody.outputTokens ?? undefined;
+
         // Parse Bedrock response (adjust based on actual model output format)
         // Expected format: { embedding: number[], dim: number }
         const embedding = responseBody.embedding ?? responseBody.vector ?? [];
@@ -158,6 +191,10 @@ export function createTwelveLabsClient(config: TwelveLabsConfig): TwelveLabsClie
         return {
           embedding,
           dim,
+          bedrockUsage: inputTokens !== undefined || outputTokens !== undefined ? {
+            inputTokens,
+            outputTokens,
+          } : undefined,
         };
       } catch (error) {
         console.error(`Bedrock Marengo invocation failed for ${videoId}:`, error);
@@ -204,6 +241,8 @@ function fallbackParticipationAnalysis(videoId: string, hashtags: string[]): Par
     showsActionAligned,
     rationale: reasons.join('; '),
     highlights,
+    detectedText: hasMilkHashtags ? ['Got Milk', 'Milk Mob'] : undefined,
+    onScreenText: showsMilkObject ? ['Milk Carton', 'Dairy Product'] : undefined,
   };
 }
 

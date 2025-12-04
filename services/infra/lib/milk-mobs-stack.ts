@@ -231,6 +231,20 @@ export class MilkMobsStack extends cdk.Stack {
       })
     );
 
+    // Grant CloudWatch PutMetricData permissions for Bedrock usage tracking
+    analysisPegasusFn.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['cloudwatch:PutMetricData'],
+        resources: ['*'],
+        conditions: {
+          StringEquals: {
+            'cloudwatch:namespace': 'MilkMobs/Bedrock',
+          },
+        },
+      })
+    );
+
     const analysisMarengoFn = new lambdaNodejs.NodejsFunction(this, 'AnalysisMarengoFn', {
       runtime: lambda.Runtime.NODEJS_20_X,
       handler: 'handler',
@@ -250,6 +264,20 @@ export class MilkMobsStack extends cdk.Stack {
         resources: [
           `arn:aws:bedrock:${this.region}::foundation-model/${process.env.TWELVELABS_MARENGO_MODEL_ID || '*'}`,
         ],
+      })
+    );
+
+    // Grant CloudWatch PutMetricData permissions for Bedrock usage tracking
+    analysisMarengoFn.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['cloudwatch:PutMetricData'],
+        resources: ['*'],
+        conditions: {
+          StringEquals: {
+            'cloudwatch:namespace': 'MilkMobs/Bedrock',
+          },
+        },
       })
     );
 
@@ -374,6 +402,8 @@ export class MilkMobsStack extends cdk.Stack {
       entry: path.join(__dirname, '../../lambdas/admin-get-usage-stats/index.ts'),
       environment: {
         STACK_NAME: this.stackName,
+        TWELVELABS_PEGASUS_MODEL_ID: process.env.TWELVELABS_PEGASUS_MODEL_ID || '',
+        TWELVELABS_MARENGO_MODEL_ID: process.env.TWELVELABS_MARENGO_MODEL_ID || '',
       },
       timeout: cdk.Duration.seconds(30),
     });
@@ -934,6 +964,72 @@ export class MilkMobsStack extends cdk.Stack {
             },
             statistic: 'Sum',
             label: '5XX Errors',
+          }),
+        ],
+        width: 24,
+      }),
+      new cloudwatch.GraphWidget({
+        title: 'Bedrock Usage (TwelveLabs)',
+        left: [
+          new cloudwatch.Metric({
+            namespace: 'MilkMobs/Bedrock',
+            metricName: 'BedrockInvocations',
+            dimensionsMap: {
+              ModelType: 'Pegasus',
+            },
+            statistic: 'Sum',
+            label: 'Pegasus Invocations',
+          }),
+          new cloudwatch.Metric({
+            namespace: 'MilkMobs/Bedrock',
+            metricName: 'BedrockInvocations',
+            dimensionsMap: {
+              ModelType: 'Marengo',
+            },
+            statistic: 'Sum',
+            label: 'Marengo Invocations',
+          }),
+        ],
+        width: 24,
+      }),
+      new cloudwatch.GraphWidget({
+        title: 'Bedrock Token Usage',
+        left: [
+          new cloudwatch.Metric({
+            namespace: 'MilkMobs/Bedrock',
+            metricName: 'BedrockInputTokens',
+            dimensionsMap: {
+              ModelType: 'Pegasus',
+            },
+            statistic: 'Sum',
+            label: 'Pegasus Input Tokens',
+          }),
+          new cloudwatch.Metric({
+            namespace: 'MilkMobs/Bedrock',
+            metricName: 'BedrockOutputTokens',
+            dimensionsMap: {
+              ModelType: 'Pegasus',
+            },
+            statistic: 'Sum',
+            label: 'Pegasus Output Tokens',
+          }),
+          new cloudwatch.Metric({
+            namespace: 'MilkMobs/Bedrock',
+            metricName: 'BedrockInputTokens',
+            dimensionsMap: {
+              ModelType: 'Marengo',
+            },
+            statistic: 'Sum',
+            label: 'Marengo Input Tokens',
+          }),
+          new cloudwatch.Metric({
+            namespace: 'MilkMobs/Bedrock',
+            metricName: 'BedrockOutputTokens',
+            dimensionsMap: {
+              ModelType: 'Marengo',
+            },
+            statistic: 'Sum',
+            label: 'Marengo Output Tokens',
           }),
         ],
         width: 24,

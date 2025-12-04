@@ -18,6 +18,8 @@ export interface VideoRecord {
   showsMilkObject?: boolean;       // Pegasus flag
   showsActionAligned?: boolean;   // Pegasus flag
   participationRationale?: string; // Pegasus explanation
+  detectedText?: string[];         // OCR: All text detected in video
+  onScreenText?: string[];        // OCR: Text visible on screen (e.g., milk carton labels)
 
   // TwelveLabs Marengo embedding results
   embedding?: string;             // JSON string of embedding vector
@@ -77,11 +79,21 @@ export interface VideoDetail extends VideoSummary {
   showsMilkObject?: boolean;      // Pegasus flag: detects milk containers/objects
   showsActionAligned?: boolean;  // Pegasus flag: detects drinking milk actions
   participationRationale?: string; // Pegasus explanation text
+  detectedText?: string[];        // OCR: All text detected in video
+  onScreenText?: string[];       // OCR: Text visible on screen (e.g., milk carton labels)
 
   // TwelveLabs Marengo embedding results
   embeddingDim?: number;          // Dimension of embedding vector (e.g., 256)
   clusteringMethod?: 'embedding' | 'keyword' | 'unknown'; // How video was assigned to mob
   similarityScore?: number;       // Similarity score to mob centroid (0-1)
+  
+  // Validation breakdown
+  validationBreakdown?: {
+    visual: number;
+    audio: number | null;  // null if audio unavailable
+    ocr: number;
+    hashtags: number;
+  };
 }
 
 /**
@@ -97,6 +109,7 @@ export interface MobSummary {
   centroidDim?: number;      // Dimension of centroid embedding vector
   clusteringMethod?: 'k-means' | 'similarity' | 'keyword'; // How mob was created
   avgSimilarityScore?: number; // Average similarity of videos to centroid
+  centroid?: string;         // JSON string of centroid embedding vector
 }
 
 /** Request from frontend to start a video upload */

@@ -210,6 +210,7 @@ export default function VideoDetailPage({
                   autoplay={false}
                   muted={false}
                   className="w-full"
+                  highlights={timeline}
                 />
               </div>
             ) : (
@@ -411,6 +412,43 @@ export default function VideoDetailPage({
                     </p>
                   </div>
                 )}
+
+                {/* OCR Results */}
+                {(video.detectedText && video.detectedText.length > 0) || (video.onScreenText && video.onScreenText.length > 0) ? (
+                  <div>
+                    <p className="text-sm font-medium text-[var(--text-muted)] mb-3">OCR Text Detection</p>
+                    {video.onScreenText && video.onScreenText.length > 0 && (
+                      <div className="mb-3">
+                        <p className="text-xs text-[var(--text-muted)] mb-2">On-Screen Text</p>
+                        <div className="flex flex-wrap gap-2">
+                          {video.onScreenText.map((text, idx) => (
+                            <span
+                              key={idx}
+                              className="inline-flex items-center px-2 py-1 rounded text-xs bg-blue-500/10 text-blue-600 border border-blue-500/20"
+                            >
+                              {text}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {video.detectedText && video.detectedText.length > 0 && (
+                      <div>
+                        <p className="text-xs text-[var(--text-muted)] mb-2">All Detected Text</p>
+                        <div className="flex flex-wrap gap-2">
+                          {video.detectedText.map((text, idx) => (
+                            <span
+                              key={idx}
+                              className="inline-flex items-center px-2 py-1 rounded text-xs bg-purple-500/10 text-purple-600 border border-purple-500/20"
+                            >
+                              {text}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : null}
               </div>
             </Panel>
           )}
@@ -503,6 +541,83 @@ export default function VideoDetailPage({
                   <StatusPill status={video.status} />
                 </div>
               </div>
+              
+              {/* Validation Breakdown */}
+              {video.validationBreakdown && (
+                <div>
+                  <p className="text-sm font-medium text-[var(--text-muted)] mb-3">Modality Breakdown</p>
+                  <div className="space-y-3">
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-xs text-[var(--text-muted)]">Visual</span>
+                        <span className="text-xs font-medium text-[var(--text)]">
+                          {Math.round(video.validationBreakdown.visual * 100)}%
+                        </span>
+                      </div>
+                      <div className="h-2 bg-[var(--bg-subtle)] rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-blue-500 rounded-full"
+                          style={{ width: `${video.validationBreakdown.visual * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                    {video.validationBreakdown.audio !== null ? (
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-xs text-[var(--text-muted)]">Audio</span>
+                          <span className="text-xs font-medium text-[var(--text)]">
+                            {Math.round(video.validationBreakdown.audio * 100)}%
+                          </span>
+                        </div>
+                        <div className="h-2 bg-[var(--bg-subtle)] rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-green-500 rounded-full"
+                            style={{ width: `${video.validationBreakdown.audio * 100}%` }}
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-xs text-[var(--text-muted)]">Audio</span>
+                          <span className="text-xs font-medium text-[var(--text-muted)] italic">
+                            Unavailable (not penalized)
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-xs text-[var(--text-muted)]">OCR</span>
+                        <span className="text-xs font-medium text-[var(--text)]">
+                          {Math.round(video.validationBreakdown.ocr * 100)}%
+                        </span>
+                      </div>
+                      <div className="h-2 bg-[var(--bg-subtle)] rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-purple-500 rounded-full"
+                          style={{ width: `${video.validationBreakdown.ocr * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-xs text-[var(--text-muted)]">Hashtags</span>
+                        <span className="text-xs font-medium text-[var(--text)]">
+                          {Math.round(video.validationBreakdown.hashtags * 100)}%
+                        </span>
+                      </div>
+                      <div className="h-2 bg-[var(--bg-subtle)] rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-orange-500 rounded-full"
+                          style={{ width: `${video.validationBreakdown.hashtags * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               <div>
                 <p className="text-sm text-[var(--text-muted)] leading-relaxed">
                   {video.status === 'validated'

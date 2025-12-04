@@ -1504,6 +1504,16 @@
        "Action": "bedrock:InvokeModel",
        "Effect": "Allow",
        "Resource": "arn:aws:bedrock:us-east-1::foundation-model/*"
+      },
+      {
+       "Action": "cloudwatch:PutMetricData",
+       "Condition": {
+        "StringEquals": {
+         "cloudwatch:namespace": "MilkMobs/Bedrock"
+        }
+       },
+       "Effect": "Allow",
+       "Resource": "*"
       }
      ],
      "Version": "2012-10-17"
@@ -1524,7 +1534,7 @@
    "Properties": {
     "Code": {
      "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
-     "S3Key": "08a89cf0e14186926beb66f76376dc694fbfd2d3b86c262003b151b72720f2ea.zip"
+     "S3Key": "2053f255ed6e403977fcbc30e32ad8757cb204d64e7c84deb62216f96ee4834f.zip"
     },
     "Environment": {
      "Variables": {
@@ -1566,7 +1576,7 @@
    ],
    "Metadata": {
     "aws:cdk:path": "MilkMobsStack/AnalysisPegasusFn/Resource",
-    "aws:asset:path": "asset.08a89cf0e14186926beb66f76376dc694fbfd2d3b86c262003b151b72720f2ea",
+    "aws:asset:path": "asset.2053f255ed6e403977fcbc30e32ad8757cb204d64e7c84deb62216f96ee4834f",
     "aws:asset:is-bundled": true,
     "aws:asset:property": "Code"
    }
@@ -1632,6 +1642,16 @@
        "Action": "bedrock:InvokeModel",
        "Effect": "Allow",
        "Resource": "arn:aws:bedrock:us-east-1::foundation-model/*"
+      },
+      {
+       "Action": "cloudwatch:PutMetricData",
+       "Condition": {
+        "StringEquals": {
+         "cloudwatch:namespace": "MilkMobs/Bedrock"
+        }
+       },
+       "Effect": "Allow",
+       "Resource": "*"
       }
      ],
      "Version": "2012-10-17"
@@ -1652,7 +1672,7 @@
    "Properties": {
     "Code": {
      "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
-     "S3Key": "a4e6e3f98f05c500ee6097ca02546b6a8882e576e4a9b9094bbd935fa5ab09ab.zip"
+     "S3Key": "cdfda64c2d84c0d604c756defc9156f561dc587bae2edcd06d1060e19e921500.zip"
     },
     "Environment": {
      "Variables": {
@@ -1694,7 +1714,7 @@
    ],
    "Metadata": {
     "aws:cdk:path": "MilkMobsStack/AnalysisMarengoFn/Resource",
-    "aws:asset:path": "asset.a4e6e3f98f05c500ee6097ca02546b6a8882e576e4a9b9094bbd935fa5ab09ab",
+    "aws:asset:path": "asset.cdfda64c2d84c0d604c756defc9156f561dc587bae2edcd06d1060e19e921500",
     "aws:asset:is-bundled": true,
     "aws:asset:property": "Code"
    }
@@ -1837,7 +1857,7 @@
    "Properties": {
     "Code": {
      "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
-     "S3Key": "120d00e4de53ae4ef0d8831a6262a9f396b8872c7b45574d2c601fe2c67386f1.zip"
+     "S3Key": "444b74ad3349fbabce2de4b85663a33037f5b0a06a9dfec56e4f58ce0c88a1bb.zip"
     },
     "Environment": {
      "Variables": {
@@ -1887,7 +1907,7 @@
    ],
    "Metadata": {
     "aws:cdk:path": "MilkMobsStack/AnalysisWriteResultFn/Resource",
-    "aws:asset:path": "asset.120d00e4de53ae4ef0d8831a6262a9f396b8872c7b45574d2c601fe2c67386f1",
+    "aws:asset:path": "asset.444b74ad3349fbabce2de4b85663a33037f5b0a06a9dfec56e4f58ce0c88a1bb",
     "aws:asset:is-bundled": true,
     "aws:asset:property": "Code"
    }
@@ -1991,7 +2011,7 @@
    "Properties": {
     "Code": {
      "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
-     "S3Key": "358369e59deac09c69b3e9859867756ebc47fb454e239fd31d1b38c4e3e27da4.zip"
+     "S3Key": "c26e249546b4d7950279133b41c19bfd198a8055a0162ab9f127cd14e6410936.zip"
     },
     "Environment": {
      "Variables": {
@@ -2035,7 +2055,7 @@
    ],
    "Metadata": {
     "aws:cdk:path": "MilkMobsStack/ValidateVideoFn/Resource",
-    "aws:asset:path": "asset.358369e59deac09c69b3e9859867756ebc47fb454e239fd31d1b38c4e3e27da4",
+    "aws:asset:path": "asset.c26e249546b4d7950279133b41c19bfd198a8055a0162ab9f127cd14e6410936",
     "aws:asset:is-bundled": true,
     "aws:asset:property": "Code"
    }
@@ -2426,7 +2446,7 @@
         "DomainName"
        ]
       },
-      "BUILD_TIMESTAMP": "2025-12-03T03:34:55.628Z"
+      "BUILD_TIMESTAMP": "2025-12-04T23:15:59.793Z"
      }
     },
     "Handler": "index.handler",
@@ -2596,7 +2616,7 @@
    "Properties": {
     "Code": {
      "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
-     "S3Key": "7b8d4d5048f7f38013ddd89d41ddc4f2219eb38111ab2e2d05735d0105023d28.zip"
+     "S3Key": "c79fcd1aea2ed54518341f367ce906f8d258b72a7663a1ddc593854174741c89.zip"
     },
     "Environment": {
      "Variables": {
@@ -2642,7 +2662,7 @@
    ],
    "Metadata": {
     "aws:cdk:path": "MilkMobsStack/ClusterVideoFn/Resource",
-    "aws:asset:path": "asset.7b8d4d5048f7f38013ddd89d41ddc4f2219eb38111ab2e2d05735d0105023d28",
+    "aws:asset:path": "asset.c79fcd1aea2ed54518341f367ce906f8d258b72a7663a1ddc593854174741c89",
     "aws:asset:is-bundled": true,
     "aws:asset:property": "Code"
    }
@@ -2772,7 +2792,7 @@
    "Properties": {
     "Code": {
      "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
-     "S3Key": "cd18caa6432474222d778bcf3d0f6dd73731a73e29bbb33e0c9815b4fb7b8839.zip"
+     "S3Key": "105f091b30617adb86b94cdaa56904e60ab034905f45cdc4ffef8aed97c84772.zip"
     },
     "Environment": {
      "Variables": {
@@ -2824,7 +2844,7 @@
    ],
    "Metadata": {
     "aws:cdk:path": "MilkMobsStack/GetVideoDetailFn/Resource",
-    "aws:asset:path": "asset.cd18caa6432474222d778bcf3d0f6dd73731a73e29bbb33e0c9815b4fb7b8839",
+    "aws:asset:path": "asset.105f091b30617adb86b94cdaa56904e60ab034905f45cdc4ffef8aed97c84772",
     "aws:asset:is-bundled": true,
     "aws:asset:property": "Code"
    }
@@ -3227,11 +3247,13 @@
    "Properties": {
     "Code": {
      "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
-     "S3Key": "ef01477a7bd687582975597c31700814cbee3c2fc6f0db4e5a098d91f17a21ab.zip"
+     "S3Key": "5e9f790f220334156c11e544127ef53112b01f8ca480db8ace332785e2187b45.zip"
     },
     "Environment": {
      "Variables": {
-      "STACK_NAME": "MilkMobsStack"
+      "STACK_NAME": "MilkMobsStack",
+      "TWELVELABS_PEGASUS_MODEL_ID": "",
+      "TWELVELABS_MARENGO_MODEL_ID": ""
      }
     },
     "Handler": "index.handler",
@@ -3268,7 +3290,7 @@
    ],
    "Metadata": {
     "aws:cdk:path": "MilkMobsStack/AdminGetUsageStatsFn/Resource",
-    "aws:asset:path": "asset.ef01477a7bd687582975597c31700814cbee3c2fc6f0db4e5a098d91f17a21ab",
+    "aws:asset:path": "asset.5e9f790f220334156c11e544127ef53112b01f8ca480db8ace332785e2187b45",
     "aws:asset:is-bundled": true,
     "aws:asset:property": "Code"
    }
@@ -8233,7 +8255,15 @@
        {
         "Ref": "AWS::Region"
        },
-       "\",\"metrics\":[[\"AWS/ApiGateway\",\"Count\",\"ApiName\",\"Milk Mobs API\",{\"label\":\"Total Requests\",\"stat\":\"Sum\"}],[\"AWS/ApiGateway\",\"4XXError\",\"ApiName\",\"Milk Mobs API\",{\"label\":\"4XX Errors\",\"stat\":\"Sum\"}],[\"AWS/ApiGateway\",\"5XXError\",\"ApiName\",\"Milk Mobs API\",{\"label\":\"5XX Errors\",\"stat\":\"Sum\"}]],\"yAxis\":{}}}]}"
+       "\",\"metrics\":[[\"AWS/ApiGateway\",\"Count\",\"ApiName\",\"Milk Mobs API\",{\"label\":\"Total Requests\",\"stat\":\"Sum\"}],[\"AWS/ApiGateway\",\"4XXError\",\"ApiName\",\"Milk Mobs API\",{\"label\":\"4XX Errors\",\"stat\":\"Sum\"}],[\"AWS/ApiGateway\",\"5XXError\",\"ApiName\",\"Milk Mobs API\",{\"label\":\"5XX Errors\",\"stat\":\"Sum\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":24,\"height\":6,\"x\":0,\"y\":48,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Bedrock Usage (TwelveLabs)\",\"region\":\"",
+       {
+        "Ref": "AWS::Region"
+       },
+       "\",\"metrics\":[[\"MilkMobs/Bedrock\",\"BedrockInvocations\",\"ModelType\",\"Pegasus\",{\"label\":\"Pegasus Invocations\",\"stat\":\"Sum\"}],[\"MilkMobs/Bedrock\",\"BedrockInvocations\",\"ModelType\",\"Marengo\",{\"label\":\"Marengo Invocations\",\"stat\":\"Sum\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":24,\"height\":6,\"x\":0,\"y\":54,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Bedrock Token Usage\",\"region\":\"",
+       {
+        "Ref": "AWS::Region"
+       },
+       "\",\"metrics\":[[\"MilkMobs/Bedrock\",\"BedrockInputTokens\",\"ModelType\",\"Pegasus\",{\"label\":\"Pegasus Input Tokens\",\"stat\":\"Sum\"}],[\"MilkMobs/Bedrock\",\"BedrockOutputTokens\",\"ModelType\",\"Pegasus\",{\"label\":\"Pegasus Output Tokens\",\"stat\":\"Sum\"}],[\"MilkMobs/Bedrock\",\"BedrockInputTokens\",\"ModelType\",\"Marengo\",{\"label\":\"Marengo Input Tokens\",\"stat\":\"Sum\"}],[\"MilkMobs/Bedrock\",\"BedrockOutputTokens\",\"ModelType\",\"Marengo\",{\"label\":\"Marengo Output Tokens\",\"stat\":\"Sum\"}]],\"yAxis\":{}}}]}"
       ]
      ]
     },

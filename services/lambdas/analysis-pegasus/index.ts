@@ -1,10 +1,12 @@
 import type { Context } from 'aws-lambda';
+import { CloudWatchClient, PutMetricDataCommand } from '@aws-sdk/client-cloudwatch';
 import { createTwelveLabsClient } from '../../../packages/twelvelabs-client/src/index';
 import type { ParticipationResult } from '../../../packages/twelvelabs-client/src/index';
 import { createLogger } from '../shared/logger';
 
 const bedrockRegion = process.env.BEDROCK_REGION || process.env.AWS_REGION || 'us-east-1';
 const twelvelabsPegasusModelId = process.env.TWELVELABS_PEGASUS_MODEL_ID || '';
+const cloudwatch = new CloudWatchClient({ region: bedrockRegion });
 
 const tlClient = createTwelveLabsClient({
   region: bedrockRegion,
@@ -45,7 +47,62 @@ export const handler = async (
       s3Bucket: event.s3Bucket,
       s3Key: event.s3Key,
       hashtags: event.hashtags,
+      detectText: true, // Enable OCR/text detection
     });
+
+    // Emit CloudWatch metrics for Bedrock usage
+    try {
+      const metrics = [];
+      
+      // Always emit invocation count
+      metrics.push({
+        MetricName: 'BedrockInvocations',
+        Value: 1,
+        Unit: 'Count',
+        Dimensions: [
+          { Name: 'ModelId', Value: twelvelabsPegasusModelId || 'unknown' },
+          { Name: 'ModelType', Value: 'Pegasus' },
+        ],
+      });
+
+      // Emit token metrics if available
+      if (participation.bedrockUsage) {
+        if (participation.bedrockUsage.inputTokens !== undefined) {
+          metrics.push({
+            MetricName: 'BedrockInputTokens',
+            Value: participation.bedrockUsage.inputTokens,
+            Unit: 'Count',
+            Dimensions: [
+              { Name: 'ModelId', Value: twelvelabsPegasusModelId || 'unknown' },
+              { Name: 'ModelType', Value: 'Pegasus' },
+            ],
+          });
+        }
+        if (participation.bedrockUsage.outputTokens !== undefined) {
+          metrics.push({
+            MetricName: 'BedrockOutputTokens',
+            Value: participation.bedrockUsage.outputTokens,
+            Unit: 'Count',
+            Dimensions: [
+              { Name: 'ModelId', Value: twelvelabsPegasusModelId || 'unknown' },
+              { Name: 'ModelType', Value: 'Pegasus' },
+            ],
+          });
+        }
+      }
+
+      if (metrics.length > 0) {
+        await cloudwatch.send(
+          new PutMetricDataCommand({
+            Namespace: 'MilkMobs/Bedrock',
+            MetricData: metrics,
+          })
+        );
+      }
+    } catch (metricError) {
+      // Log but don't fail the Lambda if metrics fail
+      logger.error('Failed to emit Bedrock metrics', metricError);
+    }
 
     // Log Bedrock usage for tracking
     logger.info('Pegasus analysis complete', {
@@ -54,7 +111,8 @@ export const handler = async (
       showsMilkObject: participation.showsMilkObject,
       bedrockModelId: twelvelabsPegasusModelId,
       bedrockInvocation: true,
-      // Note: Input/output tokens would be available from Bedrock response if exposed by client
+      inputTokens: participation.bedrockUsage?.inputTokens,
+      outputTokens: participation.bedrockUsage?.outputTokens,
     });
 
     return {

@@ -152,6 +152,54 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const cloudfrontRequests = await getMetricSum('AWS/CloudFront', 'Requests', {}, timeRange);
     const cloudfrontDataTransfer = await getMetricSum('AWS/CloudFront', 'BytesDownloaded', {}, timeRange);
 
+    // Bedrock metrics from custom namespace
+    const bedrockNamespace = 'MilkMobs/Bedrock';
+    
+    // Get invocations by model type
+    const pegasusInvocations = await getMetricSum(bedrockNamespace, 'BedrockInvocations', { ModelType: 'Pegasus' }, timeRange);
+    const marengoInvocations = await getMetricSum(bedrockNamespace, 'BedrockInvocations', { ModelType: 'Marengo' }, timeRange);
+    const totalBedrockInvocations = pegasusInvocations + marengoInvocations;
+    
+    // Get token usage
+    const pegasusInputTokens = await getMetricSum(bedrockNamespace, 'BedrockInputTokens', { ModelType: 'Pegasus' }, timeRange);
+    const pegasusOutputTokens = await getMetricSum(bedrockNamespace, 'BedrockOutputTokens', { ModelType: 'Pegasus' }, timeRange);
+    const marengoInputTokens = await getMetricSum(bedrockNamespace, 'BedrockInputTokens', { ModelType: 'Marengo' }, timeRange);
+    const marengoOutputTokens = await getMetricSum(bedrockNamespace, 'BedrockOutputTokens', { ModelType: 'Marengo' }, timeRange);
+    
+    // Calculate Bedrock costs
+    // Bedrock pricing varies by model, using approximate pricing:
+    // Input tokens: ~$0.001 per 1K tokens, Output tokens: ~$0.003 per 1K tokens
+    // These are approximate - actual pricing depends on specific model
+    const bedrockInputCost = ((pegasusInputTokens + marengoInputTokens) / 1000) * 0.001;
+    const bedrockOutputCost = ((pegasusOutputTokens + marengoOutputTokens) / 1000) * 0.003;
+    const bedrockCost = bedrockInputCost + bedrockOutputCost;
+    
+    // Get model IDs for breakdown (query with ModelType dimension)
+    const bedrockByModel: Array<{ modelId: string; invocations: number; inputTokens: number; outputTokens: number }> = [];
+    
+    // Try to get Pegasus model ID from environment or use default
+    // Note: In production, these would be passed from CDK stack as environment variables
+    const pegasusModelId = process.env.TWELVELABS_PEGASUS_MODEL_ID || 'pegasus-model';
+    if (pegasusInvocations > 0) {
+      bedrockByModel.push({
+        modelId: pegasusModelId,
+        invocations: Math.round(pegasusInvocations),
+        inputTokens: Math.round(pegasusInputTokens),
+        outputTokens: Math.round(pegasusOutputTokens),
+      });
+    }
+    
+    // Try to get Marengo model ID from environment or use default
+    const marengoModelId = process.env.TWELVELABS_MARENGO_MODEL_ID || 'marengo-model';
+    if (marengoInvocations > 0) {
+      bedrockByModel.push({
+        modelId: marengoModelId,
+        invocations: Math.round(marengoInvocations),
+        inputTokens: Math.round(marengoInputTokens),
+        outputTokens: Math.round(marengoOutputTokens),
+      });
+    }
+
     // Estimate costs (simplified - actual costs would require Cost Explorer API or pricing APIs)
     const lambdaCost = (lambdaInvocations / 1000000) * 0.2 + (lambdaDuration / 1000 / 1000000) * 0.0000166667;
     const apiGatewayCost = (apiRequests / 1000000) * 3.5;
@@ -163,9 +211,9 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const usageStats = {
       timeRange: timeRangeParam,
       bedrock: {
-        invocations: 0, // Will be tracked via CloudWatch Logs Insights or custom metrics
-        estimatedCost: 0,
-        byModel: [] as Array<{ modelId: string; invocations: number }>,
+        invocations: Math.round(totalBedrockInvocations),
+        estimatedCost: bedrockCost,
+        byModel: bedrockByModel.map(({ modelId, invocations }) => ({ modelId, invocations })),
       },
       lambda: {
         invocations: Math.round(lambdaInvocations),

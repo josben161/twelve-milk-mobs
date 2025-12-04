@@ -5,6 +5,7 @@ export { VideoCard } from './VideoCard';
 export { MobPreviewCard } from './MobPreviewCard';
 export { PageShell } from './PageShell';
 export { VideoPlayer } from './VideoPlayer';
+export { VideoTimeline, type TimelineHighlight } from './VideoTimeline';
 export { PostCard } from './PostCard';
 export { EmptyState } from './EmptyState';
 export { ProfileHeader } from './ProfileHeader';

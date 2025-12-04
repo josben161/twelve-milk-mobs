@@ -6,6 +6,134 @@ const mobsTableName = process.env.MOBS_TABLE_NAME!;
 
 const ddb = new DynamoDBClient({});
 
+/**
+ * Simple k-means clustering implementation
+ */
+interface VideoWithEmbedding {
+  videoId: string;
+  userId: string;
+  embedding: number[];
+  hashtags: string[];
+}
+
+interface Cluster {
+  centroid: number[];
+  videos: VideoWithEmbedding[];
+  mobId: string;
+}
+
+function calculateCentroid(embeddings: number[][]): number[] {
+  if (embeddings.length === 0) return [];
+  
+  const dim = embeddings[0].length;
+  const centroid = new Array(dim).fill(0);
+  
+  for (const embedding of embeddings) {
+    for (let i = 0; i < dim; i++) {
+      centroid[i] += embedding[i];
+    }
+  }
+  
+  for (let i = 0; i < dim; i++) {
+    centroid[i] /= embeddings.length;
+  }
+  
+  return centroid;
+}
+
+function euclideanDistance(a: number[], b: number[]): number {
+  if (a.length !== b.length) return Infinity;
+  
+  let sum = 0;
+  for (let i = 0; i < a.length; i++) {
+    const diff = a[i] - b[i];
+    sum += diff * diff;
+  }
+  
+  return Math.sqrt(sum);
+}
+
+function kMeans(videos: VideoWithEmbedding[], k: number, maxIterations: number = 10): Cluster[] {
+  if (videos.length === 0) return [];
+  if (videos.length < k) k = videos.length;
+  
+  const dim = videos[0].embedding.length;
+  
+  // Initialize centroids randomly
+  const centroids: number[][] = [];
+  for (let i = 0; i < k; i++) {
+    const randomVideo = videos[Math.floor(Math.random() * videos.length)];
+    centroids.push([...randomVideo.embedding]);
+  }
+  
+  let clusters: Cluster[] = [];
+  
+  for (let iter = 0; iter < maxIterations; iter++) {
+    // Assign videos to nearest centroid
+    clusters = centroids.map((_, idx) => ({
+      centroid: centroids[idx],
+      videos: [],
+      mobId: `mob_${idx + 1}`,
+    }));
+    
+    for (const video of videos) {
+      let minDist = Infinity;
+      let nearestClusterIdx = 0;
+      
+      for (let i = 0; i < centroids.length; i++) {
+        const dist = euclideanDistance(video.embedding, centroids[i]);
+        if (dist < minDist) {
+          minDist = dist;
+          nearestClusterIdx = i;
+        }
+      }
+      
+      clusters[nearestClusterIdx].videos.push(video);
+    }
+    
+    // Update centroids
+    let converged = true;
+    for (let i = 0; i < k; i++) {
+      if (clusters[i].videos.length === 0) continue;
+      
+      const newCentroid = calculateCentroid(clusters[i].videos.map((v) => v.embedding));
+      const oldCentroid = centroids[i];
+      
+      // Check convergence
+      if (euclideanDistance(newCentroid, oldCentroid) > 0.001) {
+        converged = false;
+      }
+      
+      centroids[i] = newCentroid;
+      clusters[i].centroid = newCentroid;
+    }
+    
+    if (converged) break;
+  }
+  
+  // Generate meaningful mob IDs based on content
+  for (const cluster of clusters) {
+    if (cluster.videos.length === 0) continue;
+    
+    // Analyze hashtags to generate mob name
+    const allHashtags = cluster.videos.flatMap((v) => v.hashtags);
+    const hashtagCounts: Record<string, number> = {};
+    for (const tag of allHashtags) {
+      const normalized = tag.toLowerCase();
+      hashtagCounts[normalized] = (hashtagCounts[normalized] || 0) + 1;
+    }
+    
+    const topHashtag = Object.entries(hashtagCounts)
+      .sort(([, a], [, b]) => b - a)[0]?.[0] || 'misc';
+    
+    // Generate mob ID from top hashtag
+    const mobId = topHashtag.replace(/[^a-z0-9]/g, '_').substring(0, 20) || `mob_${cluster.mobId}`;
+    cluster.mobId = mobId;
+  }
+  
+  return clusters.filter((c) => c.videos.length > 0);
+}
+
 // CORS headers for all responses
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -28,68 +156,111 @@ interface StepFunctionsOutput extends StepFunctionsInput {
 }
 
 /**
- * Cosine similarity between two vectors
+ * Find nearest cluster centroid for a video embedding
  */
-function cosineSimilarity(a: number[], b: number[]): number {
-  if (a.length !== b.length) return 0;
+function findNearestCluster(videoEmbedding: number[], clusters: Cluster[]): { mobId: string; distance: number } | null {
+  if (clusters.length === 0) return null;
   
-  let dotProduct = 0;
-  let normA = 0;
-  let normB = 0;
+  let bestCluster: Cluster | null = null;
+  let bestDistance = Infinity;
   
-  for (let i = 0; i < a.length; i++) {
-    dotProduct += a[i] * b[i];
-    normA += a[i] * a[i];
-    normB += b[i] * b[i];
+  for (const cluster of clusters) {
+    const distance = euclideanDistance(videoEmbedding, cluster.centroid);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      bestCluster = cluster;
+    }
   }
   
-  const denominator = Math.sqrt(normA) * Math.sqrt(normB);
-  return denominator === 0 ? 0 : dotProduct / denominator;
+  return bestCluster ? { mobId: bestCluster.mobId, distance: bestDistance } : null;
 }
 
 /**
- * Find nearest mob by embedding similarity
+ * Update mob centroid in DynamoDB
  */
-async function findNearestMobByEmbedding(videoEmbedding: number[]): Promise<string | null> {
+async function updateMobCentroid(mobId: string, centroid: number[]): Promise<void> {
+  await ddb.send(
+    new UpdateItemCommand({
+      TableName: mobsTableName,
+      Key: {
+        mobId: { S: mobId },
+      },
+      UpdateExpression: 'SET centroid = :centroid',
+      ExpressionAttributeValues: {
+        ':centroid': { S: JSON.stringify(centroid) },
+      },
+    })
+  );
+}
+
+/**
+ * Fetch videos with embeddings for clustering
+ */
+async function fetchVideosWithEmbeddings(mobId?: string | null): Promise<VideoWithEmbedding[]> {
+  const videos: VideoWithEmbedding[] = [];
+  
   try {
-    // Scan all mobs to find centroids
-    const mobsScan = await ddb.send(
-      new ScanCommand({
-        TableName: mobsTableName,
-        ProjectionExpression: 'mobId, centroid',
-      })
-    );
-
-    let bestMobId: string | null = null;
-    let bestSimilarity = -1;
-    const similarityThreshold = 0.7; // Minimum similarity to assign to existing mob
-
-    for (const mob of mobsScan.Items || []) {
-      const mobId = mob.mobId?.S;
-      const centroidStr = mob.centroid?.S;
+    let scanResult;
+    
+    if (mobId) {
+      // Fetch videos from specific mob
+      // Note: This requires a GSI on mobId if we want efficient queries
+      // For now, we'll scan and filter
+      scanResult = await ddb.send(
+        new ScanCommand({
+          TableName: videosTableName,
+          FilterExpression: 'mobId = :mobId AND attribute_exists(embedding) AND #status = :status',
+          ExpressionAttributeNames: {
+            '#status': 'status',
+          },
+          ExpressionAttributeValues: {
+            ':mobId': { S: mobId },
+            ':status': { S: 'validated' },
+          },
+          ProjectionExpression: 'videoId, userId, embedding, hashtags',
+        })
+      );
+    } else {
+      // Fetch all validated videos with embeddings
+      scanResult = await ddb.send(
+        new ScanCommand({
+          TableName: videosTableName,
+          FilterExpression: 'attribute_exists(embedding) AND #status = :status',
+          ExpressionAttributeNames: {
+            '#status': 'status',
+          },
+          ExpressionAttributeValues: {
+            ':status': { S: 'validated' },
+          },
+          ProjectionExpression: 'videoId, userId, embedding, hashtags',
+        })
+      );
+    }
+    
+    for (const item of scanResult.Items || []) {
+      const embeddingStr = item.embedding?.S;
+      if (!embeddingStr) continue;
       
-      if (!mobId || !centroidStr) continue;
-
       try {
-        const centroid = JSON.parse(centroidStr);
-        if (!Array.isArray(centroid) || centroid.length !== videoEmbedding.length) continue;
-
-        const similarity = cosineSimilarity(videoEmbedding, centroid);
-        if (similarity > bestSimilarity && similarity >= similarityThreshold) {
-          bestSimilarity = similarity;
-          bestMobId = mobId;
-        }
+        const embedding = JSON.parse(embeddingStr);
+        if (!Array.isArray(embedding) || embedding.length === 0) continue;
+        
+        videos.push({
+          videoId: item.videoId?.S || '',
+          userId: item.userId?.S || '',
+          embedding,
+          hashtags: item.hashtags?.SS || [],
+        });
       } catch (e) {
-        console.warn(`Failed to parse centroid for mob ${mobId}:`, e);
+        console.warn(`Failed to parse embedding for video ${item.videoId?.S}:`, e);
         continue;
       }
     }
-
-    return bestMobId;
   } catch (err) {
-    console.error('Error finding nearest mob by embedding:', err);
-    return null;
+    console.error('Error fetching videos with embeddings:', err);
   }
+  
+  return videos;
 }
 
 /**
@@ -189,7 +360,83 @@ async function upsertMob(mobId: string, exampleHashtags: string[]): Promise<void
 }
 
 /**
- * Main clustering logic: uses embeddings first, falls back to keywords
+ * Run on-demand K-means clustering
+ */
+async function runKMeansClustering(
+  currentVideoEmbedding: number[],
+  currentVideoId: string,
+  existingMobId?: string | null
+): Promise<string> {
+  console.log(`Running on-demand K-means clustering for video ${currentVideoId}`);
+  
+  // Step 1: Fetch existing videos with embeddings
+  let candidateVideos = await fetchVideosWithEmbeddings(existingMobId);
+  
+  // If mob has < 3 videos or no mob, fetch all validated videos
+  if (!existingMobId || candidateVideos.length < 3) {
+    console.log(`Mob ${existingMobId || 'none'} has ${candidateVideos.length} videos, fetching all validated videos`);
+    candidateVideos = await fetchVideosWithEmbeddings(null);
+  }
+  
+  // Add current video to candidate set if not already included
+  const currentVideoInSet = candidateVideos.some(v => v.videoId === currentVideoId);
+  if (!currentVideoInSet) {
+    // We need to get the current video's hashtags and userId
+    const currentVideoResult = await ddb.send(
+      new GetItemCommand({
+        TableName: videosTableName,
+        Key: { videoId: { S: currentVideoId } },
+        ProjectionExpression: 'userId, hashtags',
+      })
+    );
+    
+    if (currentVideoResult.Item) {
+      candidateVideos.push({
+        videoId: currentVideoId,
+        userId: currentVideoResult.Item.userId?.S || '',
+        embedding: currentVideoEmbedding,
+        hashtags: currentVideoResult.Item.hashtags?.SS || [],
+      });
+    }
+  }
+  
+  if (candidateVideos.length < 2) {
+    console.log('Not enough videos for K-means, using keyword-based clustering');
+    return 'misc_milk_mob'; // Fallback
+  }
+  
+  // Step 2: Run K-means clustering
+  // Determine k: use sqrt(n/2) as a heuristic, but at least 2 and at most 10
+  const k = Math.min(10, Math.max(2, Math.floor(Math.sqrt(candidateVideos.length / 2))));
+  console.log(`Running K-means with k=${k} on ${candidateVideos.length} videos`);
+  
+  const clusters = kMeans(candidateVideos, k, 10);
+  
+  // Step 3: Find nearest cluster for current video
+  const nearest = findNearestCluster(currentVideoEmbedding, clusters);
+  
+  if (!nearest) {
+    console.log('No nearest cluster found, using keyword-based clustering');
+    return 'misc_milk_mob'; // Fallback
+  }
+  
+  const assignedMobId = nearest.mobId;
+  const assignedCluster = clusters.find(c => c.mobId === assignedMobId);
+  
+  if (!assignedCluster) {
+    console.log('Assigned cluster not found, using keyword-based clustering');
+    return 'misc_milk_mob'; // Fallback
+  }
+  
+  // Step 4: Update mob centroid in DynamoDB
+  await updateMobCentroid(assignedMobId, assignedCluster.centroid);
+  console.log(`Updated centroid for mob ${assignedMobId}`);
+  
+  return assignedMobId;
+}
+
+/**
+ * Main clustering logic: uses on-demand K-means, falls back to keywords
  */
 async function clusterVideo(videoId: string): Promise<string> {
   console.log(`Clustering video: ${videoId}`);
@@ -212,21 +459,20 @@ async function clusterVideo(videoId: string): Promise<string> {
   const actions = videoResult.Item.actions?.SS || [];
   const objectsScenes = videoResult.Item.objectsScenes?.SS || [];
   const embeddingStr = videoResult.Item.embedding?.S;
+  const existingMobId = videoResult.Item.mobId?.S;
 
   let mobId: string;
 
-  // Try embedding-based clustering first
+  // Try K-means clustering if embedding available
   if (embeddingStr) {
     try {
       const embedding = JSON.parse(embeddingStr);
       if (Array.isArray(embedding) && embedding.length > 0) {
-        const nearestMobId = await findNearestMobByEmbedding(embedding);
-        if (nearestMobId) {
-          console.log(`Assigned video ${videoId} to existing mob ${nearestMobId} by embedding similarity`);
-          mobId = nearestMobId;
-        } else {
-          // No similar mob found, use keyword-based clustering
-          console.log(`No similar mob found for ${videoId}, using keyword-based clustering`);
+        try {
+          mobId = await runKMeansClustering(embedding, videoId, existingMobId);
+          console.log(`Assigned video ${videoId} to mob ${mobId} using K-means clustering`);
+        } catch (kmeansError) {
+          console.warn(`K-means clustering failed for ${videoId}, using keyword-based clustering:`, kmeansError);
           mobId = determineMobIdByKeywords(hashtags, actions, objectsScenes);
         }
       } else {

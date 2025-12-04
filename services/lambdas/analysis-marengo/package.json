@@ -10,6 +10,7 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.940.0",
     "@aws-sdk/client-bedrock-runtime": "^3.940.0",
+    "@aws-sdk/client-cloudwatch": "^3.940.0",
     "@twelve/twelvelabs-client": "file:../../../packages/twelvelabs-client"
   },
   "devDependencies": {

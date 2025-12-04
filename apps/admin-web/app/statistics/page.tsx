@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Panel, NoDataState } from '@/components/ui';
+import { Panel, NoDataState, BedrockUsageChart } from '@/components/ui';
 import { getUsageStats } from '@/lib/api';
 
 interface UsageStats {
@@ -97,26 +97,17 @@ export default function StatisticsPage() {
       {/* Stats Content */}
       {!loading && !error && stats && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Bedrock Usage */}
-          <Panel title="Bedrock Usage" description="AI model invocations and costs">
-            {stats.bedrock.invocations > 0 ? (
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-[var(--text-muted)]">Invocations</span>
-                  <span className="text-base font-semibold text-[var(--text)]">
-                    {stats.bedrock.invocations.toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-[var(--text-muted)]">Estimated Cost</span>
-                  <span className="text-base font-semibold text-[var(--text)]">
-                    {formatCost(stats.bedrock.estimatedCost)}
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <NoDataState message="No Bedrock usage data available" />
-            )}
+          {/* Bedrock Usage - Full Width */}
+          <Panel 
+            title="Bedrock Usage" 
+            description="TwelveLabs AI model invocations, token usage, and costs (Pegasus & Marengo)"
+            className="lg:col-span-2"
+          >
+            <BedrockUsageChart
+              invocations={stats.bedrock.invocations}
+              estimatedCost={stats.bedrock.estimatedCost}
+              byModel={stats.bedrock.byModel}
+            />
           </Panel>
 
           {/* Lambda Usage */}

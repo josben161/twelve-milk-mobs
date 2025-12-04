@@ -118,11 +118,18 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       showsMilkObject: result.Item.showsMilkObject?.BOOL,
       showsActionAligned: result.Item.showsActionAligned?.BOOL,
       participationRationale: result.Item.participationRationale?.S,
+      // OCR data
+      detectedText: result.Item.detectedText?.SS,
+      onScreenText: result.Item.onScreenText?.SS,
       // TwelveLabs Marengo data
       embeddingDim: result.Item.embeddingDim?.N ? parseInt(result.Item.embeddingDim.N) : undefined,
       // Note: clusteringMethod and similarityScore would need to be stored separately or calculated
       // For now, we can infer clusteringMethod from whether embedding exists
       clusteringMethod: result.Item.embedding?.S ? 'embedding' : result.Item.mobId?.S ? 'keyword' : undefined,
+      // Validation breakdown
+      validationBreakdown: result.Item.validationBreakdown?.S
+        ? JSON.parse(result.Item.validationBreakdown.S)
+        : undefined,
     };
 
     return {
