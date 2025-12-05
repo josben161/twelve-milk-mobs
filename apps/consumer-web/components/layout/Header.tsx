@@ -53,7 +53,7 @@ export function Header() {
               fontWeight: 700,
             }}
           >
-            Barn Social
+            Barn Social Platform
           </span>
         </div>
         <div className="flex items-center gap-1">
