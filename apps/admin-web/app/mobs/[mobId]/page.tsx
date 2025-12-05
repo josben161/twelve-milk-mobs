@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react';
 import { use } from 'react';
 import Link from 'next/link';
-import { Panel } from '@/components/ui';
+import { Panel, ClusterMap } from '@/components/ui';
 import { StatusPill } from '@/components/ui';
+import { getEmbeddings, type VideoEmbedding } from '@/lib/api';
 import type { MobSummary, VideoSummary } from '@twelve/core-types';
 
 export default function MobDetailPage({
@@ -15,7 +16,9 @@ export default function MobDetailPage({
   const { mobId } = use(params);
   const [mob, setMob] = useState<MobSummary | null>(null);
   const [videos, setVideos] = useState<VideoSummary[]>([]);
+  const [embeddings, setEmbeddings] = useState<VideoEmbedding[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingEmbeddings, setLoadingEmbeddings] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -43,6 +46,26 @@ export default function MobDetailPage({
     };
 
     fetchMob();
+  }, [mobId]);
+
+  useEffect(() => {
+    const fetchEmbeddings = async () => {
+      if (!mobId) return;
+      setLoadingEmbeddings(true);
+      try {
+        const data = await getEmbeddings(mobId, 200); // Fetch videos for this mob
+        setEmbeddings(data.videos || []);
+      } catch (err) {
+        console.error('Error fetching embeddings:', err);
+        // Don't set error state, visualization is optional
+      } finally {
+        setLoadingEmbeddings(false);
+      }
+    };
+
+    if (mobId) {
+      fetchEmbeddings();
+    }
   }, [mobId]);
 
   if (loading) {
@@ -187,6 +210,20 @@ export default function MobDetailPage({
               )}
             </div>
           </div>
+        </Panel>
+      )}
+
+      {/* Mob-Specific Clustering Visualization */}
+      {!loadingEmbeddings && embeddings.length > 0 && (
+        <Panel 
+          title="Mob Clustering Visualization" 
+          description="2D projection of videos in this mob showing embedding similarity"
+        >
+          <ClusterMap 
+            videos={embeddings} 
+            mobNames={{ [mobId]: mob.name }} 
+            height={400} 
+          />
         </Panel>
       )}
 

@@ -271,6 +271,21 @@
         }
       }
     },
+    "d6fdb50f47f38b47d21da6f7c00c4de8b0cb52b81b1ed429f51b76e34af6c488": {
+      "displayName": "AdminGetEmbeddingsFn/Code",
+      "source": {
+        "path": "asset.d6fdb50f47f38b47d21da6f7c00c4de8b0cb52b81b1ed429f51b76e34af6c488",
+        "packaging": "zip"
+      },
+      "destinations": {
+        "679729599398-us-east-1-b3295c65": {
+          "bucketName": "cdk-hnb659fds-assets-679729599398-us-east-1",
+          "objectKey": "d6fdb50f47f38b47d21da6f7c00c4de8b0cb52b81b1ed429f51b76e34af6c488.zip",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::679729599398:role/cdk-hnb659fds-file-publishing-role-679729599398-us-east-1"
+        }
+      }
+    },
     "7a4070ee45b6562cbc9d037ef961478e25987e911cdd177989b26bfc74b352c8": {
       "displayName": "AdminDeleteVideoFn/Code",
       "source": {
@@ -376,16 +391,16 @@
         }
       }
     },
-    "ea83fb1e5353ebd3c927f66f7ee34a3700c7d06eb0ecada9b429b7ea6ab20311": {
+    "12ea70c7533f69a42a22253cce482dc0e1c63751afecb1aff6b9584049a763f1": {
       "displayName": "MilkMobsStack Template",
       "source": {
         "path": "MilkMobsStack.template.json",
         "packaging": "file"
       },
       "destinations": {
-        "679729599398-us-east-1-c7e80086": {
+        "679729599398-us-east-1-8ae125bc": {
           "bucketName": "cdk-hnb659fds-assets-679729599398-us-east-1",
-          "objectKey": "ea83fb1e5353ebd3c927f66f7ee34a3700c7d06eb0ecada9b429b7ea6ab20311.json",
+          "objectKey": "12ea70c7533f69a42a22253cce482dc0e1c63751afecb1aff6b9584049a763f1.json",
           "region": "us-east-1",
           "assumeRoleArn": "arn:${AWS::Partition}:iam::679729599398:role/cdk-hnb659fds-file-publishing-role-679729599398-us-east-1"
         }

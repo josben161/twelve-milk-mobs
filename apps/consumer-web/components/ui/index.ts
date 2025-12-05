@@ -9,5 +9,7 @@ export { VideoTimeline, type TimelineHighlight } from './VideoTimeline';
 export { PostCard } from './PostCard';
 export { EmptyState } from './EmptyState';
 export { ProfileHeader } from './ProfileHeader';
+export { JoinMobButton } from './JoinMobButton';
+export { VideoThumbnail } from './VideoThumbnail';
 export * from './Icons';
 

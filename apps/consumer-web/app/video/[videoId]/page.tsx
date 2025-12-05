@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { use, useEffect, useState } from 'react';
-import type { VideoDetail } from '@twelve/core-types';
+import type { VideoDetail, VideoSummary } from '@twelve/core-types';
 import { StatusPill, VideoPlayer } from '@/components/ui';
+import { SimilarVideosSection } from '@/components/explore';
 import { getApiBase } from '@/lib/api';
 
 interface SimilarVideo {
@@ -28,6 +29,8 @@ export default function VideoDetailPage({
   const { videoId } = use(params);
   const [video, setVideo] = useState<VideoDetail | null>(null);
   const [similarVideos, setSimilarVideos] = useState<SimilarVideo[]>([]);
+  const [similarVideoDetails, setSimilarVideoDetails] = useState<VideoSummary[]>([]);
+  const [mobNames, setMobNames] = useState<Record<string, string>>({});
   const [validation, setValidation] = useState<ValidationResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,10 +52,58 @@ export default function VideoDetailPage({
 
         // Fetch similar videos
         try {
-          const similarRes = await fetch(`${baseUrl}/search/similar?videoId=${videoId}`);
+          const similarRes = await fetch(`${baseUrl}/search/similar?videoId=${videoId}&limit=12`);
           if (similarRes.ok) {
             const similarData = await similarRes.json();
-            setSimilarVideos(similarData.videos || []);
+            const similar = similarData.videos || [];
+            setSimilarVideos(similar);
+            
+            // Fetch full video details for similar videos
+            const videoDetailsPromises = similar.slice(0, 12).map(async (sv: SimilarVideo) => {
+              try {
+                const detailRes = await fetch(`${baseUrl}/videos/${sv.videoId}`);
+                if (detailRes.ok) {
+                  const detailData = await detailRes.json();
+                  return {
+                    id: detailData.id,
+                    userHandle: detailData.userHandle || sv.userHandle,
+                    mobId: detailData.mobId || sv.mobId,
+                    status: detailData.status,
+                    createdAt: detailData.createdAt,
+                    caption: detailData.caption || '',
+                    hashtags: detailData.hashtags || [],
+                    thumbnailUrl: detailData.thumbnailUrl,
+                    validationScore: detailData.validationScore,
+                  } as VideoSummary;
+                }
+              } catch (e) {
+                console.warn(`Failed to fetch details for video ${sv.videoId}:`, e);
+              }
+              return null;
+            });
+            
+            const details = await Promise.all(videoDetailsPromises);
+            setSimilarVideoDetails(details.filter((v): v is VideoSummary => v !== null));
+            
+            // Fetch mob names if any similar videos have mobIds
+            const mobIds = new Set(similar.filter((sv: SimilarVideo) => sv.mobId).map((sv: SimilarVideo) => sv.mobId));
+            if (mobIds.size > 0) {
+              try {
+                const mobsRes = await fetch(`${baseUrl}/mobs`);
+                if (mobsRes.ok) {
+                  const mobsData = await mobsRes.json();
+                  const names: Record<string, string> = {};
+                  (mobsData.mobs || []).forEach((mob: any) => {
+                    if (mobIds.has(mob.id)) {
+                      names[mob.id] = mob.name;
+                    }
+                  });
+                  setMobNames(names);
+                }
+              } catch (e) {
+                console.warn('Failed to fetch mob names:', e);
+              }
+            }
           }
         } catch (e) {
           console.warn('Failed to fetch similar videos:', e);
@@ -300,27 +351,53 @@ export default function VideoDetailPage({
           </div>
         )}
 
-        {/* Similar Videos */}
-        {similarVideos.length > 0 && (
-          <div>
-            <h2 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>
-              More like this
-            </h2>
-            <div className="grid grid-cols-2 gap-3">
-              {similarVideos.slice(0, 4).map((similar) => (
-                <Link
-                  key={similar.videoId}
-                  href={`/video/${similar.videoId}`}
-                  className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-soft)]/70 backdrop-blur-sm p-3 transition-all duration-200 hover:border-[var(--accent)]/50 hover:scale-105 shadow-sm"
-                >
-                  <div className="text-xs font-medium mb-1" style={{ color: 'var(--text)' }}>
-                    @{similar.userHandle}
+        {/* Similar Videos - Prominent Section */}
+        {similarVideoDetails.length > 0 && (
+          <div className="border-t pt-6" style={{ borderColor: 'var(--border-subtle)' }}>
+            <SimilarVideosSection
+              title="More like this"
+              videos={similarVideoDetails}
+              mobNames={mobNames}
+              similarityScores={similarVideos.reduce((acc, sv) => {
+                acc[sv.videoId] = sv.score;
+                return acc;
+              }, {} as Record<string, number>)}
+              viewAllHref="/explore"
+            />
+            <div className="px-4 mt-4">
+              <Link
+                href="/explore"
+                className="inline-flex items-center gap-2 text-sm font-medium text-[var(--accent)] hover:underline"
+              >
+                Explore all videos →
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Mob Information */}
+        {video.mobId && (
+          <div className="border-t pt-6" style={{ borderColor: 'var(--border-subtle)' }}>
+            <div className="px-4">
+              <h2 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>
+                Part of a Mob
+              </h2>
+              <Link
+                href={`/mob/${video.mobId}`}
+                className="block rounded-xl border border-[var(--border-subtle)] bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 p-4 hover:border-[var(--accent)]/50 hover:shadow-lg transition-all duration-200"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-sm font-medium text-[var(--text-muted)] mb-1">Explore this mob</div>
+                    <div className="text-base font-semibold text-[var(--text)]">
+                      {mobNames[video.mobId] || 'Mob'}
+                    </div>
                   </div>
-                  <div className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
-                    {(similar.score * 100).toFixed(0)}% similar
-                  </div>
-                </Link>
-              ))}
+                  <svg className="w-5 h-5 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </Link>
             </div>
           </div>
         )}

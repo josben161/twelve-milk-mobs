@@ -24,7 +24,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::679729599398:role/cdk-hnb659fds-deploy-role-679729599398-us-east-1",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::679729599398:role/cdk-hnb659fds-cfn-exec-role-679729599398-us-east-1",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-679729599398-us-east-1/ea83fb1e5353ebd3c927f66f7ee34a3700c7d06eb0ecada9b429b7ea6ab20311.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-679729599398-us-east-1/12ea70c7533f69a42a22253cce482dc0e1c63751afecb1aff6b9584049a763f1.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -457,6 +457,24 @@
             "data": "AdminGetUsageStatsFn60295C0F"
           }
         ],
+        "/MilkMobsStack/AdminGetEmbeddingsFn/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AdminGetEmbeddingsFnServiceRole71B06BAD"
+          }
+        ],
+        "/MilkMobsStack/AdminGetEmbeddingsFn/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AdminGetEmbeddingsFnServiceRoleDefaultPolicy5548C442"
+          }
+        ],
+        "/MilkMobsStack/AdminGetEmbeddingsFn/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AdminGetEmbeddingsFn69D21E5D"
+          }
+        ],
         "/MilkMobsStack/AdminDeleteVideoFn/ServiceRole/Resource": [
           {
             "type": "aws:cdk:logicalId",
@@ -640,7 +658,7 @@
         "/MilkMobsStack/MilkMobsApi/Deployment/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "MilkMobsApiDeployment87A47DF98562f0ecf6b050eaf5be4376d30f78b1"
+            "data": "MilkMobsApiDeployment87A47DF92cf89c3a2cad828f8ec7f88660df3c6a"
           }
         ],
         "/MilkMobsStack/MilkMobsApi/DeploymentStage.prod/Resource": [
@@ -953,6 +971,36 @@
           {
             "type": "aws:cdk:logicalId",
             "data": "MilkMobsApiadminusagestatsGET17329F38"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/admin/embeddings/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApiadminembeddingsFC669F9D"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/admin/embeddings/OPTIONS/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApiadminembeddingsOPTIONSD5E58071"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/admin/embeddings/GET/ApiPermission.MilkMobsStackMilkMobsApi1ED7FB9D.GET..admin.embeddings": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApiadminembeddingsGETApiPermissionMilkMobsStackMilkMobsApi1ED7FB9DGETadminembeddings018096AA"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/admin/embeddings/GET/ApiPermission.Test.MilkMobsStackMilkMobsApi1ED7FB9D.GET..admin.embeddings": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApiadminembeddingsGETApiPermissionTestMilkMobsStackMilkMobsApi1ED7FB9DGETadminembeddings7B60C673"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/admin/embeddings/GET/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApiadminembeddingsGETC632E60E"
           }
         ],
         "/MilkMobsStack/MilkMobsApi/Default/mobs/Resource": [

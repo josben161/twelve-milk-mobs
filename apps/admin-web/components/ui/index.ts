@@ -12,4 +12,5 @@ export { ExecutionMetrics } from './ExecutionMetrics';
 export { VideoPlayer } from './VideoPlayer';
 export { VideoTimeline, type TimelineHighlight } from './VideoTimeline';
 export { BedrockUsageChart } from './BedrockUsageChart';
+export { ClusterMap } from './ClusterMap';
 

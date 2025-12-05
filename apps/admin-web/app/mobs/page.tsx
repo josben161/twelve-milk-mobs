@@ -2,13 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Panel, EmptyState } from '@/components/ui';
-import { getApiBase } from '@/lib/api';
+import { Panel, EmptyState, ClusterMap } from '@/components/ui';
+import { getApiBase, getEmbeddings, type VideoEmbedding } from '@/lib/api';
 import type { MobSummary } from '@twelve/core-types';
 
 export default function MobsPage() {
   const [mobs, setMobs] = useState<MobSummary[]>([]);
+  const [embeddings, setEmbeddings] = useState<VideoEmbedding[]>([]);
+  const [mobNames, setMobNames] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  const [loadingEmbeddings, setLoadingEmbeddings] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -23,6 +26,13 @@ export default function MobsPage() {
         }
         const data = await res.json();
         setMobs(data.mobs || []);
+        
+        // Build mob names map
+        const names: Record<string, string> = {};
+        (data.mobs || []).forEach((mob: MobSummary) => {
+          names[mob.id] = mob.name;
+        });
+        setMobNames(names);
       } catch (err) {
         console.error('Error fetching mobs:', err);
         setError(err instanceof Error ? err.message : 'Failed to load mobs.');
@@ -32,6 +42,23 @@ export default function MobsPage() {
     };
 
     fetchMobs();
+  }, []);
+
+  useEffect(() => {
+    const fetchEmbeddings = async () => {
+      setLoadingEmbeddings(true);
+      try {
+        const data = await getEmbeddings(undefined, 500); // Fetch up to 500 videos
+        setEmbeddings(data.videos || []);
+      } catch (err) {
+        console.error('Error fetching embeddings:', err);
+        // Don't set error state, just log - visualization is optional
+      } finally {
+        setLoadingEmbeddings(false);
+      }
+    };
+
+    fetchEmbeddings();
   }, []);
 
   // Calculate summary stats
@@ -49,6 +76,35 @@ export default function MobsPage() {
           Video clusters segmented by activity, location, and vibe using TwelveLabs Marengo embeddings. Users can explore similar videos within each mob.
         </p>
       </div>
+
+      {/* Clustering Visualization */}
+      {!loadingEmbeddings && embeddings.length > 0 && (
+        <Panel 
+          title="Clustering Visualization" 
+          description="Interactive 2D projection of video embeddings showing how TwelveLabs Marengo groups similar content into mobs"
+        >
+          <div className="space-y-4">
+            <div className="p-4 rounded-lg bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 border border-indigo-500/20">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 mt-0.5">
+                  <svg className="w-5 h-5 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-sm font-semibold text-[var(--text)] mb-1">How it works</h4>
+                  <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+                    Each point represents a video positioned by its semantic embedding. Videos with similar content cluster together, 
+                    forming distinct "Mob" groups. Click on legend items to filter by mob, or hover over points to see video details.
+                    This visualization demonstrates the power of TwelveLabs Marengo embeddings for content discovery and segmentation.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <ClusterMap videos={embeddings} mobNames={mobNames} height={600} />
+          </div>
+        </Panel>
+      )}
 
       {/* Stats Overview */}
       {!loading && !error && mobs.length > 0 && (

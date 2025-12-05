@@ -172,3 +172,27 @@ export async function deleteVideo(videoId: string): Promise<{ success: boolean; 
   return res.json();
 }
 
+export interface VideoEmbedding {
+  videoId: string;
+  mobId: string | null;
+  embedding: number[];
+  userHandle?: string;
+  thumbnailUrl?: string;
+}
+
+export async function getEmbeddings(mobId?: string, limit?: number): Promise<{ videos: VideoEmbedding[]; count: number }> {
+  const apiBase = getApiBase();
+  const params = new URLSearchParams();
+  if (mobId) params.append('mobId', mobId);
+  if (limit) params.append('limit', limit.toString());
+
+  const url = `${apiBase}/admin/embeddings${params.toString() ? `?${params.toString()}` : ''}`;
+  const res = await fetch(url);
+
+  if (!res.ok) {
+    throw new Error(`Failed to fetch embeddings (${res.status})`);
+  }
+
+  return res.json();
+}
+

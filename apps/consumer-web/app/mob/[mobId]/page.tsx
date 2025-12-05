@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { use, useEffect, useState } from 'react';
 import type { MobSummary, VideoSummary } from '@twelve/core-types';
-import { StatusPill } from '@/components/ui';
+import { VideoThumbnailCard } from '@/components/explore';
 import { getApiBase } from '@/lib/api';
 
 export default function MobFeedPage({
@@ -119,50 +119,13 @@ export default function MobFeedPage({
 
       {/* Video Grid */}
       {videos.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 px-4">
           {videos.map((video) => (
-            <Link
+            <VideoThumbnailCard
               key={video.id}
-              href={`/video/${video.id}`}
-              className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-soft)]/70 backdrop-blur-sm overflow-hidden shadow-lg transition-all duration-200 hover:border-[var(--accent)]/50 hover:shadow-xl"
-            >
-              <div className="relative h-44 w-full bg-gradient-to-tr from-[var(--bg)] via-[var(--bg-soft)] to-[var(--bg)]">
-                <div className="absolute inset-0 flex items-center justify-center text-xs" style={{ color: 'var(--text-muted)' }}>
-                  Video preview
-                </div>
-                <div className="absolute top-2 right-2">
-                  <StatusPill status={video.status} />
-                </div>
-              </div>
-              <div className="flex flex-col gap-2 px-4 py-3">
-                <div className="flex items-center justify-between gap-2">
-                  <h3 className="truncate text-sm font-semibold" style={{ color: 'var(--text)' }}>
-                    @{video.userHandle}
-                  </h3>
-                </div>
-                {video.caption && (
-                  <p className="text-xs line-clamp-2" style={{ color: 'var(--text-muted)' }}>
-                    {video.caption}
-                  </p>
-                )}
-                {video.hashtags && video.hashtags.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {video.hashtags.slice(0, 3).map((tag, idx) => (
-                      <span
-                        key={idx}
-                        className="text-[10px] px-1.5 py-0.5 rounded"
-                        style={{
-                          backgroundColor: 'var(--accent-soft)',
-                          color: 'var(--accent)',
-                        }}
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </Link>
+              video={video}
+              mobName={mob.name}
+            />
           ))}
         </div>
       ) : (

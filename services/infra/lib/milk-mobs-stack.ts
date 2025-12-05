@@ -417,6 +417,20 @@ export class MilkMobsStack extends cdk.Stack {
       })
     );
 
+    const adminGetEmbeddingsFn = new lambdaNodejs.NodejsFunction(this, 'AdminGetEmbeddingsFn', {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'handler',
+      entry: path.join(__dirname, '../../lambdas/admin-get-embeddings/index.ts'),
+      environment: {
+        VIDEOS_TABLE_NAME: videosTable.tableName,
+      },
+      timeout: cdk.Duration.seconds(30),
+      memorySize: 512, // More memory for processing embeddings
+    });
+
+    // Grant DynamoDB read permissions
+    videosTable.grantReadData(adminGetEmbeddingsFn);
+
     const adminDeleteVideoFn = new lambdaNodejs.NodejsFunction(this, 'AdminDeleteVideoFn', {
       runtime: lambda.Runtime.NODEJS_20_X,
       handler: 'handler',
@@ -710,6 +724,12 @@ export class MilkMobsStack extends cdk.Stack {
     // GET /admin/usage-stats
     const adminUsageStats = admin.addResource('usage-stats');
     adminUsageStats.addMethod('GET', new apigw.LambdaIntegration(adminGetUsageStatsFn), {
+      methodResponses: [{ statusCode: '200' }],
+    });
+
+    // GET /admin/embeddings?mobId={mobId}&limit={limit}
+    const adminEmbeddings = admin.addResource('embeddings');
+    adminEmbeddings.addMethod('GET', new apigw.LambdaIntegration(adminGetEmbeddingsFn), {
       methodResponses: [{ statusCode: '200' }],
     });
 

@@ -28,6 +28,29 @@ export function BottomNav() {
           <span className="text-[10px] font-medium leading-none">Home</span>
         </Link>
         <Link
+          href="/explore"
+          className={`flex flex-col items-center justify-center gap-0.5 flex-1 transition-colors duration-200 ${
+            isActive('/explore')
+              ? 'text-[var(--text)]'
+              : 'text-[var(--text-muted)]'
+          }`}
+        >
+          <svg
+            className={`h-6 w-6 ${isActive('/explore') ? 'fill-current' : ''}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+          <span className="text-[10px] font-medium leading-none">Explore</span>
+        </Link>
+        <Link
           href="/upload"
           className={`flex flex-col items-center justify-center gap-0.5 flex-1 transition-colors duration-200 ${
             isActive('/upload')
