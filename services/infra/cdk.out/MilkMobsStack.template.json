@@ -2446,7 +2446,7 @@
         "DomainName"
        ]
       },
-      "BUILD_TIMESTAMP": "2025-12-06T00:47:38.892Z"
+      "BUILD_TIMESTAMP": "2025-12-06T00:57:07.991Z"
      }
     },
     "Handler": "index.handler",
@@ -4857,7 +4857,7 @@
    "Properties": {
     "Code": {
      "S3Bucket": "cdk-hnb659fds-assets-679729599398-us-east-1",
-     "S3Key": "7b5451c79bf8dcda147c550d9f3b1d1d9a7c09f0131843d11ff6729dd601543e.zip"
+     "S3Key": "23ce1f02e6bc84f2135a4159281dd356092df6ec50a2f08fcbe4930612038ffd.zip"
     },
     "Environment": {
      "Variables": {
@@ -4904,7 +4904,7 @@
    ],
    "Metadata": {
     "aws:cdk:path": "MilkMobsStack/ClusterEmbeddingsFn/Resource",
-    "aws:asset:path": "asset.7b5451c79bf8dcda147c550d9f3b1d1d9a7c09f0131843d11ff6729dd601543e",
+    "aws:asset:path": "asset.23ce1f02e6bc84f2135a4159281dd356092df6ec50a2f08fcbe4930612038ffd",
     "aws:asset:is-bundled": true,
     "aws:asset:property": "Code"
    }

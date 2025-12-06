@@ -183,8 +183,11 @@ export const handler = async (event: ScheduledEvent): Promise<void> => {
       return;
     }
 
-    // Run k-means clustering (k = 5, or adjust based on data size)
-    const k = Math.min(5, Math.max(2, Math.floor(videosWithEmbeddings.length / 3)));
+    // Run k-means clustering
+    // Determine k: use sqrt(n/2) as a heuristic, but at least 3 and at most 10
+    // Ensure minimum 3 mobs for good clustering
+    const k = Math.min(10, Math.max(3, Math.floor(Math.sqrt(videosWithEmbeddings.length / 2))));
+    console.log(`Running K-means with k=${k} on ${videosWithEmbeddings.length} videos`);
     const clusters = kMeans(videosWithEmbeddings, k);
 
     console.log(`Generated ${clusters.length} clusters`);
