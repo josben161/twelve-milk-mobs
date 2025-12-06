@@ -28,6 +28,8 @@ export interface ParticipationResult {
   highlights?: TimelineHighlight[]; // extracted highlights from video
   detectedText?: string[]; // All text detected in video (OCR)
   onScreenText?: string[]; // Text visible on screen (e.g., milk carton labels)
+  actions?: string[]; // Detected actions in the video
+  objectsScenes?: string[]; // Detected objects and scenes
   // Bedrock usage tracking
   bedrockUsage?: {
     inputTokens?: number;
@@ -130,6 +132,24 @@ export function createTwelveLabsClient(config: TwelveLabsConfig): TwelveLabsClie
         const detectedText: string[] | undefined = responseBody.detectedText ?? responseBody.text_detected;
         const onScreenText: string[] | undefined = responseBody.onScreenText ?? responseBody.on_screen_text;
 
+        // Parse actions and objects/scenes from response
+        // These may come in various formats from the API
+        const actions: string[] | undefined = responseBody.actions 
+          ? (Array.isArray(responseBody.actions) ? responseBody.actions : [responseBody.actions])
+          : responseBody.detectedActions
+          ? (Array.isArray(responseBody.detectedActions) ? responseBody.detectedActions : [responseBody.detectedActions])
+          : highlights
+          ? highlights.map(h => h.description).filter(Boolean)
+          : undefined;
+
+        const objectsScenes: string[] | undefined = responseBody.objectsScenes
+          ? (Array.isArray(responseBody.objectsScenes) ? responseBody.objectsScenes : [responseBody.objectsScenes])
+          : responseBody.objects
+          ? (Array.isArray(responseBody.objects) ? responseBody.objects : [responseBody.objects])
+          : responseBody.scenes
+          ? (Array.isArray(responseBody.scenes) ? responseBody.scenes : [responseBody.scenes])
+          : undefined;
+
         return {
           participationScore: responseBody.participationScore ?? responseBody.score ?? 0.7,
           mentionsMilk: responseBody.mentionsMilk ?? responseBody.detected_mentions ?? false,
@@ -139,6 +159,8 @@ export function createTwelveLabsClient(config: TwelveLabsConfig): TwelveLabsClie
           highlights,
           detectedText,
           onScreenText,
+          actions,
+          objectsScenes,
           bedrockUsage: inputTokens !== undefined || outputTokens !== undefined ? {
             inputTokens,
             outputTokens,
@@ -234,6 +256,15 @@ function fallbackParticipationAnalysis(videoId: string, hashtags: string[]): Par
     { timestamp: 20, description: 'Campaign moment', score: 0.9 },
   ];
 
+  // Generate sample actions and objects/scenes for fallback
+  const actions: string[] = showsActionAligned 
+    ? ['Drinking milk', 'Pouring milk', 'Holding milk container']
+    : ['General action', 'Movement'];
+  
+  const objectsScenes: string[] = showsMilkObject
+    ? ['Milk carton', 'Dairy product', 'Kitchen scene']
+    : ['Indoor scene', 'General setting'];
+
   return {
     participationScore,
     mentionsMilk,
@@ -243,6 +274,8 @@ function fallbackParticipationAnalysis(videoId: string, hashtags: string[]): Par
     highlights,
     detectedText: hasMilkHashtags ? ['Got Milk', 'Milk Mob'] : undefined,
     onScreenText: showsMilkObject ? ['Milk Carton', 'Dairy Product'] : undefined,
+    actions,
+    objectsScenes,
   };
 }
 

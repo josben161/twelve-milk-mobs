@@ -259,27 +259,44 @@ async function validateVideo(videoId: string, participationScore?: number): Prom
   });
 
   // Update video status and validation results in DynamoDB
+  const validatedAt = new Date().toISOString();
+  const updateExpression = status === 'validated'
+    ? `
+        SET #status = :status,
+            validationScore = :validationScore,
+            validationReasons = :reasons,
+            validationBreakdown = :breakdown,
+            validatedAt = :validatedAt
+      `
+    : `
+        SET #status = :status,
+            validationScore = :validationScore,
+            validationReasons = :reasons,
+            validationBreakdown = :breakdown
+      `;
+  
+  const expressionAttributeValues: Record<string, any> = {
+    ':status': { S: status },
+    ':validationScore': { N: calculatedScore.toString() },
+    ':reasons': { SS: reasons },
+    ':breakdown': { S: breakdownJson },
+  };
+  
+  if (status === 'validated') {
+    expressionAttributeValues[':validatedAt'] = { S: validatedAt };
+  }
+
   await ddb.send(
     new UpdateItemCommand({
       TableName: tableName,
       Key: {
         videoId: { S: videoId },
       },
-      UpdateExpression: `
-        SET #status = :status,
-            validationScore = :validationScore,
-            validationReasons = :reasons,
-            validationBreakdown = :breakdown
-      `,
+      UpdateExpression: updateExpression,
       ExpressionAttributeNames: {
         '#status': 'status',
       },
-      ExpressionAttributeValues: {
-        ':status': { S: status },
-        ':validationScore': { N: calculatedScore.toString() },
-        ':reasons': { SS: reasons },
-        ':breakdown': { S: breakdownJson },
-      },
+      ExpressionAttributeValues: expressionAttributeValues,
     })
   );
 

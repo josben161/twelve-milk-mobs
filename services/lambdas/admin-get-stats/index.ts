@@ -51,11 +51,14 @@ export const handler: APIGatewayProxyHandlerV2 = async () => {
       else if (status === 'processing') processing++;
       else uploaded++;
 
-      // Get validation score (prefer participationScore, fallback to validationScore)
-      const score = item.participationScore?.N
-        ? parseFloat(item.participationScore.N)
-        : item.validationScore?.N
-        ? parseFloat(item.validationScore.N)
+      // Get validation score - only count validated videos for average
+      // Prefer validationScore (calculated score), fallback to participationScore
+      const score = status === 'validated'
+        ? (item.validationScore?.N
+            ? parseFloat(item.validationScore.N)
+            : item.participationScore?.N
+            ? parseFloat(item.participationScore.N)
+            : null)
         : null;
 
       if (score !== null) {
@@ -66,12 +69,15 @@ export const handler: APIGatewayProxyHandlerV2 = async () => {
       // Calculate time to validate (if status is validated and we have timestamps)
       if (status === 'validated' && item.createdAt?.S) {
         const createdAt = new Date(item.createdAt.S).getTime();
-        // Try to find when status changed to validated
-        // For now, we'll use a placeholder - in production, you'd track status change timestamps
-        // This is a simplified version
-        const now = Date.now();
-        const timeToValidate = (now - createdAt) / 1000; // seconds
-        if (timeToValidate > 0 && timeToValidate < 86400 * 7) { // Within 7 days
+        // Use validatedAt timestamp if available, otherwise fall back to current time
+        const validatedAtStr = item.validatedAt?.S;
+        const validatedAt = validatedAtStr 
+          ? new Date(validatedAtStr).getTime()
+          : Date.now();
+        
+        const timeToValidate = (validatedAt - createdAt) / 1000; // seconds
+        // Only include reasonable times (positive and less than 7 days)
+        if (timeToValidate > 0 && timeToValidate < 86400 * 7) {
           validationTimes.push(timeToValidate);
         }
       }

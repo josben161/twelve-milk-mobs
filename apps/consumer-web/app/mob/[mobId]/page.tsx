@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { use, useEffect, useState } from 'react';
 import type { MobSummary, VideoSummary } from '@twelve/core-types';
 import { VideoThumbnailCard } from '@/components/explore';
+import { JoinMobButton } from '@/components/ui/JoinMobButton';
 import { getApiBase } from '@/lib/api';
 
 export default function MobFeedPage({
@@ -90,13 +91,21 @@ export default function MobFeedPage({
           <p className="text-base mb-3" style={{ color: 'var(--text-muted)' }}>
             {mob.description}
           </p>
-          <div className="flex items-center gap-4 text-sm" style={{ color: 'var(--text-muted)' }}>
-            <span>
-              <span className="font-semibold" style={{ color: 'var(--text)' }}>
-                {mob.videoCount}
-              </span>{' '}
-              videos
-            </span>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-4 text-sm" style={{ color: 'var(--text-muted)' }}>
+              <span>
+                <span className="font-semibold" style={{ color: 'var(--text)' }}>
+                  {mob.videoCount}
+                </span>{' '}
+                videos
+              </span>
+            </div>
+            <JoinMobButton 
+              mobId={mob.id} 
+              mobName={mob.name}
+              variant="default"
+              size="lg"
+            />
           </div>
           {mob.exampleHashtags && mob.exampleHashtags.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-4">

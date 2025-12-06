@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { MobBadge } from './MobBadge';
+import { JoinMobButton } from '@/components/ui/JoinMobButton';
 import type { VideoSummary } from '@twelve/core-types';
 
 interface VideoThumbnailCardProps {
@@ -21,7 +22,7 @@ export function VideoThumbnailCard({ video, mobName, similarityScore, onClick }:
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group relative block w-full aspect-[4/5] rounded-xl overflow-hidden border border-[var(--border-subtle)] bg-[var(--bg-soft)] transition-all duration-300 hover:border-[var(--accent)]/50 hover:shadow-xl hover:scale-[1.02]"
+      className="group relative block w-full h-full rounded-xl overflow-hidden border border-[var(--border-subtle)] bg-[var(--bg-soft)] transition-all duration-300 hover:border-[var(--accent)]/50 hover:shadow-xl hover:scale-[1.02]"
     >
       {/* Thumbnail */}
       <div className="absolute inset-0">
@@ -56,6 +57,19 @@ export function VideoThumbnailCard({ video, mobName, similarityScore, onClick }:
             </div>
           )}
         </div>
+
+        {/* Join Mob Button - Prominent on hover */}
+        {video.mobId && (
+          <div className={`transform transition-all duration-300 ${isHovered ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'} mb-2`}>
+            <JoinMobButton 
+              mobId={video.mobId} 
+              mobName={mobName}
+              variant="compact"
+              size="sm"
+              className="w-full justify-center"
+            />
+          </div>
+        )}
 
         {/* Bottom Info */}
         <div className={`transform transition-all duration-300 ${isHovered ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'}`}>

@@ -406,8 +406,9 @@ async function runKMeansClustering(
   }
   
   // Step 2: Run K-means clustering
-  // Determine k: use sqrt(n/2) as a heuristic, but at least 2 and at most 10
-  const k = Math.min(10, Math.max(2, Math.floor(Math.sqrt(candidateVideos.length / 2))));
+  // Determine k: use sqrt(n/2) as a heuristic, but at least 3 and at most 10
+  // Ensure minimum 3 mobs for good clustering
+  const k = Math.min(10, Math.max(3, Math.floor(Math.sqrt(candidateVideos.length / 2))));
   console.log(`Running K-means with k=${k} on ${candidateVideos.length} videos`);
   
   const clusters = kMeans(candidateVideos, k, 10);
@@ -453,6 +454,24 @@ async function clusterVideo(videoId: string): Promise<string> {
 
   if (!videoResult.Item) {
     throw new Error(`Video ${videoId} not found`);
+  }
+
+  // Only cluster validated videos - rejections should not be in mobs
+  const status = videoResult.Item.status?.S;
+  if (status !== 'validated') {
+    console.log(`Video ${videoId} has status '${status}', skipping clustering. Rejected/processing videos should not be in mobs.`);
+    // Remove mobId if video is rejected
+    if (status === 'rejected' && videoResult.Item.mobId?.S) {
+      await ddb.send(
+        new UpdateItemCommand({
+          TableName: videosTableName,
+          Key: { videoId: { S: videoId } },
+          UpdateExpression: 'REMOVE mobId',
+        })
+      );
+      console.log(`Removed mobId from rejected video ${videoId}`);
+    }
+    throw new Error(`Video ${videoId} is not validated (status: ${status}). Only validated videos can be clustered.`);
   }
 
   const hashtags = videoResult.Item.hashtags?.SS || [];

@@ -139,12 +139,18 @@ export const handler = async (event: ScheduledEvent): Promise<void> => {
   console.log('Starting batch clustering job');
 
   try {
-    // Scan all videos with embeddings
+    // Scan all validated videos with embeddings (exclude rejected/processing)
     const scanResult = await ddb.send(
       new ScanCommand({
         TableName: videosTableName,
         ProjectionExpression: 'videoId, userId, embedding, hashtags, mobId',
-        FilterExpression: 'attribute_exists(embedding)',
+        FilterExpression: 'attribute_exists(embedding) AND #status = :status',
+        ExpressionAttributeNames: {
+          '#status': 'status',
+        },
+        ExpressionAttributeValues: {
+          ':status': { S: 'validated' },
+        },
       })
     );
 

@@ -63,7 +63,9 @@ export const handler = async (
             embeddingDim = :embeddingDim,
             timeline = :timeline,
             detectedText = :detectedText,
-            onScreenText = :onScreenText
+            onScreenText = :onScreenText,
+            actions = :actions,
+            objectsScenes = :objectsScenes
       `,
       ExpressionAttributeValues: {
         ':score': { N: participation.participationScore.toString() },
@@ -79,6 +81,12 @@ export const handler = async (
           : { NULL: true },
         ':onScreenText': participation.onScreenText && participation.onScreenText.length > 0 
           ? { SS: participation.onScreenText } 
+          : { NULL: true },
+        ':actions': participation.actions && participation.actions.length > 0
+          ? { SS: participation.actions }
+          : { NULL: true },
+        ':objectsScenes': participation.objectsScenes && participation.objectsScenes.length > 0
+          ? { SS: participation.objectsScenes }
           : { NULL: true },
       },
     })

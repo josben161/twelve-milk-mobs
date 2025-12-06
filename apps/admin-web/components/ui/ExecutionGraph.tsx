@@ -217,8 +217,8 @@ export function ExecutionGraph({ steps, executionStatus }: ExecutionGraphProps) 
   const { nodes: computedNodes, edges: computedEdges } = useMemo(() => {
     const nodeWidth = 200;
     const nodeHeight = 80;
-    const horizontalSpacing = 250;
-    const verticalSpacing = 150;
+    const horizontalSpacing = 350; // Increased from 250 to prevent overlap
+    const verticalSpacing = 200; // Increased from 150 to prevent overlap
 
     const nodes: Node[] = [];
     const edges: Edge[] = [];
@@ -350,7 +350,7 @@ export function ExecutionGraph({ steps, executionStatus }: ExecutionGraphProps) 
       } else if (isParallel) {
         // Parallel branch nodes - TwelveLabs services
         const branchX = (x - 1) * horizontalSpacing;
-        const branchY = y * verticalSpacing + (stepDef.id === 'PegasusTask' ? -100 : 100);
+        const branchY = y * verticalSpacing + (stepDef.id === 'PegasusTask' ? -120 : 120); // Increased offset to prevent overlap
         nodes.push({
           id: stepDef.id,
           type: 'default',
@@ -372,8 +372,14 @@ export function ExecutionGraph({ steps, executionStatus }: ExecutionGraphProps) 
             boxShadow: '0 4px 6px -1px rgba(99, 102, 241, 0.1), 0 2px 4px -1px rgba(99, 102, 241, 0.06)',
           },
         });
+        // Don't increment x or y for parallel branches - they're positioned relative to parent
       } else {
-        // Regular sequential nodes
+        // Regular sequential nodes - move to next column after parallel branches merge
+        // If we just processed MergeResults (which comes after parallel), ensure proper spacing
+        if (stepDef.id === 'MergeResults') {
+          x++; // Move to next column for merge
+          y++; // Move down to align with merge point
+        }
         nodes.push({
           id: stepDef.id,
           type: 'default',

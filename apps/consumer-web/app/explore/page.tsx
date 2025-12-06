@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { ExploreGrid, SimilarVideosSection } from '@/components/explore';
+import { JoinMobButton } from '@/components/ui/JoinMobButton';
 import { getApiBase } from '@/lib/api';
 import type { VideoSummary, MobSummary } from '@twelve/core-types';
 
@@ -95,44 +96,56 @@ export default function ExplorePage() {
         </p>
       </div>
 
-      {/* Featured Mobs Section */}
+      {/* Featured Mobs Section - Integrated into grid */}
       {mobs.length > 0 && (
-        <div className="mb-8">
+        <div className="mb-6">
           <div className="px-4 mb-4">
             <h2 className="text-lg font-semibold text-[var(--text)]">Featured Mobs</h2>
             <p className="text-xs text-[var(--text-muted)] mt-1">
               Groups of similar videos powered by TwelveLabs Marengo
             </p>
           </div>
-          <div className="flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide">
-            {mobs.slice(0, 5).map((mob) => (
-              <a
-                key={mob.id}
-                href={`/mob/${mob.id}`}
-                className="flex-shrink-0 w-48 rounded-xl border border-[var(--border-subtle)] bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 p-4 hover:border-[var(--accent)]/50 hover:shadow-lg transition-all duration-200"
-              >
-                <div className="text-2xl font-bold mb-1 text-[var(--text)]">{mob.videoCount}</div>
-                <div className="text-sm font-semibold mb-1 text-[var(--text)]">{mob.name}</div>
-                <div className="text-xs text-[var(--text-muted)] line-clamp-2 mb-3">{mob.description}</div>
-                {mob.exampleHashtags && mob.exampleHashtags.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {mob.exampleHashtags.slice(0, 3).map((tag, idx) => (
-                      <span
-                        key={idx}
-                        className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--accent-soft)] text-[var(--accent)]"
-                      >
-                        {tag}
-                      </span>
-                    ))}
+          <div className="columns-2 sm:columns-3 md:columns-4 lg:columns-5 gap-3 px-4">
+            {mobs.slice(0, 5).map((mob, idx) => {
+              // Vary mob card sizes
+              const heightClass = idx % 3 === 0 ? 'h-56' : idx % 3 === 1 ? 'h-48' : 'h-64';
+              return (
+                <div
+                  key={mob.id}
+                  className={`mb-3 break-inside-avoid rounded-xl border border-[var(--border-subtle)] bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 p-4 hover:border-[var(--accent)]/50 hover:shadow-lg transition-all duration-200 flex flex-col ${heightClass}`}
+                >
+                  <div className="text-2xl font-bold mb-1 text-[var(--text)]">{mob.videoCount}</div>
+                  <div className="text-sm font-semibold mb-1 text-[var(--text)]">{mob.name}</div>
+                  <div className="text-xs text-[var(--text-muted)] line-clamp-2 mb-3 flex-1">{mob.description}</div>
+                  {mob.exampleHashtags && mob.exampleHashtags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {mob.exampleHashtags.slice(0, 3).map((tag, idx) => (
+                        <span
+                          key={idx}
+                          className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--accent-soft)] text-[var(--accent)]"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <div className="mt-auto">
+                    <JoinMobButton 
+                      mobId={mob.id} 
+                      mobName={mob.name}
+                      variant="default"
+                      size="sm"
+                      className="w-full justify-center"
+                    />
                   </div>
-                )}
-              </a>
-            ))}
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
 
-      {/* Main Video Grid */}
+      {/* Main Video Grid - Seamless masonry layout */}
       <div className="mb-8">
         <div className="px-4 mb-4">
           <h2 className="text-lg font-semibold text-[var(--text)]">All Videos</h2>

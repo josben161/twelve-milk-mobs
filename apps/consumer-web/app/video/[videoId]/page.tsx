@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { use, useEffect, useState } from 'react';
 import type { VideoDetail, VideoSummary } from '@twelve/core-types';
-import { StatusPill, VideoPlayer } from '@/components/ui';
+import { StatusPill, VideoPlayer, JoinMobButton } from '@/components/ui';
 import { SimilarVideosSection } from '@/components/explore';
 import { getApiBase } from '@/lib/api';
 
@@ -382,22 +382,21 @@ export default function VideoDetailPage({
               <h2 className="text-lg font-semibold mb-4" style={{ color: 'var(--text)' }}>
                 Part of a Mob
               </h2>
-              <Link
-                href={`/mob/${video.mobId}`}
-                className="block rounded-xl border border-[var(--border-subtle)] bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 p-4 hover:border-[var(--accent)]/50 hover:shadow-lg transition-all duration-200"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-sm font-medium text-[var(--text-muted)] mb-1">Explore this mob</div>
-                    <div className="text-base font-semibold text-[var(--text)]">
-                      {mobNames[video.mobId] || 'Mob'}
-                    </div>
+              <div className="flex flex-col gap-3">
+                <div className="rounded-xl border border-[var(--border-subtle)] bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 p-4">
+                  <div className="text-sm font-medium text-[var(--text-muted)] mb-1">Explore this mob</div>
+                  <div className="text-base font-semibold text-[var(--text)] mb-3">
+                    {mobNames[video.mobId] || 'Mob'}
                   </div>
-                  <svg className="w-5 h-5 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
+                  <JoinMobButton 
+                    mobId={video.mobId} 
+                    mobName={mobNames[video.mobId]}
+                    variant="default"
+                    size="md"
+                    className="w-full justify-center"
+                  />
                 </div>
-              </Link>
+              </div>
             </div>
           </div>
         )}
