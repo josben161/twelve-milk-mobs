@@ -1,5 +1,11 @@
 import type { ScheduledEvent } from 'aws-lambda';
 import { DynamoDBClient, ScanCommand, UpdateItemCommand, PutItemCommand, GetItemCommand } from '@aws-sdk/client-dynamodb';
+import { OpenSearchClient, VideoWithEmbedding } from '../shared/opensearch-client';
+import { 
+  buildClustersFromSimilarityGraph, 
+  openSearchBasedClustering,
+  type Cluster 
+} from '../shared/clustering-utils';
 
 const videosTableName = process.env.VIDEOS_TABLE_NAME!;
 const mobsTableName = process.env.MOBS_TABLE_NAME!;
@@ -7,22 +13,8 @@ const mobsTableName = process.env.MOBS_TABLE_NAME!;
 const ddb = new DynamoDBClient({});
 
 /**
- * Simple k-means clustering implementation
- * For production, consider using a library like ml-kmeans or AWS SageMaker
+ * Fallback K-means clustering (used if OpenSearch unavailable)
  */
-interface VideoWithEmbedding {
-  videoId: string;
-  userId: string;
-  embedding: number[];
-  hashtags: string[];
-}
-
-interface Cluster {
-  centroid: number[];
-  videos: VideoWithEmbedding[];
-  mobId: string;
-}
-
 function calculateCentroid(embeddings: number[][]): number[] {
   if (embeddings.length === 0) return [];
   
@@ -54,7 +46,7 @@ function euclideanDistance(a: number[], b: number[]): number {
   return Math.sqrt(sum);
 }
 
-function kMeans(videos: VideoWithEmbedding[], k: number, maxIterations: number = 10): Cluster[] {
+function kMeansFallback(videos: VideoWithEmbedding[], k: number, maxIterations: number = 10): Cluster[] {
   if (videos.length === 0) return [];
   if (videos.length < k) k = videos.length;
   
@@ -139,58 +131,103 @@ export const handler = async (event: ScheduledEvent): Promise<void> => {
   console.log('Starting batch clustering job');
 
   try {
-    // Scan all validated videos with embeddings (exclude rejected/processing)
-    const scanResult = await ddb.send(
-      new ScanCommand({
-        TableName: videosTableName,
-        ProjectionExpression: 'videoId, userId, embedding, hashtags, mobId',
-        FilterExpression: 'attribute_exists(embedding) AND #status = :status',
-        ExpressionAttributeNames: {
-          '#status': 'status',
-        },
-        ExpressionAttributeValues: {
-          ':status': { S: 'validated' },
-        },
-      })
-    );
+    const opensearchClient = new OpenSearchClient();
+    let videosWithEmbeddings: VideoWithEmbedding[] = [];
+    let clusters: Cluster[] = [];
 
-    const videosWithEmbeddings: VideoWithEmbedding[] = [];
-
-    for (const item of scanResult.Items || []) {
-      const embeddingStr = item.embedding?.S;
-      if (!embeddingStr) continue;
-
-      let embedding: number[];
+    // Try to use OpenSearch first
+    if (opensearchClient.isAvailable()) {
       try {
-        embedding = JSON.parse(embeddingStr);
-      } catch (e) {
-        console.warn(`Invalid embedding for video ${item.videoId?.S}:`, e);
-        continue;
+        console.log('Using OpenSearch for clustering');
+        videosWithEmbeddings = await opensearchClient.getAllVideosWithEmbeddings();
+        console.log(`Found ${videosWithEmbeddings.length} videos with embeddings from OpenSearch`);
+
+        if (videosWithEmbeddings.length === 0) {
+          console.log('No videos to cluster');
+          return;
+        }
+
+        // Use similarity graph for small datasets, similarity-based for larger
+        const similarityThreshold = 0.7;
+        if (videosWithEmbeddings.length < 20) {
+          console.log(`Small dataset (${videosWithEmbeddings.length} videos), using similarity graph clustering`);
+          clusters = await buildClustersFromSimilarityGraph(
+            videosWithEmbeddings,
+            opensearchClient,
+            similarityThreshold
+          );
+        } else {
+          console.log(`Larger dataset (${videosWithEmbeddings.length} videos), using similarity-based clustering`);
+          clusters = await openSearchBasedClustering(
+            videosWithEmbeddings,
+            opensearchClient,
+            similarityThreshold
+          );
+        }
+
+        console.log(`Generated ${clusters.length} clusters using OpenSearch`);
+      } catch (opensearchError) {
+        console.warn('OpenSearch clustering failed, falling back to DynamoDB + K-means:', opensearchError);
+        // Fall through to DynamoDB + K-means fallback
+      }
+    }
+
+    // Fallback to DynamoDB scan + K-means if OpenSearch unavailable or failed
+    if (clusters.length === 0) {
+      console.log('Using DynamoDB scan + K-means fallback');
+      const scanResult = await ddb.send(
+        new ScanCommand({
+          TableName: videosTableName,
+          ProjectionExpression: 'videoId, userId, embedding, hashtags, mobId',
+          FilterExpression: 'attribute_exists(embedding) AND #status = :status',
+          ExpressionAttributeNames: {
+            '#status': 'status',
+          },
+          ExpressionAttributeValues: {
+            ':status': { S: 'validated' },
+          },
+        })
+      );
+
+      videosWithEmbeddings = [];
+
+      for (const item of scanResult.Items || []) {
+        const embeddingStr = item.embedding?.S;
+        if (!embeddingStr) continue;
+
+        let embedding: number[];
+        try {
+          embedding = JSON.parse(embeddingStr);
+        } catch (e) {
+          console.warn(`Invalid embedding for video ${item.videoId?.S}:`, e);
+          continue;
+        }
+
+        videosWithEmbeddings.push({
+          videoId: item.videoId?.S || '',
+          userId: item.userId?.S || '',
+          embedding,
+          hashtags: item.hashtags?.SS || [],
+        });
       }
 
-      videosWithEmbeddings.push({
-        videoId: item.videoId?.S || '',
-        userId: item.userId?.S || '',
-        embedding,
-        hashtags: item.hashtags?.SS || [],
-      });
+      console.log(`Found ${videosWithEmbeddings.length} videos with embeddings from DynamoDB`);
+
+      if (videosWithEmbeddings.length === 0) {
+        console.log('No videos to cluster');
+        return;
+      }
+
+      // Run K-means fallback with adaptive k
+      // For small datasets, use smaller k
+      const k = videosWithEmbeddings.length < 10
+        ? Math.max(1, Math.floor(videosWithEmbeddings.length / 2))
+        : Math.min(10, Math.max(3, Math.floor(Math.sqrt(videosWithEmbeddings.length / 2))));
+      console.log(`Running K-means fallback with k=${k} on ${videosWithEmbeddings.length} videos`);
+      clusters = kMeansFallback(videosWithEmbeddings, k);
+
+      console.log(`Generated ${clusters.length} clusters using K-means fallback`);
     }
-
-    console.log(`Found ${videosWithEmbeddings.length} videos with embeddings`);
-
-    if (videosWithEmbeddings.length === 0) {
-      console.log('No videos to cluster');
-      return;
-    }
-
-    // Run k-means clustering
-    // Determine k: use sqrt(n/2) as a heuristic, but at least 3 and at most 10
-    // Ensure minimum 3 mobs for good clustering
-    const k = Math.min(10, Math.max(3, Math.floor(Math.sqrt(videosWithEmbeddings.length / 2))));
-    console.log(`Running K-means with k=${k} on ${videosWithEmbeddings.length} videos`);
-    const clusters = kMeans(videosWithEmbeddings, k);
-
-    console.log(`Generated ${clusters.length} clusters`);
 
     // Update videos with mobId and upsert mob summaries
     for (const cluster of clusters) {

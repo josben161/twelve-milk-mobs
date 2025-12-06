@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { ScatterChart, Scatter, XAxis, YAxis, ZAxis, Tooltip, ResponsiveContainer, Cell, Legend } from 'recharts';
+import { useMemo, useState, useCallback } from 'react';
+import { ScatterChart, Scatter, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, Shape } from 'recharts';
 import { projectTo2D, getMobColor, type Point2D } from '@/lib/clustering';
 import Link from 'next/link';
 
@@ -13,6 +13,8 @@ interface VideoEmbedding {
   thumbnailUrl?: string;
 }
 
+type DisplayMode = 'always' | 'hover' | 'dots';
+
 interface ClusterMapProps {
   videos: VideoEmbedding[];
   mobNames?: Record<string, string>;
@@ -23,11 +25,25 @@ interface ClusterMapProps {
 export function ClusterMap({ videos, mobNames = {}, height = 500, showLabels = false }: ClusterMapProps) {
   const [selectedMob, setSelectedMob] = useState<string | null>(null);
   const [hoveredPoint, setHoveredPoint] = useState<Point2D | null>(null);
+  const [displayMode, setDisplayMode] = useState<DisplayMode>('always');
+  const [thumbnailSize, setThumbnailSize] = useState<'small' | 'medium' | 'large'>('medium');
+  const [showUnassigned, setShowUnassigned] = useState(true);
 
-  // Project embeddings to 2D
+  // Project embeddings to 2D (memoized for performance)
   const points = useMemo(() => {
     if (videos.length === 0) return [];
-    return projectTo2D(videos);
+    try {
+      return projectTo2D(videos);
+    } catch (error) {
+      console.error('PCA projection failed:', error);
+      // Fallback to simple projection if PCA fails
+      return videos.map((v, idx) => ({
+        x: (idx % 10) * 60 - 270,
+        y: Math.floor(idx / 10) * 60 - 270,
+        videoId: v.videoId,
+        mobId: v.mobId,
+      }));
+    }
   }, [videos]);
 
   // Group points by mob
@@ -76,13 +92,102 @@ export function ClusterMap({ videos, mobNames = {}, height = 500, showLabels = f
     );
   }
 
+  // Thumbnail size mapping
+  const thumbnailSizes = {
+    small: 32,
+    medium: 48,
+    large: 64,
+  };
+
+  const currentThumbnailSize = thumbnailSizes[thumbnailSize];
+
+  // Create video lookup map for performance
+  const videoMap = useMemo(() => {
+    const map = new Map<string, VideoEmbedding>();
+    videos.forEach(v => map.set(v.videoId, v));
+    return map;
+  }, [videos]);
+
+  // Create thumbnail shape component (memoized)
+  const createThumbnailShape = useCallback((color: string, opacity: number) => {
+    return (props: any) => {
+      const { cx, cy, payload } = props;
+      const video = videoMap.get(payload.videoId);
+      const showThumbnail = displayMode === 'always' || (displayMode === 'hover' && hoveredPoint?.videoId === payload.videoId);
+      
+      if (!showThumbnail || !video?.thumbnailUrl) {
+        // Fallback to colored circle
+        return (
+          <circle
+            cx={cx}
+            cy={cy}
+            r={6}
+            fill={color}
+            fillOpacity={opacity}
+            stroke={color}
+            strokeWidth={2}
+            style={{ cursor: 'pointer' }}
+          />
+        );
+      }
+
+      const size = currentThumbnailSize;
+      const clipId = `clip-${payload.videoId}`;
+      
+      return (
+        <g>
+          <defs>
+            <clipPath id={clipId}>
+              <circle cx={cx} cy={cy} r={size / 2} />
+            </clipPath>
+          </defs>
+          <image
+            x={cx - size / 2}
+            y={cy - size / 2}
+            width={size}
+            height={size}
+            href={video.thumbnailUrl}
+            clipPath={`url(#${clipId})`}
+            style={{ cursor: 'pointer' }}
+            onError={(e: any) => {
+              // Fallback if image fails to load
+              e.target.style.display = 'none';
+            }}
+          />
+          <circle
+            cx={cx}
+            cy={cy}
+            r={size / 2 + 2}
+            fill="none"
+            stroke={color}
+            strokeWidth={2}
+            opacity={opacity}
+            style={{ cursor: 'pointer' }}
+          />
+        </g>
+      );
+    };
+  }, [videoMap, displayMode, hoveredPoint, currentThumbnailSize]);
+
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const point = payload[0].payload as Point2D;
-      const video = videos.find(v => v.videoId === point.videoId);
+      const video = videoMap.get(point.videoId);
       
       return (
-        <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-lg p-3 shadow-lg">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-lg p-3 shadow-lg max-w-xs">
+          {video?.thumbnailUrl && (
+            <div className="mb-2">
+              <img
+                src={video.thumbnailUrl}
+                alt="Video thumbnail"
+                className="w-full h-32 object-cover rounded"
+                onError={(e: any) => {
+                  e.target.style.display = 'none';
+                }}
+              />
+            </div>
+          )}
           <div className="text-sm font-semibold text-[var(--text)] mb-1">
             {video?.userHandle ? `@${video.userHandle}` : point.videoId.slice(0, 8)}
           </div>
@@ -91,15 +196,25 @@ export function ClusterMap({ videos, mobNames = {}, height = 500, showLabels = f
               Mob: {mobNames[point.mobId] || point.mobId}
             </div>
           )}
-          <div className="text-xs text-[var(--text-soft)]">
+          <div className="text-xs text-[var(--text-soft)] mb-2">
             Video ID: {point.videoId.slice(0, 12)}...
           </div>
-          <Link
-            href={`/videos/${point.videoId}`}
-            className="text-xs text-[var(--accent)] hover:underline mt-2 inline-block"
-          >
-            View details →
-          </Link>
+          <div className="flex gap-2">
+            <Link
+              href={`/videos/${point.videoId}`}
+              className="text-xs text-[var(--accent)] hover:underline"
+            >
+              View video →
+            </Link>
+            {point.mobId && (
+              <Link
+                href={`/mobs/${point.mobId}`}
+                className="text-xs text-[var(--accent)] hover:underline"
+              >
+                View mob →
+              </Link>
+            )}
+          </div>
         </div>
       );
     }
@@ -122,6 +237,50 @@ export function ClusterMap({ videos, mobNames = {}, height = 500, showLabels = f
           <p className="text-xs text-[var(--text-muted)]">
             {videos.length} videos projected to 2D using PCA • Interactive cluster map showing embedding similarity
           </p>
+        </div>
+        
+        {/* Display Controls */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2">
+            <label className="text-xs text-[var(--text-muted)]">Display:</label>
+            <select
+              value={displayMode}
+              onChange={(e) => setDisplayMode(e.target.value as DisplayMode)}
+              className="text-xs px-2 py-1 rounded border border-[var(--border-subtle)] bg-[var(--bg-soft)] text-[var(--text)]"
+            >
+              <option value="always">Always</option>
+              <option value="hover">On Hover</option>
+              <option value="dots">Dots Only</option>
+            </select>
+          </div>
+          
+          {displayMode !== 'dots' && (
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-[var(--text-muted)]">Size:</label>
+              <select
+                value={thumbnailSize}
+                onChange={(e) => setThumbnailSize(e.target.value as 'small' | 'medium' | 'large')}
+                className="text-xs px-2 py-1 rounded border border-[var(--border-subtle)] bg-[var(--bg-soft)] text-[var(--text)]"
+              >
+                <option value="small">Small</option>
+                <option value="medium">Medium</option>
+                <option value="large">Large</option>
+              </select>
+            </div>
+          )}
+          
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="show-unassigned"
+              checked={showUnassigned}
+              onChange={(e) => setShowUnassigned(e.target.checked)}
+              className="w-3 h-3 rounded border-[var(--border-subtle)]"
+            />
+            <label htmlFor="show-unassigned" className="text-xs text-[var(--text-muted)] cursor-pointer">
+              Show unassigned
+            </label>
+          </div>
         </div>
       </div>
 
@@ -156,13 +315,17 @@ export function ClusterMap({ videos, mobNames = {}, height = 500, showLabels = f
               
               if (!isSelected) return null;
               
+              const opacity = selectedMob === mobId ? 0.8 : 0.6;
+              const ThumbnailShape = createThumbnailShape(color, opacity);
+              
               return (
                 <Scatter
                   key={mobId}
                   name={mobNames[mobId] || mobId}
                   data={mobPoints}
                   fill={color}
-                  fillOpacity={selectedMob === mobId ? 0.8 : 0.6}
+                  fillOpacity={opacity}
+                  shape={displayMode === 'dots' ? undefined : <ThumbnailShape />}
                   onMouseEnter={(data: any) => {
                     if (data && data.payload) {
                       setHoveredPoint(data.payload);
@@ -174,12 +337,13 @@ export function ClusterMap({ videos, mobNames = {}, height = 500, showLabels = f
             })}
             
             {/* Unassigned videos */}
-            {mobGroups.unassigned.length > 0 && selectedMob === null && (
+            {mobGroups.unassigned.length > 0 && selectedMob === null && showUnassigned && (
               <Scatter
                 name="Unassigned"
                 data={mobGroups.unassigned}
                 fill="#9ca3af"
                 fillOpacity={0.4}
+                shape={displayMode === 'dots' ? undefined : createThumbnailShape('#9ca3af', 0.4)}
                 onMouseEnter={(data: any) => {
                   if (data && data.payload) {
                     setHoveredPoint(data.payload);

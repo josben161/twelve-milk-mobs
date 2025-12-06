@@ -1,5 +1,7 @@
 import type { APIGatewayProxyHandlerV2, Context } from 'aws-lambda';
 import { DynamoDBClient, GetItemCommand, UpdateItemCommand, PutItemCommand, ScanCommand } from '@aws-sdk/client-dynamodb';
+import { OpenSearchClient, VideoWithEmbedding } from '../shared/opensearch-client';
+import { calculateCentroid, generateMobIdFromHashtags } from '../shared/clustering-utils';
 
 const videosTableName = process.env.VIDEOS_TABLE_NAME!;
 const mobsTableName = process.env.MOBS_TABLE_NAME!;
@@ -195,8 +197,22 @@ async function updateMobCentroid(mobId: string, centroid: number[]): Promise<voi
 
 /**
  * Fetch videos with embeddings for clustering
+ * Uses OpenSearch if available, falls back to DynamoDB scan
  */
 async function fetchVideosWithEmbeddings(mobId?: string | null): Promise<VideoWithEmbedding[]> {
+  const opensearchClient = new OpenSearchClient();
+  
+  // Try OpenSearch first
+  if (opensearchClient.isAvailable()) {
+    try {
+      return await opensearchClient.getAllVideosWithEmbeddings(mobId || undefined);
+    } catch (err) {
+      console.warn('OpenSearch fetch failed, falling back to DynamoDB:', err);
+      // Fall through to DynamoDB
+    }
+  }
+  
+  // Fallback to DynamoDB scan
   const videos: VideoWithEmbedding[] = [];
   
   try {
@@ -204,8 +220,6 @@ async function fetchVideosWithEmbeddings(mobId?: string | null): Promise<VideoWi
     
     if (mobId) {
       // Fetch videos from specific mob
-      // Note: This requires a GSI on mobId if we want efficient queries
-      // For now, we'll scan and filter
       scanResult = await ddb.send(
         new ScanCommand({
           TableName: videosTableName,
@@ -360,14 +374,102 @@ async function upsertMob(mobId: string, exampleHashtags: string[]): Promise<void
 }
 
 /**
- * Run on-demand K-means clustering
+ * Run on-demand similarity-based clustering using OpenSearch
  */
-async function runKMeansClustering(
+async function runOpenSearchClustering(
+  currentVideoEmbedding: number[],
+  currentVideoId: string,
+  currentVideoHashtags: string[],
+  existingMobId?: string | null
+): Promise<string> {
+  console.log(`Running on-demand OpenSearch clustering for video ${currentVideoId}`);
+  
+  const opensearchClient = new OpenSearchClient();
+  
+  // Try OpenSearch first
+  if (opensearchClient.isAvailable()) {
+    try {
+      // Query OpenSearch k-NN to find similar videos
+      const similarityThreshold = 0.7;
+      const similarVideos = await opensearchClient.queryKNN(
+        currentVideoEmbedding,
+        Math.min(50, 100), // Get up to 50 similar videos
+        {
+          minScore: similarityThreshold,
+          excludeVideoId: currentVideoId,
+          filterMobId: existingMobId || undefined,
+        }
+      );
+      
+      console.log(`Found ${similarVideos.length} similar videos from OpenSearch`);
+      
+      if (similarVideos.length === 0) {
+        // No similar videos found, create new mob or use keyword-based
+        console.log('No similar videos found, using keyword-based clustering');
+        return determineMobIdByKeywords(currentVideoHashtags, [], []);
+      }
+      
+      // Find the most similar video's mob, or create cluster from similar videos
+      const topSimilar = similarVideos[0];
+      
+      // If top similar video has a mob and similarity is high, join that mob
+      if (topSimilar.mobId && topSimilar.score >= 0.8) {
+        console.log(`High similarity (${topSimilar.score}) to mob ${topSimilar.mobId}, joining that mob`);
+        return topSimilar.mobId;
+      }
+      
+      // Otherwise, build a cluster from similar videos
+      const clusterVideos: VideoWithEmbedding[] = [
+        {
+          videoId: currentVideoId,
+          userId: '', // Will be updated later
+          embedding: currentVideoEmbedding,
+          hashtags: currentVideoHashtags,
+        },
+      ];
+      
+      // Add similar videos to cluster
+      for (const similar of similarVideos.slice(0, 10)) {
+        if (similar.score >= similarityThreshold) {
+          clusterVideos.push({
+            videoId: similar.videoId,
+            userId: similar.userId,
+            embedding: similar.embedding,
+            hashtags: similar.hashtags,
+            mobId: similar.mobId,
+          });
+        }
+      }
+      
+      // Generate mob ID from cluster hashtags
+      const mobId = generateMobIdFromHashtags(clusterVideos);
+      const centroid = calculateCentroid(clusterVideos.map(v => v.embedding));
+      
+      // Update mob centroid
+      await updateMobCentroid(mobId, centroid);
+      console.log(`Created/updated mob ${mobId} with centroid`);
+      
+      return mobId;
+    } catch (err) {
+      console.warn('OpenSearch clustering failed, falling back to K-means:', err);
+      // Fall through to K-means fallback
+    }
+  }
+  
+  // Fallback to K-means if OpenSearch unavailable
+  console.log('Using K-means fallback for clustering');
+  return await runKMeansFallback(currentVideoEmbedding, currentVideoId, existingMobId);
+}
+
+/**
+ * Fallback K-means clustering (used if OpenSearch unavailable)
+ */
+async function runKMeansFallback(
   currentVideoEmbedding: number[],
   currentVideoId: string,
   existingMobId?: string | null
 ): Promise<string> {
-  console.log(`Running on-demand K-means clustering for video ${currentVideoId}`);
+  console.log(`Running K-means fallback clustering for video ${currentVideoId}`);
   
   // Step 1: Fetch existing videos with embeddings
   let candidateVideos = await fetchVideosWithEmbeddings(existingMobId);
@@ -405,11 +507,11 @@ async function runKMeansClustering(
     return 'misc_milk_mob'; // Fallback
   }
   
-  // Step 2: Run K-means clustering
-  // Determine k: use sqrt(n/2) as a heuristic, but at least 3 and at most 10
-  // Ensure minimum 3 mobs for good clustering
-  const k = Math.min(10, Math.max(3, Math.floor(Math.sqrt(candidateVideos.length / 2))));
-  console.log(`Running K-means with k=${k} on ${candidateVideos.length} videos`);
+  // Step 2: Run K-means clustering with adaptive k
+  const k = candidateVideos.length < 10
+    ? Math.max(1, Math.floor(candidateVideos.length / 2))
+    : Math.min(10, Math.max(3, Math.floor(Math.sqrt(candidateVideos.length / 2))));
+  console.log(`Running K-means fallback with k=${k} on ${candidateVideos.length} videos`);
   
   const clusters = kMeans(candidateVideos, k, 10);
   
@@ -482,16 +584,16 @@ async function clusterVideo(videoId: string): Promise<string> {
 
   let mobId: string;
 
-  // Try K-means clustering if embedding available
+  // Try OpenSearch similarity clustering if embedding available
   if (embeddingStr) {
     try {
       const embedding = JSON.parse(embeddingStr);
       if (Array.isArray(embedding) && embedding.length > 0) {
         try {
-          mobId = await runKMeansClustering(embedding, videoId, existingMobId);
-          console.log(`Assigned video ${videoId} to mob ${mobId} using K-means clustering`);
-        } catch (kmeansError) {
-          console.warn(`K-means clustering failed for ${videoId}, using keyword-based clustering:`, kmeansError);
+          mobId = await runOpenSearchClustering(embedding, videoId, hashtags, existingMobId);
+          console.log(`Assigned video ${videoId} to mob ${mobId} using OpenSearch similarity clustering`);
+        } catch (clusteringError) {
+          console.warn(`OpenSearch clustering failed for ${videoId}, using keyword-based clustering:`, clusteringError);
           mobId = determineMobIdByKeywords(hashtags, actions, objectsScenes);
         }
       } else {
