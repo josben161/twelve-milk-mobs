@@ -660,6 +660,20 @@ export class MilkMobsStack extends cdk.Stack {
 
     clusteringRule.addTarget(new eventTargets.LambdaFunction(clusterEmbeddingsFn));
 
+    // Admin trigger clustering Lambda (allows manual triggering of batch clustering)
+    const adminTriggerClusteringFn = new lambdaNodejs.NodejsFunction(this, 'AdminTriggerClusteringFn', {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'handler',
+      entry: path.join(__dirname, '../../lambdas/admin-trigger-clustering/index.ts'),
+      environment: {
+        CLUSTER_EMBEDDINGS_FUNCTION_NAME: clusterEmbeddingsFn.functionName,
+      },
+      timeout: cdk.Duration.seconds(30),
+    });
+
+    // Grant permission to invoke cluster-embeddings Lambda
+    clusterEmbeddingsFn.grantInvoke(adminTriggerClusteringFn);
+
     // 6) API Gateway REST API
     const api = new apigw.RestApi(this, 'MilkMobsApi', {
       restApiName: 'Milk Mobs API',
@@ -731,6 +745,13 @@ export class MilkMobsStack extends cdk.Stack {
     const adminEmbeddings = admin.addResource('embeddings');
     adminEmbeddings.addMethod('GET', new apigw.LambdaIntegration(adminGetEmbeddingsFn), {
       methodResponses: [{ statusCode: '200' }],
+    });
+
+    // POST /admin/cluster/trigger
+    const adminCluster = admin.addResource('cluster');
+    const adminClusterTrigger = adminCluster.addResource('trigger');
+    adminClusterTrigger.addMethod('POST', new apigw.LambdaIntegration(adminTriggerClusteringFn), {
+      methodResponses: [{ statusCode: '200' }, { statusCode: '500' }],
     });
 
     // GET /mobs

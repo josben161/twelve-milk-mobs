@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Panel, EmptyState, ClusterMap } from '@/components/ui';
-import { getApiBase, getEmbeddings, type VideoEmbedding } from '@/lib/api';
+import { getApiBase, getEmbeddings, triggerRecluster, type VideoEmbedding } from '@/lib/api';
 import type { MobSummary } from '@twelve/core-types';
 
 export default function MobsPage() {
@@ -13,6 +13,8 @@ export default function MobsPage() {
   const [loading, setLoading] = useState(true);
   const [loadingEmbeddings, setLoadingEmbeddings] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [clustering, setClustering] = useState(false);
+  const [clusterMessage, setClusterMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
     const fetchMobs = async () => {
@@ -61,6 +63,63 @@ export default function MobsPage() {
     fetchEmbeddings();
   }, []);
 
+  const handleRecluster = async () => {
+    if (clustering) return;
+    
+    setClustering(true);
+    setClusterMessage(null);
+    
+    try {
+      const result = await triggerRecluster();
+      setClusterMessage({ type: 'success', text: result.message || 'Batch clustering job triggered successfully. This may take a few minutes to complete.' });
+      
+      // Refresh data after a short delay to allow clustering to start
+      setTimeout(() => {
+        // Refresh mobs
+        const fetchMobs = async () => {
+          try {
+            const apiBase = getApiBase();
+            const res = await fetch(`${apiBase}/mobs`);
+            if (res.ok) {
+              const data = await res.json();
+              setMobs(data.mobs || []);
+              
+              // Build mob names map
+              const names: Record<string, string> = {};
+              (data.mobs || []).forEach((mob: MobSummary) => {
+                names[mob.id] = mob.name;
+              });
+              setMobNames(names);
+            }
+          } catch (err) {
+            console.error('Error refreshing mobs:', err);
+          }
+        };
+        
+        // Refresh embeddings
+        const fetchEmbeddings = async () => {
+          try {
+            const data = await getEmbeddings(undefined, 500);
+            setEmbeddings(data.videos || []);
+          } catch (err) {
+            console.error('Error refreshing embeddings:', err);
+          }
+        };
+        
+        fetchMobs();
+        fetchEmbeddings();
+      }, 2000);
+    } catch (err) {
+      console.error('Error triggering clustering:', err);
+      setClusterMessage({ 
+        type: 'error', 
+        text: err instanceof Error ? err.message : 'Failed to trigger clustering job' 
+      });
+    } finally {
+      setClustering(false);
+    }
+  };
+
   // Calculate summary stats
   const totalVideos = mobs.reduce((sum, mob) => sum + mob.videoCount, 0);
   const totalMobs = mobs.length;
@@ -70,12 +129,58 @@ export default function MobsPage() {
   return (
     <div className="w-full space-y-10">
       {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-semibold mb-3 text-[var(--text)]">Milk Mobs</h1>
-        <p className="text-sm text-[var(--text-muted)] leading-relaxed">
-          Video clusters segmented by activity, location, and vibe using TwelveLabs Marengo embeddings. Users can explore similar videos within each mob.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold mb-3 text-[var(--text)]">Milk Mobs</h1>
+          <p className="text-sm text-[var(--text-muted)] leading-relaxed">
+            Video clusters segmented by activity, location, and vibe using TwelveLabs Marengo embeddings. Users can explore similar videos within each mob.
+          </p>
+        </div>
+        <button
+          onClick={handleRecluster}
+          disabled={clustering}
+          className="px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md hover:shadow-lg disabled:shadow-md flex items-center gap-2"
+        >
+          {clustering ? (
+            <>
+              <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>Re-clustering...</span>
+            </>
+          ) : (
+            <>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span>Re-cluster Videos</span>
+            </>
+          )}
+        </button>
       </div>
+
+      {/* Clustering Status Message */}
+      {clusterMessage && (
+        <div className={`p-4 rounded-lg border ${
+          clusterMessage.type === 'success' 
+            ? 'bg-green-50 border-green-200 text-green-800' 
+            : 'bg-red-50 border-red-200 text-red-800'
+        }`}>
+          <div className="flex items-start gap-2">
+            {clusterMessage.type === 'success' ? (
+              <svg className="w-5 h-5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            )}
+            <p className="text-sm font-medium">{clusterMessage.text}</p>
+          </div>
+        </div>
+      )}
 
       {/* Clustering Visualization */}
       {!loadingEmbeddings && embeddings.length > 0 && (

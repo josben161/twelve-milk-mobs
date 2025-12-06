@@ -2,6 +2,7 @@ import type { APIGatewayProxyHandlerV2, Context } from 'aws-lambda';
 import { DynamoDBClient, GetItemCommand, UpdateItemCommand, PutItemCommand, ScanCommand } from '@aws-sdk/client-dynamodb';
 import { OpenSearchClient, VideoWithEmbedding } from '../shared/opensearch-client';
 import { calculateCentroid, generateMobIdFromContent } from '../shared/clustering-utils';
+import { generateMobNameFromId, generateMobDescriptionFromId } from '../shared/mob-naming';
 
 const videosTableName = process.env.VIDEOS_TABLE_NAME!;
 const mobsTableName = process.env.MOBS_TABLE_NAME!;
@@ -290,55 +291,6 @@ function determineMobIdByKeywords(hashtags: string[], actions: string[], objects
 
   // Default mob
   return 'misc_milk_mob';
-}
-
-/**
- * Generate human-readable mob name from mob ID
- * Converts "skate_drink_skatepark_0" to "Skate & Drink at Skatepark"
- */
-function generateMobNameFromId(mobId: string): string {
-  // Remove numeric cluster index suffix (e.g., "_0", "_1")
-  const parts = mobId.split('_').filter(p => !/^\d+$/.test(p));
-  
-  if (parts.length === 0) {
-    return 'Misc Milk Mob';
-  }
-  
-  // Capitalize first letter of each part
-  const capitalized = parts.map(part => {
-    // Handle special cases
-    if (part === 'misc' || part === 'milk') {
-      return part.charAt(0).toUpperCase() + part.slice(1);
-    }
-    return part.charAt(0).toUpperCase() + part.slice(1);
-  });
-  
-  // Join with " & " for actions/scenes, or " at " for location
-  // Simple heuristic: if we have 2+ parts, join first parts with " & " and last with " at "
-  if (capitalized.length === 1) {
-    return capitalized[0] + ' Mob';
-  } else if (capitalized.length === 2) {
-    return `${capitalized[0]} & ${capitalized[1]}`;
-  } else {
-    // For 3+ parts, assume last is location
-    const actions = capitalized.slice(0, -1).join(' & ');
-    const location = capitalized[capitalized.length - 1];
-    return `${actions} at ${location}`;
-  }
-}
-
-/**
- * Generate mob description from mob ID
- */
-function generateMobDescriptionFromId(mobId: string): string {
-  const parts = mobId.split('_').filter(p => !/^\d+$/.test(p));
-  
-  if (parts.length === 0) {
-    return 'General milk-related content and everyday moments';
-  }
-  
-  const capitalized = parts.map(part => part.charAt(0).toUpperCase() + part.slice(1));
-  return `Videos featuring ${capitalized.join(', ')}`;
 }
 
 /**

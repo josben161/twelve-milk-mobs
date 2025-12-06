@@ -196,3 +196,17 @@ export async function getEmbeddings(mobId?: string, limit?: number): Promise<{ v
   return res.json();
 }
 
+export async function triggerRecluster(): Promise<{ success: boolean; message: string; statusCode?: number }> {
+  const apiBase = getApiBase();
+  const res = await fetch(`${apiBase}/admin/cluster/trigger`, {
+    method: 'POST',
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ error: 'Failed to trigger clustering' }));
+    throw new Error(errorData.error || errorData.message || `Failed to trigger clustering (${res.status})`);
+  }
+
+  return res.json();
+}
+

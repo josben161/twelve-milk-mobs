@@ -7,6 +7,7 @@ import {
   generateMobIdFromContent,
   type Cluster 
 } from '../shared/clustering-utils';
+import { generateMobNameFromId, generateMobDescriptionFromId } from '../shared/mob-naming';
 
 const videosTableName = process.env.VIDEOS_TABLE_NAME!;
 const mobsTableName = process.env.MOBS_TABLE_NAME!;
@@ -239,30 +240,38 @@ export const handler = async (event: ScheduledEvent): Promise<void> => {
       ).slice(0, 5);
 
       if (existingMob.Item) {
-        // Update existing mob
+        // Update existing mob (also update name/description in case they were created with old naming)
+        const mobName = generateMobNameFromId(cluster.mobId);
+        const mobDescription = generateMobDescriptionFromId(cluster.mobId);
         await ddb.send(
           new UpdateItemCommand({
             TableName: mobsTableName,
             Key: {
               mobId: { S: cluster.mobId },
             },
-            UpdateExpression: 'SET videoCount = :count, exampleHashtags = :hashtags',
+            UpdateExpression: 'SET videoCount = :count, exampleHashtags = :hashtags, #name = :name, description = :description',
+            ExpressionAttributeNames: {
+              '#name': 'name',
+            },
             ExpressionAttributeValues: {
               ':count': { N: videoCount.toString() },
               ':hashtags': { SS: exampleHashtags },
+              ':name': { S: mobName },
+              ':description': { S: mobDescription },
             },
           })
         );
       } else {
-        // Create new mob
-        const mobName = cluster.mobId.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+        // Create new mob with semantic name generation
+        const mobName = generateMobNameFromId(cluster.mobId);
+        const mobDescription = generateMobDescriptionFromId(cluster.mobId);
         await ddb.send(
           new PutItemCommand({
             TableName: mobsTableName,
             Item: {
               mobId: { S: cluster.mobId },
               name: { S: mobName },
-              description: { S: `Cluster of ${videoCount} similar videos` },
+              description: { S: mobDescription },
               videoCount: { N: videoCount.toString() },
               exampleHashtags: { SS: exampleHashtags },
             },

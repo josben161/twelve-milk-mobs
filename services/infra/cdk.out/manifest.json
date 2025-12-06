@@ -24,7 +24,7 @@
         "validateOnSynth": false,
         "assumeRoleArn": "arn:${AWS::Partition}:iam::679729599398:role/cdk-hnb659fds-deploy-role-679729599398-us-east-1",
         "cloudFormationExecutionRoleArn": "arn:${AWS::Partition}:iam::679729599398:role/cdk-hnb659fds-cfn-exec-role-679729599398-us-east-1",
-        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-679729599398-us-east-1/6bc0a3737c397678d5a031531a39e1d439140f4c2c3a6aa44ebfb82b690e297d.json",
+        "stackTemplateAssetObjectUrl": "s3://cdk-hnb659fds-assets-679729599398-us-east-1/c37aefd8a70b7a53c032cb85838570390bed5f3d075c75996b35d63de5d5f0b9.json",
         "requiresBootstrapStackVersion": 6,
         "bootstrapStackVersionSsmParameter": "/cdk-bootstrap/hnb659fds/version",
         "additionalDependencies": [
@@ -637,6 +637,24 @@
             "data": "ClusteringScheduleAllowEventRuleMilkMobsStackClusterEmbeddingsFnA7F1B5F81323C14D"
           }
         ],
+        "/MilkMobsStack/AdminTriggerClusteringFn/ServiceRole/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AdminTriggerClusteringFnServiceRole0406BF63"
+          }
+        ],
+        "/MilkMobsStack/AdminTriggerClusteringFn/ServiceRole/DefaultPolicy/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AdminTriggerClusteringFnServiceRoleDefaultPolicy28032A52"
+          }
+        ],
+        "/MilkMobsStack/AdminTriggerClusteringFn/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "AdminTriggerClusteringFn52BBF544"
+          }
+        ],
         "/MilkMobsStack/MilkMobsApi/Resource": [
           {
             "type": "aws:cdk:logicalId",
@@ -658,7 +676,7 @@
         "/MilkMobsStack/MilkMobsApi/Deployment/Resource": [
           {
             "type": "aws:cdk:logicalId",
-            "data": "MilkMobsApiDeployment87A47DF92cf89c3a2cad828f8ec7f88660df3c6a"
+            "data": "MilkMobsApiDeployment87A47DF971468b927af656ac9a953060e23a51f1"
           }
         ],
         "/MilkMobsStack/MilkMobsApi/DeploymentStage.prod/Resource": [
@@ -1001,6 +1019,48 @@
           {
             "type": "aws:cdk:logicalId",
             "data": "MilkMobsApiadminembeddingsGETC632E60E"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/admin/cluster/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApiadmincluster7F3B069B"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/admin/cluster/OPTIONS/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApiadminclusterOPTIONSDC38F06A"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/admin/cluster/trigger/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApiadminclustertriggerED39E752"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/admin/cluster/trigger/OPTIONS/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApiadminclustertriggerOPTIONS74A62ED2"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/admin/cluster/trigger/POST/ApiPermission.MilkMobsStackMilkMobsApi1ED7FB9D.POST..admin.cluster.trigger": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApiadminclustertriggerPOSTApiPermissionMilkMobsStackMilkMobsApi1ED7FB9DPOSTadminclustertrigger43B96936"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/admin/cluster/trigger/POST/ApiPermission.Test.MilkMobsStackMilkMobsApi1ED7FB9D.POST..admin.cluster.trigger": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApiadminclustertriggerPOSTApiPermissionTestMilkMobsStackMilkMobsApi1ED7FB9DPOSTadminclustertriggerDF2EB9C3"
+          }
+        ],
+        "/MilkMobsStack/MilkMobsApi/Default/admin/cluster/trigger/POST/Resource": [
+          {
+            "type": "aws:cdk:logicalId",
+            "data": "MilkMobsApiadminclustertriggerPOST03658FED"
           }
         ],
         "/MilkMobsStack/MilkMobsApi/Default/mobs/Resource": [
