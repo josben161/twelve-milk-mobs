@@ -113,16 +113,16 @@ export default function UploadPage() {
 
   // ✅ IG-style layout starts here
   return (
-    <div className="px-4 pb-24 pt-4 transition-colors duration-300">
-      <div className="mb-8">
+    <div className="pb-24 pt-2 transition-colors duration-300">
+      <div className="px-3 mb-4">
         <h1
-          className="mb-6 text-2xl font-bold tracking-tight transition-colors duration-300"
+          className="mb-1 text-xl font-bold tracking-tight transition-colors duration-300"
           style={{ color: 'var(--text)' }}
         >
           New Post
         </h1>
         <p
-          className="text-sm transition-colors duration-300"
+          className="text-xs transition-colors duration-300"
           style={{ color: 'var(--text-muted)' }}
         >
           Share a moment with your Milk Mob
@@ -145,14 +145,14 @@ export default function UploadPage() {
           </p>
         </div>
       ) : !result ? (
-        <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Video preview (4:5 like IG) */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Video preview (4:5 like IG) - Edge to edge */}
           <div
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
-            className="relative w-full overflow-hidden rounded-lg transition-all duration-200 cursor-pointer"
+            className="relative w-full overflow-hidden rounded-none transition-all duration-200 cursor-pointer"
             style={{
               borderWidth: file ? '2px' : '2px',
               borderStyle: file ? 'solid' : 'dashed',
@@ -205,16 +205,16 @@ export default function UploadPage() {
 
           {/* Tap / drag to select - subtle hint below preview */}
           <p
-            className="text-xs text-center mb-8 transition-colors duration-300"
+            className="text-xs text-center mb-4 transition-colors duration-300 px-3"
             style={{ color: 'var(--text-subtle)' }}
           >
             Tap to select or drag & drop
           </p>
 
           {/* Hashtags - Instagram style single line input */}
-          <div className="space-y-3">
+          <div className="space-y-2 px-3">
             <label
-              className="block text-sm font-medium transition-colors duration-300"
+              className="block text-xs font-medium transition-colors duration-300"
               style={{ color: 'var(--text)' }}
             >
               Hashtags
@@ -224,7 +224,7 @@ export default function UploadPage() {
               value={hashtags}
               onChange={(e) => setHashtags(e.target.value)}
               placeholder="#gotmilk #milkmob #skatepark"
-              className="w-full border-b border-t-0 border-l-0 border-r-0 px-0 py-3 text-sm transition-all duration-200 focus:outline-none focus:border-b-2 placeholder:opacity-60"
+              className="w-full border-b border-t-0 border-l-0 border-r-0 px-0 py-2 text-sm transition-all duration-200 focus:outline-none focus:border-b-2 placeholder:opacity-60"
               style={{
                 borderColor: 'var(--border-subtle)',
                 backgroundColor: 'transparent',
@@ -243,7 +243,7 @@ export default function UploadPage() {
 
             {error && (
               <div
-                className="rounded-lg border px-3 py-2 transition-colors duration-300"
+                className="rounded-sm border px-3 py-2 mx-3 transition-colors duration-300"
                 style={{
                   borderColor: 'rgba(239, 68, 68, 0.3)',
                   backgroundColor: 'rgba(239, 68, 68, 0.05)',
@@ -255,34 +255,36 @@ export default function UploadPage() {
               </div>
             )}
 
-            <button
-              type="submit"
-              disabled={loading || !file || hashtagList.length === 0}
-              className="w-full rounded-lg py-3 text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
-              style={{
-                backgroundColor: loading || !file || hashtagList.length === 0 
-                  ? 'var(--accent-soft)' 
-                  : 'var(--accent)',
-                color: 'white',
-              }}
-              onMouseEnter={(e) => {
-                if (!loading && file && hashtagList.length > 0) {
-                  e.currentTarget.style.backgroundColor = 'var(--accent-hover)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!loading && file && hashtagList.length > 0) {
-                  e.currentTarget.style.backgroundColor = 'var(--accent)';
-                }
-              }}
-            >
-              {loading ? 'Sharing…' : 'Share'}
-            </button>
+            <div className="px-3">
+              <button
+                type="submit"
+                disabled={loading || !file || hashtagList.length === 0}
+                className="w-full rounded-lg py-2.5 text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+                style={{
+                  backgroundColor: loading || !file || hashtagList.length === 0 
+                    ? 'var(--accent-soft)' 
+                    : 'var(--accent)',
+                  color: 'white',
+                }}
+                onMouseEnter={(e) => {
+                  if (!loading && file && hashtagList.length > 0) {
+                    e.currentTarget.style.backgroundColor = 'var(--accent-hover)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!loading && file && hashtagList.length > 0) {
+                    e.currentTarget.style.backgroundColor = 'var(--accent)';
+                  }
+                }}
+              >
+                {loading ? 'Sharing…' : 'Share'}
+              </button>
+            </div>
           </form>
         ) : (
           // Success view
           <Card
-            className="mt-4 space-y-4 p-6 transition-colors duration-300"
+            className="mx-3 mt-4 space-y-3 p-4 transition-colors duration-300"
             style={{
               borderColor: 'var(--border-subtle)',
               backgroundColor: 'var(--bg-soft)',

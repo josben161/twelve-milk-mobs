@@ -22,7 +22,7 @@ export function VideoThumbnailCard({ video, mobName, similarityScore, onClick }:
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group relative block w-full h-full rounded-xl overflow-hidden border border-[var(--border-subtle)] bg-[var(--bg-soft)] transition-all duration-300 hover:border-[var(--accent)]/50 hover:shadow-xl hover:scale-[1.02]"
+      className="group relative block w-full h-full rounded-sm overflow-hidden border border-[var(--border-subtle)] bg-[var(--bg-soft)] transition-all duration-300 hover:border-[var(--accent)]/50 hover:shadow-xl hover:scale-[1.01]"
     >
       {/* Thumbnail */}
       <div className="absolute inset-0">

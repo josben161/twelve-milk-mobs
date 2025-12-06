@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ExploreGrid, SimilarVideosSection } from '@/components/explore';
-import { JoinMobButton } from '@/components/ui/JoinMobButton';
+import { ExploreGrid } from '@/components/explore';
 import { getApiBase } from '@/lib/api';
 import type { VideoSummary, MobSummary } from '@twelve/core-types';
 
@@ -82,76 +81,22 @@ export default function ExplorePage() {
   }
 
   return (
-    <div className="pb-6 pt-4 transition-colors duration-300">
-      {/* Header */}
-      <div className="px-4 mb-6">
-        <div className="flex items-center gap-2 mb-2">
-          <h1 className="text-2xl font-bold text-[var(--text)]">Explore</h1>
+    <div className="pb-6 pt-2 transition-colors duration-300">
+      {/* Minimal Header */}
+      <div className="px-3 mb-2">
+        <div className="flex items-center gap-2 mb-1">
+          <h1 className="text-xl font-bold text-[var(--text)]">Explore</h1>
           <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-gradient-to-r from-indigo-500/20 to-purple-500/20 text-indigo-600 border border-indigo-500/30">
             Powered by TwelveLabs
           </span>
         </div>
-        <p className="text-sm text-[var(--text-muted)]">
-          Discover videos and join Milk Mobs based on similar content using AI-powered semantic search
+        <p className="text-xs text-[var(--text-muted)]">
+          Discover videos and join Milk Mobs
         </p>
       </div>
 
-      {/* Featured Mobs Section - Integrated into grid */}
-      {mobs.length > 0 && (
-        <div className="mb-6">
-          <div className="px-4 mb-4">
-            <h2 className="text-lg font-semibold text-[var(--text)]">Featured Mobs</h2>
-            <p className="text-xs text-[var(--text-muted)] mt-1">
-              Groups of similar videos powered by TwelveLabs Marengo
-            </p>
-          </div>
-          <div className="columns-2 sm:columns-3 md:columns-4 lg:columns-5 gap-3 px-4">
-            {mobs.slice(0, 5).map((mob, idx) => {
-              // Vary mob card sizes
-              const heightClass = idx % 3 === 0 ? 'h-56' : idx % 3 === 1 ? 'h-48' : 'h-64';
-              return (
-                <div
-                  key={mob.id}
-                  className={`mb-3 break-inside-avoid rounded-xl border border-[var(--border-subtle)] bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 p-4 hover:border-[var(--accent)]/50 hover:shadow-lg transition-all duration-200 flex flex-col ${heightClass}`}
-                >
-                  <div className="text-2xl font-bold mb-1 text-[var(--text)]">{mob.videoCount}</div>
-                  <div className="text-sm font-semibold mb-1 text-[var(--text)]">{mob.name}</div>
-                  <div className="text-xs text-[var(--text-muted)] line-clamp-2 mb-3 flex-1">{mob.description}</div>
-                  {mob.exampleHashtags && mob.exampleHashtags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-3">
-                      {mob.exampleHashtags.slice(0, 3).map((tag, idx) => (
-                        <span
-                          key={idx}
-                          className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--accent-soft)] text-[var(--accent)]"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  <div className="mt-auto">
-                    <JoinMobButton 
-                      mobId={mob.id} 
-                      mobName={mob.name}
-                      variant="default"
-                      size="sm"
-                      className="w-full justify-center"
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Main Video Grid - Seamless masonry layout */}
-      <div className="mb-8">
-        <div className="px-4 mb-4">
-          <h2 className="text-lg font-semibold text-[var(--text)]">All Videos</h2>
-        </div>
-        <ExploreGrid videos={videos} mobNames={mobNames} loading={loading} />
-      </div>
+      {/* Unified Grid - Mobs and Videos Mixed */}
+      <ExploreGrid videos={videos} mobs={mobs} mobNames={mobNames} loading={loading} />
     </div>
   );
 }
