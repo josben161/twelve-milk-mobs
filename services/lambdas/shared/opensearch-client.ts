@@ -10,6 +10,8 @@ export interface VideoWithEmbedding {
   hashtags: string[];
   mobId?: string | null;
   userHandle?: string;
+  actions?: string[];
+  objectsScenes?: string[];
 }
 
 export interface SimilarVideoResult {
@@ -20,6 +22,8 @@ export interface SimilarVideoResult {
   mobId: string | null;
   userHandle: string;
   score: number; // Similarity score from OpenSearch
+  actions?: string[];
+  objectsScenes?: string[];
 }
 
 /**
@@ -155,6 +159,8 @@ export class OpenSearchClient {
         mobId: doc.mobId || null,
         userHandle: doc.userHandle || doc.userId || 'unknown',
         score,
+        actions: doc.actions || [],
+        objectsScenes: doc.objectsScenes || [],
       });
     }
 
@@ -248,6 +254,8 @@ export class OpenSearchClient {
         hashtags: doc.hashtags || [],
         mobId: doc.mobId || null,
         userHandle: doc.userHandle || doc.userId || 'unknown',
+        actions: doc.actions || [],
+        objectsScenes: doc.objectsScenes || [],
       });
     }
 

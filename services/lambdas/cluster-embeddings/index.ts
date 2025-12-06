@@ -4,6 +4,7 @@ import { OpenSearchClient, VideoWithEmbedding } from '../shared/opensearch-clien
 import { 
   buildClustersFromSimilarityGraph, 
   openSearchBasedClustering,
+  generateMobIdFromContent,
   type Cluster 
 } from '../shared/clustering-utils';
 
@@ -104,24 +105,13 @@ function kMeansFallback(videos: VideoWithEmbedding[], k: number, maxIterations: 
     if (converged) break;
   }
   
-  // Generate meaningful mob IDs based on content
-  for (const cluster of clusters) {
+  // Generate meaningful mob IDs based on content (actions, objectsScenes, hashtags)
+  for (let i = 0; i < clusters.length; i++) {
+    const cluster = clusters[i];
     if (cluster.videos.length === 0) continue;
     
-    // Analyze hashtags to generate mob name
-    const allHashtags = cluster.videos.flatMap((v) => v.hashtags);
-    const hashtagCounts: Record<string, number> = {};
-    for (const tag of allHashtags) {
-      const normalized = tag.toLowerCase();
-      hashtagCounts[normalized] = (hashtagCounts[normalized] || 0) + 1;
-    }
-    
-    const topHashtag = Object.entries(hashtagCounts)
-      .sort(([, a], [, b]) => b - a)[0]?.[0] || 'misc';
-    
-    // Generate mob ID from top hashtag
-    const mobId = topHashtag.replace(/[^a-z0-9]/g, '_').substring(0, 20) || `mob_${cluster.mobId}`;
-    cluster.mobId = mobId;
+    // Use generateMobIdFromContent which uses actions/objectsScenes with hashtag fallback
+    cluster.mobId = generateMobIdFromContent(cluster.videos, i);
   }
   
   return clusters.filter((c) => c.videos.length > 0);
@@ -178,7 +168,7 @@ export const handler = async (event: ScheduledEvent): Promise<void> => {
       const scanResult = await ddb.send(
         new ScanCommand({
           TableName: videosTableName,
-          ProjectionExpression: 'videoId, userId, embedding, hashtags, mobId',
+          ProjectionExpression: 'videoId, userId, embedding, hashtags, mobId, actions, objectsScenes',
           FilterExpression: 'attribute_exists(embedding) AND #status = :status',
           ExpressionAttributeNames: {
             '#status': 'status',
@@ -208,6 +198,8 @@ export const handler = async (event: ScheduledEvent): Promise<void> => {
           userId: item.userId?.S || '',
           embedding,
           hashtags: item.hashtags?.SS || [],
+          actions: item.actions?.SS || [],
+          objectsScenes: item.objectsScenes?.SS || [],
         });
       }
 

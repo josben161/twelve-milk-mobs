@@ -29,26 +29,87 @@ export function calculateCentroid(embeddings: number[][]): number[] {
 }
 
 /**
- * Generate mob ID from cluster hashtags
+ * Generate mob ID from cluster content (activities, locations, etc.)
+ * This aligns with the brief: "similar activities, locations, etc."
+ * Uses actions and objectsScenes from Pegasus analysis, with hashtags as fallback
  */
-export function generateMobIdFromHashtags(cluster: VideoWithEmbedding[]): string {
-  if (cluster.length === 0) return 'misc_milk_mob';
+export function generateMobIdFromContent(
+  cluster: VideoWithEmbedding[],
+  clusterIndex: number
+): string {
+  if (cluster.length === 0) return `misc_milk_${clusterIndex}`;
   
-  // Analyze hashtags to generate mob name
-  const allHashtags = cluster.flatMap((v) => v.hashtags);
+  // Collect all actions and objects/scenes from cluster
+  const allActions = cluster.flatMap((v) => v.actions || []);
+  const allObjectsScenes = cluster.flatMap((v) => v.objectsScenes || []);
+  
+  // Count frequency of each action
+  const actionCounts: Record<string, number> = {};
+  for (const action of allActions) {
+    const normalized = action.toLowerCase().trim();
+    if (normalized) {
+      actionCounts[normalized] = (actionCounts[normalized] || 0) + 1;
+    }
+  }
+  
+  // Count frequency of each object/scene
+  const sceneCounts: Record<string, number> = {};
+  for (const scene of allObjectsScenes) {
+    const normalized = scene.toLowerCase().trim();
+    if (normalized) {
+      sceneCounts[normalized] = (sceneCounts[normalized] || 0) + 1;
+    }
+  }
+  
+  // Get top action and top scene
+  const topAction = Object.entries(actionCounts)
+    .sort(([, a], [, b]) => b - a)[0]?.[0];
+  const topScene = Object.entries(sceneCounts)
+    .sort(([, a], [, b]) => b - a)[0]?.[0];
+  
+  // Build mob ID: {action}_{scene}_{index}
+  // e.g., "skate_drink_skatepark_0", "study_cafe_1"
+  const parts: string[] = [];
+  
+  if (topAction) {
+    const actionPart = topAction.replace(/[^a-z0-9]/g, '_').substring(0, 12);
+    parts.push(actionPart);
+  }
+  
+  if (topScene) {
+    const scenePart = topScene.replace(/[^a-z0-9]/g, '_').substring(0, 12);
+    parts.push(scenePart);
+  }
+  
+  // If we have semantic content, use it
+  if (parts.length > 0) {
+    return `${parts.join('_')}_${clusterIndex}`;
+  }
+  
+  // Fallback to hashtags if actions/scenes are missing
+  const allHashtags = cluster.flatMap((v) => v.hashtags || []);
   const hashtagCounts: Record<string, number> = {};
   
   for (const tag of allHashtags) {
-    const normalized = tag.toLowerCase().replace(/^#/, '');
-    hashtagCounts[normalized] = (hashtagCounts[normalized] || 0) + 1;
+    const normalized = tag.toLowerCase().replace(/^#/, '').trim();
+    if (normalized) {
+      hashtagCounts[normalized] = (hashtagCounts[normalized] || 0) + 1;
+    }
   }
   
   const topHashtag = Object.entries(hashtagCounts)
     .sort(([, a], [, b]) => b - a)[0]?.[0] || 'misc';
   
-  // Generate mob ID from top hashtag
-  const mobId = topHashtag.replace(/[^a-z0-9]/g, '_').substring(0, 20) || 'misc_milk_mob';
-  return mobId;
+  const hashtagPart = topHashtag.replace(/[^a-z0-9]/g, '_').substring(0, 15);
+  return `${hashtagPart}_${clusterIndex}`;
+}
+
+/**
+ * Generate mob ID from cluster hashtags (legacy function, kept for backward compatibility)
+ * @deprecated Use generateMobIdFromContent instead
+ */
+export function generateMobIdFromHashtags(cluster: VideoWithEmbedding[]): string {
+  return generateMobIdFromContent(cluster, 0);
 }
 
 /**
@@ -119,11 +180,12 @@ export async function buildClustersFromSimilarityGraph(
   // Convert components to clusters
   const clusters: Cluster[] = [];
   
-  for (const component of components) {
+  for (let i = 0; i < components.length; i++) {
+    const component = components[i];
     if (component.length === 0) continue;
     
     const centroid = calculateCentroid(component.map((v) => v.embedding));
-    const mobId = generateMobIdFromHashtags(component);
+    const mobId = generateMobIdFromContent(component, i);
     
     clusters.push({
       centroid,
@@ -149,6 +211,7 @@ export async function openSearchBasedClustering(
   
   const clusters: Cluster[] = [];
   const assigned = new Set<string>();
+  let clusterIndex = 0;
   
   // Iterate through unassigned videos
   for (const video of videos) {
@@ -186,7 +249,8 @@ export async function openSearchBasedClustering(
       // Only create cluster if it has at least 2 videos (or allow singletons)
       if (cluster.length > 0) {
         const centroid = calculateCentroid(cluster.map((v) => v.embedding));
-        const mobId = generateMobIdFromHashtags(cluster);
+        const mobId = generateMobIdFromContent(cluster, clusterIndex);
+        clusterIndex++;
         
         clusters.push({
           centroid,
@@ -198,7 +262,8 @@ export async function openSearchBasedClustering(
       console.warn(`Failed to cluster video ${video.videoId}, creating singleton cluster:`, err);
       // Create singleton cluster as fallback
       const centroid = calculateCentroid([video.embedding]);
-      const mobId = generateMobIdFromHashtags([video]);
+      const mobId = generateMobIdFromContent([video], clusterIndex);
+      clusterIndex++;
       
       clusters.push({
         centroid,

@@ -1,7 +1,7 @@
 import type { APIGatewayProxyHandlerV2, Context } from 'aws-lambda';
 import { DynamoDBClient, GetItemCommand, UpdateItemCommand, PutItemCommand, ScanCommand } from '@aws-sdk/client-dynamodb';
 import { OpenSearchClient, VideoWithEmbedding } from '../shared/opensearch-client';
-import { calculateCentroid, generateMobIdFromHashtags } from '../shared/clustering-utils';
+import { calculateCentroid, generateMobIdFromContent } from '../shared/clustering-utils';
 
 const videosTableName = process.env.VIDEOS_TABLE_NAME!;
 const mobsTableName = process.env.MOBS_TABLE_NAME!;
@@ -11,13 +11,6 @@ const ddb = new DynamoDBClient({});
 /**
  * Simple k-means clustering implementation
  */
-interface VideoWithEmbedding {
-  videoId: string;
-  userId: string;
-  embedding: number[];
-  hashtags: string[];
-}
-
 interface Cluster {
   centroid: number[];
   videos: VideoWithEmbedding[];
@@ -113,24 +106,13 @@ function kMeans(videos: VideoWithEmbedding[], k: number, maxIterations: number =
     if (converged) break;
   }
   
-  // Generate meaningful mob IDs based on content
-  for (const cluster of clusters) {
+  // Generate meaningful mob IDs based on content (actions, objectsScenes, hashtags)
+  for (let i = 0; i < clusters.length; i++) {
+    const cluster = clusters[i];
     if (cluster.videos.length === 0) continue;
     
-    // Analyze hashtags to generate mob name
-    const allHashtags = cluster.videos.flatMap((v) => v.hashtags);
-    const hashtagCounts: Record<string, number> = {};
-    for (const tag of allHashtags) {
-      const normalized = tag.toLowerCase();
-      hashtagCounts[normalized] = (hashtagCounts[normalized] || 0) + 1;
-    }
-    
-    const topHashtag = Object.entries(hashtagCounts)
-      .sort(([, a], [, b]) => b - a)[0]?.[0] || 'misc';
-    
-    // Generate mob ID from top hashtag
-    const mobId = topHashtag.replace(/[^a-z0-9]/g, '_').substring(0, 20) || `mob_${cluster.mobId}`;
-    cluster.mobId = mobId;
+    // Use generateMobIdFromContent which uses actions/objectsScenes with hashtag fallback
+    cluster.mobId = generateMobIdFromContent(cluster.videos, i);
   }
   
   return clusters.filter((c) => c.videos.length > 0);
@@ -231,7 +213,7 @@ async function fetchVideosWithEmbeddings(mobId?: string | null): Promise<VideoWi
             ':mobId': { S: mobId },
             ':status': { S: 'validated' },
           },
-          ProjectionExpression: 'videoId, userId, embedding, hashtags',
+          ProjectionExpression: 'videoId, userId, embedding, hashtags, actions, objectsScenes',
         })
       );
     } else {
@@ -246,7 +228,7 @@ async function fetchVideosWithEmbeddings(mobId?: string | null): Promise<VideoWi
           ExpressionAttributeValues: {
             ':status': { S: 'validated' },
           },
-          ProjectionExpression: 'videoId, userId, embedding, hashtags',
+          ProjectionExpression: 'videoId, userId, embedding, hashtags, actions, objectsScenes',
         })
       );
     }
@@ -264,6 +246,8 @@ async function fetchVideosWithEmbeddings(mobId?: string | null): Promise<VideoWi
           userId: item.userId?.S || '',
           embedding,
           hashtags: item.hashtags?.SS || [],
+          actions: item.actions?.SS || [],
+          objectsScenes: item.objectsScenes?.SS || [],
         });
       } catch (e) {
         console.warn(`Failed to parse embedding for video ${item.videoId?.S}:`, e);
@@ -309,10 +293,60 @@ function determineMobIdByKeywords(hashtags: string[], actions: string[], objects
 }
 
 /**
+ * Generate human-readable mob name from mob ID
+ * Converts "skate_drink_skatepark_0" to "Skate & Drink at Skatepark"
+ */
+function generateMobNameFromId(mobId: string): string {
+  // Remove numeric cluster index suffix (e.g., "_0", "_1")
+  const parts = mobId.split('_').filter(p => !/^\d+$/.test(p));
+  
+  if (parts.length === 0) {
+    return 'Misc Milk Mob';
+  }
+  
+  // Capitalize first letter of each part
+  const capitalized = parts.map(part => {
+    // Handle special cases
+    if (part === 'misc' || part === 'milk') {
+      return part.charAt(0).toUpperCase() + part.slice(1);
+    }
+    return part.charAt(0).toUpperCase() + part.slice(1);
+  });
+  
+  // Join with " & " for actions/scenes, or " at " for location
+  // Simple heuristic: if we have 2+ parts, join first parts with " & " and last with " at "
+  if (capitalized.length === 1) {
+    return capitalized[0] + ' Mob';
+  } else if (capitalized.length === 2) {
+    return `${capitalized[0]} & ${capitalized[1]}`;
+  } else {
+    // For 3+ parts, assume last is location
+    const actions = capitalized.slice(0, -1).join(' & ');
+    const location = capitalized[capitalized.length - 1];
+    return `${actions} at ${location}`;
+  }
+}
+
+/**
+ * Generate mob description from mob ID
+ */
+function generateMobDescriptionFromId(mobId: string): string {
+  const parts = mobId.split('_').filter(p => !/^\d+$/.test(p));
+  
+  if (parts.length === 0) {
+    return 'General milk-related content and everyday moments';
+  }
+  
+  const capitalized = parts.map(part => part.charAt(0).toUpperCase() + part.slice(1));
+  return `Videos featuring ${capitalized.join(', ')}`;
+}
+
+/**
  * Get or create mob summary in MobsTable
  */
 async function upsertMob(mobId: string, exampleHashtags: string[]): Promise<void> {
-  const mobNames: Record<string, { name: string; description: string }> = {
+  // Check for legacy mob IDs first
+  const legacyMobNames: Record<string, { name: string; description: string }> = {
     skatepark: {
       name: 'Skatepark',
       description: 'Videos featuring skateboarding, tricks, and skatepark scenes',
@@ -327,9 +361,10 @@ async function upsertMob(mobId: string, exampleHashtags: string[]): Promise<void
     },
   };
 
-  const mobInfo = mobNames[mobId] || {
-    name: mobId,
-    description: 'A cluster of related videos',
+  // Use legacy names if available, otherwise generate from mob ID
+  const mobInfo = legacyMobNames[mobId] || {
+    name: generateMobNameFromId(mobId),
+    description: generateMobDescriptionFromId(mobId),
   };
 
   // Try to get existing mob
@@ -380,6 +415,8 @@ async function runOpenSearchClustering(
   currentVideoEmbedding: number[],
   currentVideoId: string,
   currentVideoHashtags: string[],
+  currentVideoActions: string[],
+  currentVideoObjectsScenes: string[],
   existingMobId?: string | null
 ): Promise<string> {
   console.log(`Running on-demand OpenSearch clustering for video ${currentVideoId}`);
@@ -425,6 +462,8 @@ async function runOpenSearchClustering(
           userId: '', // Will be updated later
           embedding: currentVideoEmbedding,
           hashtags: currentVideoHashtags,
+          actions: currentVideoActions,
+          objectsScenes: currentVideoObjectsScenes,
         },
       ];
       
@@ -437,12 +476,15 @@ async function runOpenSearchClustering(
             embedding: similar.embedding,
             hashtags: similar.hashtags,
             mobId: similar.mobId,
+            actions: similar.actions,
+            objectsScenes: similar.objectsScenes,
           });
         }
       }
       
-      // Generate mob ID from cluster hashtags
-      const mobId = generateMobIdFromHashtags(clusterVideos);
+      // Generate mob ID from cluster content (actions, objectsScenes, hashtags)
+      // Use 0 as cluster index for on-demand clusters (they're created individually)
+      const mobId = generateMobIdFromContent(clusterVideos, 0);
       const centroid = calculateCentroid(clusterVideos.map(v => v.embedding));
       
       // Update mob centroid
@@ -483,12 +525,12 @@ async function runKMeansFallback(
   // Add current video to candidate set if not already included
   const currentVideoInSet = candidateVideos.some(v => v.videoId === currentVideoId);
   if (!currentVideoInSet) {
-    // We need to get the current video's hashtags and userId
+    // We need to get the current video's hashtags, userId, actions, and objectsScenes
     const currentVideoResult = await ddb.send(
       new GetItemCommand({
         TableName: videosTableName,
         Key: { videoId: { S: currentVideoId } },
-        ProjectionExpression: 'userId, hashtags',
+        ProjectionExpression: 'userId, hashtags, actions, objectsScenes',
       })
     );
     
@@ -498,6 +540,8 @@ async function runKMeansFallback(
         userId: currentVideoResult.Item.userId?.S || '',
         embedding: currentVideoEmbedding,
         hashtags: currentVideoResult.Item.hashtags?.SS || [],
+        actions: currentVideoResult.Item.actions?.SS || [],
+        objectsScenes: currentVideoResult.Item.objectsScenes?.SS || [],
       });
     }
   }
@@ -590,7 +634,7 @@ async function clusterVideo(videoId: string): Promise<string> {
       const embedding = JSON.parse(embeddingStr);
       if (Array.isArray(embedding) && embedding.length > 0) {
         try {
-          mobId = await runOpenSearchClustering(embedding, videoId, hashtags, existingMobId);
+          mobId = await runOpenSearchClustering(embedding, videoId, hashtags, actions, objectsScenes, existingMobId);
           console.log(`Assigned video ${videoId} to mob ${mobId} using OpenSearch similarity clustering`);
         } catch (clusteringError) {
           console.warn(`OpenSearch clustering failed for ${videoId}, using keyword-based clustering:`, clusteringError);
