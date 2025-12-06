@@ -61,7 +61,11 @@ export function ExploreGrid({ videos, mobs = [], mobNames = {}, similarityScores
     // Simple shuffle: swap every 3rd item with a random item
     for (let i = 2; i < items.length; i += 3) {
       const j = Math.floor(Math.random() * items.length);
-      [items[i], items[j]] = [items[j], items[i]];
+      if (i < items.length && j < items.length) {
+        const temp = items[i]!;
+        items[i] = items[j]!;
+        items[j] = temp;
+      }
     }
     
     return items;
